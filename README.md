@@ -11,7 +11,7 @@ INPUT CSV FORMAT:
 ..etc
 
 #Bugs
-* None reported.
+* service-provider entity types from Crunchbase appear shifted in the results without header row values.  (Example: Lockerz,  http://lockerz.com/)
 
 
 #Near Term Changes

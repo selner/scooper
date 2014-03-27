@@ -16,36 +16,27 @@
  */
 
 require_once dirname(__FILE__).'/plugin-base.php';
+require_once dirname(__FILE__).'../../include/APICallWrapperClass.php';
 
-
-function addToAccuracyField(&$arrRecord, $strValueToAdd)
-{
-    $strNewValue = "";
-
-    if(isRecordFieldNullOrNotSet($arrRecord['result_accuracy']) == true)
-    {
-        $strNewValue = $strValueToAdd;
-    }
-    else
-    {
-        $strNewValue = $arrRecord['result_accuracy'] . " | ". $strValueToAdd;
-    }
-    $arrRecord['result_accuracy'] = $strNewValue;
-}
 
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
-/****         Quantcast Plugin Class                                                                         ****/
+/****         Basic Plugin Class                                                                         ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-class BasicFactsPluginClass extends SitePluginBaseClass
+class BasicFactsPluginClass extends ScooterPluginBaseClass
 {
     private $_data_type = null;
+    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+
+
 
     function __construct($data_type)
     {
+        $this->strDataProviderName = "Basic Web Facts";
         $this->setDataType($data_type);
+        // if($fVarExclude == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
     }
 
     function setDataType($data_type)
@@ -75,7 +66,7 @@ class BasicFactsPluginClass extends SitePluginBaseClass
                         $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
                         $arrRecordsToProcess[$nRow]['actual_site_url'] = $strCurInputDataRecord[4];
                         $arrRecordsToProcess[$nRow]['effective_domain'] = $strCurInputDataRecord[3];
-                        $arrRecordsToProcess[$nRow]['result_accuracy'] = $strCurInputDataRecord[2];
+                        $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = $strCurInputDataRecord[2];
                         $arrRecordsToProcess[$nRow]['input_source_url'] = $arrRecordsToProcess[$nRow]['actual_site_url'];
                         __debug__printLine("Found full basic data in row#".$nRow.": ".$arrRecordsToProcess[$nRow]['company_name'].': '.$arrRecordsToProcess[$nRow]['actual_site_url'], C__DISPLAY_ITEM_START__);
                         continue;
@@ -85,16 +76,25 @@ class BasicFactsPluginClass extends SitePluginBaseClass
                         throw new Exception('Error processing input CSV.  Does not have valid basic facts columns.');
                     }
                     break;
+
+
                 case 'LOOKUP_BY_NAME':
                     $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
                     $strMessage = $arrRecordsToProcess[$nRow]['company_name'];
                     //
                     // If there is a second column in the input data, let's assume that's a URL column and add it to the input source data URL field
                     //
-                    if(count($strCurInputDataRecord) >= 2)
+                    if(count($strCurInputDataRecord) >= 2 and !isRecordFieldNullOrNotSet($strCurInputDataRecord[1])) // it's not "N/A" or empty
                     {
-                           $arrRecordsToProcess[$nRow]['input_source_url'] = $strCurInputDataRecord[0];
-                           $strMessage = $strMessage . " (URL: " . $arrRecordsToProcess[$nRow]['input_source_url'];
+                        assert(strlen($strCurInputDataRecord[1]) > 0);
+                        $arrRecordsToProcess[$nRow]['input_source_url'] = $strCurInputDataRecord[1];
+                    }
+                    else
+                    {
+                        //
+                        // The input URL was missing or invalid.  Set it to N/A so we are sure later it was invalid
+                        //
+                        $arrRecordsToProcess[$nRow]['input_source_url'] = 'N/A';
                     }
 
                     __debug__printLine("Getting basic data for row#".$nRow.": ".$strMessage, C__DISPLAY_ITEM_START__);
@@ -107,12 +107,12 @@ class BasicFactsPluginClass extends SitePluginBaseClass
                     break;
 
                 default:
-                    echo "Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL;
-                    exit(-1);
+                    exit ("Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL);
                     break;
             }
 
             $this->addDataToRecord($arrRecordsToProcess[$nRow]);
+
             $nRow++;
         }
 
@@ -128,24 +128,35 @@ class BasicFactsPluginClass extends SitePluginBaseClass
         // If we don't yet have an URL for the company but we do have a company name,
         // let's guess at the URL and use that
         //
-        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) != true && isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
+        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
         {
-            if( strcasecmp($this->_data_type, 'LOOKUP_BY_URL') ==0 ) throw new Exception("You should not get here for url source inputs.");
-            $arrRecordToUpdate['input_source_url'] = 'http://www.' . simplifyStringForURL($arrRecordToUpdate['company_name']) . '.com';
+            $strSimplifiedCompName = $this->_simplifyCompanyNameForDomainURL_($arrRecordToUpdate['company_name']);
+            $arrRecordToUpdate['input_source_url'] = 'http://www.'.$strSimplifiedCompName.'.com';
+            addToAccuracyField($arrRecordToUpdate, "Input source URL computed from company name; please verify result is accurate.") ;
         }
 
         //
         // Go load the basic website facts for the URL value we have on this row
         //
-        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $this->_getData_($arrRecordToUpdate));
+        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']) || !isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
+        {
+            $arrNewBasicSiteFactsRecord = $this->_getData_($arrRecordToUpdate);
+            $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrNewBasicSiteFactsRecord  );
+        }
+        else if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) &&  strcasecmp($this->_data_type, 'LOOKUP_BY_URL') == 0 )
+        {
+            throw new Exception("You should not get here for input source files that are URL lists.");
+            exit("You should not get here for input source files that are URL lists.");
+        }
+
+
 
         //
         // If after loading the basic website data we still don't have a company name, construct one from the actual site domain if we got
         // one of those at least
         //
-        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']))
+        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && !isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']))
         {
-            if( strcasecmp($this->_data_type, 'LOOKUP_BY_NAME') == 0 ) { throw new Exception("You should not get here for company name inputs."); }
             $arrRecordToUpdate['company_name'] = getPrimaryDomain($arrRecordToUpdate['actual_site_url'], false);
             // capitalize the every word in the name we got back
             if(strlen($arrRecordToUpdate['company_name']) > 0) { $arrRecordToUpdate['company_name'] = ucfirst($arrRecordToUpdate['company_name']); }
@@ -156,26 +167,34 @@ class BasicFactsPluginClass extends SitePluginBaseClass
         return;
     }
 
-   private function _getData_($var)
-	{
+    private function _getData_($var)
+    {
+        $classAPIWrap = new APICallWrapperClass();
 
         $curRecord = array_copy($var);
 
         //
         // Check domain still exists; get the actual full URL that is returned
         //
-        $curl_obj = curlWrap($curRecord['input_source_url']);
+        $strURLToCheck = $curRecord['input_source_url'];
+        $strErrMsg = "Could not find website for input_source_url.";
+        if(!isRecordFieldNullOrNotSet($curRecord['actual_site_url']))
+        {
+            $strURLToCheck = $curRecord['actual_site_url'];
+            $strErrMsg = "Could not find website for actual_site_url.";
+        }
+
+        $curl_obj = $classAPIWrap->cURL($strURLToCheck );
+
         if(!$this->_isRealSite_($curl_obj))
         {
-            addToAccuracyField($curRecord, "Source URL was not successfully resolved to an actual site.");
+            addToAccuracyField($curRecord, $strErrMsg);
         }
         else
         {
-            addToAccuracyField($curRecord, "Source URL found.");
+            $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
+            $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
         }
-
-        $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
-        $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
 
         $arrRet = my_merge_add_new_keys( $var, $curRecord );
 
@@ -225,6 +244,17 @@ class BasicFactsPluginClass extends SitePluginBaseClass
         }
 
         return true;
+    }
+
+
+    private function _simplifyCompanyNameForDomainURL_($strCompName)
+    {
+
+        $retValue = strtolower($strCompName);
+        $retValue = preg_replace('/\.com/', "", $retValue);
+        $retValue = preg_replace( "/[^a-z0-9-]/i", "", $retValue );
+
+        return $retValue;
     }
 
 

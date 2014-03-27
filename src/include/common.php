@@ -15,6 +15,22 @@
  * under the License.
  */
 
+/****************************************************************************************************************/
+/****                                                                                                        ****/
+/****         Common Includes                                                                                ****/
+/****                                                                                                        ****/
+/****************************************************************************************************************/
+
+if ( file_exists ( dirname(__FILE__) . '/../config_debug.php') )
+{
+    require_once dirname(__FILE__) . '/../config_debug.php';
+}
+else
+{
+    require_once dirname(__FILE__) . '/../config.php';
+}
+require_once dirname(__FILE__) .'/SimpleScooterCSVFileClass.php';
+require_once dirname(__FILE__) . '/debug_functions.php';
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
@@ -26,6 +42,8 @@ $GLOBALS['VERBOSE'] = false;
 $GLOBALS['OPTS'] = null;
 
 const C__APPNAME__ = "Site Evaluator";
+const C__APP_VERSION_MAJOR___ = "0";
+const C__APP_VERSION_MINOR___ = ".11";
 const C__RECORD_CHUNK_SIZE__ = 2;
 const C__OUTPUT_HEADERKEY_LISTS_TO_FILE = 0;  // for debug only -- do not use in production mode.
 const C__FSHOWVERBOSE_APICALL__ = 0;
@@ -51,7 +69,7 @@ const C__API_RETURN_TYPE_ARRAY__ = 44;
 $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'company_name' => 'N/A',
     'input_source_url' => 'N/A',
-    'result_accuracy' => 'N/A',
+    'result_accuracy_warnings' => 'N/A',
     'effective_domain' => 'N/A',
     'actual_site_url' => 'N/A',
     'crunchbase_match_accuracy' => 'N/A',
@@ -170,7 +188,22 @@ function __check_args__()
             'type'          => Pharse::PHARSE_INTEGER,
             'required'      => false,
             'short'      => 'ec',
-        )
+        ),
+
+        'moz_access_id' => array(
+            'description'   => 'Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'mozid',
+        ),
+        'moz_secret_key' => array(
+            'description'   => 'Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'mozkey',
+        ),
     );
 
     # You may specify a program banner thusly:

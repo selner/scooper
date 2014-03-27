@@ -12,18 +12,13 @@ INPUT CSV FORMAT:
 	  Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
 ..etc
 
-
 #Bugs
 ------------
-* URLs-only code path needs to be tested
-* If company name is not present in the file or the website cannot be found, then a bunch of blank N/A rows appears in the results (consultants)
-* URLs-only code path fails to load Crunchbase data because there isn't a company name. 
+* None reported.
 
 
 #Near Term Changes
 ------------
-* If there is a URL column as well as a Company Name column, load the 2nd column as URLs for the companies and use those for lookups 1st instead of the company name matching.  Basically, change from one or other to name, url or both.   
-* * change curlWrap() calls to use curlWrapNew() instead; remove original curl_wrap (two uses of curlWrap remain)
 * Add comments for publish
 
 # Known Issues
@@ -47,7 +42,6 @@ INPUT CSV FORMAT:
 * add column for tracking whether company name or URL was a computed field, not entered. Maybe change the final results header row for those columns to say "Company Name (Computed/Guessed" or similar
 * add support for asking for input file CSV if not set already
 * add support string array fields such as "Offices" in Crunchbase; concatenate as much as you can into a string value.
-* review curlwrap calls to make sure they should not change to be getObjectsFromAPI instead
-* add app wrapper to code (Platypus?)
+* add Platypus build support for the app
 
 

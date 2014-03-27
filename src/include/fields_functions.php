@@ -13,24 +13,39 @@ function getEmptyFullRecordArray()
     return $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'];
 }
 
-function isRecordFieldNullOrNotSet($val, $fEmptyStringEqualsInvalid = false)
+function isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
 {
-    $retValid = false;
+    // true = not valid (e.g. "N/A", "n/a", "", 0, null, etc.)
+    // false = valid data
+    if(!$val) return true;
+    if(($fZeroIsValid == true) && ($val == 0)) { return true; }
 
-
-    if(!$val) $retValid = true;
-    if(is_string($val) && (strcasecmp($val, "N/A") == 0 || ($fEmptyStringEqualsInvalid == true && strlen($val) == 0)))
+    if(is_string($val) && (strcasecmp($val, "N/A") == 0 || (strlen($val) == 0 && $fEmptyStringIsValid != true)))
     {
-        $retValid = true;
+        return true;
     }
 
 //    __debug__var_dump_exit__(array('acc_val' => $val, 'is_string' => is_string($val), 'N/A match' => strcasecmp($val, "N/A"), 'empty_is_invalid' => $fEmptyStringEqualsInvalid, 'ret' => $retValid));
 
-    return $retValid;
+    return false;
 }
 
 
 
+
+function addToAccuracyField(&$arrRecord, $strValueToAdd)
+{
+
+    if(isRecordFieldNullOrNotSet($arrRecord['result_accuracy_warnings']) == true)
+    {
+        $arrRecord['result_accuracy_warnings'] = $strValueToAdd;
+    }
+    else
+    {
+        $arrRecord['result_accuracy_warnings'] = $arrRecord['result_accuracy_warnings'] . " | ". $strValueToAdd;
+    }
+
+}
 
 
 
@@ -42,7 +57,6 @@ function isRecordFieldNullOrNotSet($val, $fEmptyStringEqualsInvalid = false)
 
 function addPrefixToArrayKeys( $arr, $strPrefix = "", $strSep = "" )
 {
-	$strFunc = __debug__FuncStart__("addPrefixToArrayKeys(arr,".$strPrefix.",".$strSep.")");
 
 	$arrKeys = array_keys($arr);
 	$arrNewKeyValues = $arrKeys;
@@ -56,8 +70,6 @@ function addPrefixToArrayKeys( $arr, $strPrefix = "", $strSep = "" )
 		$arrNewKeyValues = array_combine($arrNewKeys, $arr);
 	}
 
-	__debug__FuncEnd__($strFunc);
-	
 	return $arrNewKeyValues;
 }
 
@@ -73,22 +85,21 @@ function my_merge_add_new_keys( $arr1, $arr2 )
 {
     // check if inputs are really arrays
     if (!is_array($arr1) || !is_array($arr2)) {
-          throw new Exception("Input  is not an Array");
+          throw new Exception("Input is not an Array");
     }
 	$strFunc = "my_merge_add_new_keys(arr1(size=".count($arr1)."),arr2(size=".count($arr2)."))";
 	__debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
 	$arr1Keys = array_keys($arr1);
 	$arr2Keys = array_keys($arr2);
 	$arrCombinedKeys = array_merge_recursive($arr1Keys, $arr2Keys);
-	
-	// echo 'keys1 = '. count($arr1Keys).'; keys2 = '. count($arr2Keys).'; arrCombinedKeys = '. count($arrCombinedKeys).PHP_EOL;
-	
+
 	$arrNewBlankCombinedRecord = array_fill_keys($arrCombinedKeys, 'unknown');
 
 	$arrMerged =  array_replace( $arrNewBlankCombinedRecord, $arr1 );
 	$arrMerged =  array_replace( $arrMerged, $arr2 );
 
-	__debug__printLine('returning from ' + $strFunc, C__DISPLAY_FUNCTION__, true);	return $arrMerged;
+	__debug__printLine('returning from ' . $strFunc, C__DISPLAY_FUNCTION__, true);
+    return $arrMerged;
 }
 
 function my_merge( $arr1, $arr2 )

@@ -14,7 +14,7 @@ class MacSettingsUIClass
         # Pass the configuration string to the Pashua module
         $dialog_result = pashua_run($appConf, $encoding = 'utf8', $apppath = dirname(__FILE__));
 
-        return $this->_updateOptionsFromPashua_($dialog_result);
+        $this->_updateOptionsFromPashua_($dialog_result);
     }
 
 
@@ -139,7 +139,7 @@ class MacSettingsUIClass
             {
                 $strErrorMessage = "The following settings were not valid:" . $strErrorMessage."[return][return]Please re-check them.";
 
-                return $this->_showErrorDialog_($strErrorMessage );
+                $this->_showErrorDialog_($strErrorMessage );
             }
         }
         else
@@ -190,7 +190,7 @@ class MacSettingsUIClass
             exit("User clicked \"Exit App\".");
         }
 
-        return $this->getOptionsFromUser();
+        $this->getOptionsFromUser();
     }
 }
 

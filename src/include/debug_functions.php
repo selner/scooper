@@ -33,23 +33,12 @@ function __debug__DumpVarToLog($var_name, $var_case_details, $var)
 require_once 'common.php';
 const C__DEBUG_MODE__ = false;
 
-function __debug__FuncStart__($str)
-{
-	__debug__printLine($str, C__DISPLAY_FUNCTION__, true);
-	return $str;
-}
-
-function __debug__FuncEnd__($str)
-{
-
-    return __debug__FuncStart__("returning from ".$str);
-}
-
 
 function __debug__var_dump_exit__($var, $desc="__debug__var_dump_exit__")
 {
 
     var_dump($desc, $var);
+    throw new ErrorException($desc);
     exit($desc);
 
 }
@@ -176,19 +165,34 @@ function __debug__printSectionHeader($headerText, $nSectionLevel, $nType)
 	$nHeaderWidth = strlen($headerText);
 	$nHeaderWidth = 80;
 	$fmtSeparatorString = "%'".$strSeparatorChars.($nHeaderWidth+3)."s\n";
-   $strSectionSeparatorLine = sprintf($fmtSeparatorString, $strSeparatorChars);
-	
+    $strSectionIntroSeparatorLine = sprintf($fmtSeparatorString, $strSeparatorChars);
 
-	$strSectionType = "BEGIN:  ".$headerText;
-//	if($nType == C__SECTION_END__) { $strSectionType = "END:  ";}
-	if($nType == C__SECTION_END__) { $strSectionType = "      Done.  ";}
+
+
+    if($nType == C__SECTION_BEGIN__)
+    {
+           $strSectionType = "  BEGIN:  ".$headerText;
+    } else
+    {
+           $strSectionType = "  END:    ".$headerText;}
 	//
 	// Output the section header
 	//
-	echo $strPaddingBefore;
-	echo $strSectionSeparatorLine;
-	echo ' '.$strSectionType.' '. PHP_EOL;
-	echo $strSectionSeparatorLine;
-	echo $strPaddingAfter;
+    if($nType == C__SECTION_BEGIN__ || $nSectionLevel == C__NAPPTOPLEVEL__ )
+    {
+        echo $strPaddingBefore;
+        echo $strSectionIntroSeparatorLine;
+        echo ' '.$strSectionType.' '.PHP_EOL;
+        echo $strSectionIntroSeparatorLine;
+        if($nSectionLevel == C__NAPPTOPLEVEL__ )
+        {
+            echo $strPaddingAfter;
+        }
+
+    }
+    else // C__SECTION_END__ $strSectionType = "      Done.  ";}
+    {
+        echo PHP_EOL . ' '.$strSectionType.' ' .PHP_EOL. $strSectionIntroSeparatorLine . PHP_EOL;
+    }
 }
 ?>

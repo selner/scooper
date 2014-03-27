@@ -17,42 +17,36 @@
 	
 /****************************************************************************************************************/
 /****                                                                                                        ****/
-/****         Base Class:  Plugin                                                                            ****/
+/****         Base Class:  Scooter Site Data Plugin                                                          ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 require_once dirname(__FILE__) . '/../include/common.php';
+require_once dirname(__FILE__) . '/../include/SimpleScooterCSVFileClass.php';
+require_once dirname(__FILE__) . '/../include/APICallWrapperClass.php';
+
+
 
 const C__FEXCLUDE_DATA_YES = 1;
 const C__FEXCLUDE_DATA_NO = 0;
 
 
-class SitePluginBaseClass
+class ScooterPluginBaseClass
 {
-    function __construct($fVarExclude)
-	{
-		if($fVarExclude) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
-		
-	}
-	
+
     // method declaration
     function addDataToRecord(&$arrRecordToUpdate) 
 	{
-         throw new Exception("addDataToRecord must be defined for any class extending SitePluginBaseClass. ");
+         throw new Exception("addDataToRecord must be defined for any class extending ScooterPluginBaseClass. ");
     }
 
    private function _getData_($var) 
 	{
-        throw new Exception("_getData_ must be defined for any class extending SitePluginBaseClass. ");
+        throw new Exception("_getData_ must be defined for any class extending ScooterPluginBaseClass. ");
     }
 
-	private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
 
-	 function _returnIfExcluded()
-	{
-		if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) { return; }
-	}
-	
 
+    private $_strPluginDataProviderName_ = "UNKNOWN";
 }
 
 

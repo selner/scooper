@@ -24,20 +24,23 @@
     require_once dirname(__FILE__).'/plugin-base.php';
 
 
-    class MozPluginClass extends SitePluginBaseClass
+    class MozPluginClass extends ScooterPluginBaseClass
 	{
-		private $_arrMozBulkAPIResults_ = null; 
-		
+		private $_arrMozBulkAPIResults_ = null;
+        private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+        private $strDataProviderName  = 'Moz.com';
+
 		function __construct($fExcludeThisData, $arrAllRecords)
 		{
-			parent::__construct($fExcludeThisData);
+            if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
+
+            __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
 			$this->_batchQueryMozAPI_($arrAllRecords);
-		}
+        }
 		
-	    // Redefine the parent method
-	    public function addDataToRecord(&$arrRecordToUpdate) 
+	    public function addDataToRecord(&$arrRecordToUpdate)
 	    {
-			$this->_returnIfExcluded();
+            if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
 			if($this->_arrMozBulkAPIResults_ == null)
 			{
@@ -45,21 +48,32 @@
 			}
 				
 			$fMatchFound = false;
-			$recordStringToMatch =  $arrRecordToUpdate['effective_domain'].'/';
-			
-			foreach($this->_arrMozBulkAPIResults_ as $mozresult)
-			{
-				$arrMozRecord = json_decode($mozresult, true);
-				if(strcasecmp($arrMozRecord['upl'], $recordStringToMatch) == 0 )
-				{
-					$arrRecordToUpdate = array_merge($arrRecordToUpdate, $arrMozRecord);
-					return;
-				}
-				
-			}
-		
-			if(!$fMatchFound) { __debug__printLine("Match not found.", C__DISPLAY_ERROR__);  }
-			
+            if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['effective_domain']))
+            {
+                $recordStringToMatch =  $arrRecordToUpdate['effective_domain'].'/';
+
+                foreach($this->_arrMozBulkAPIResults_ as $mozresult)
+                {
+                    $arrMozRecord = json_decode($mozresult, true);
+                    if(strcasecmp($arrMozRecord['upl'], $recordStringToMatch) == 0 )
+                    {
+                        $arrRecordToUpdate = array_merge($arrRecordToUpdate, $arrMozRecord);
+                        return;
+                    }
+
+                }
+                if(!$fMatchFound)
+                {
+                    addToAccuracyField($arrRecordToUpdate, 'No Moz match found for effective_domain value.');
+                    __debug__printLine("Moz: Match not found for ".$recordStringToMatch, C__DISPLAY_ERROR__);
+                }
+            }
+            else
+            {
+                addToAccuracyField($arrRecordToUpdate, 'Unable to search Moz data; no effective_domain found for company.');
+                if(!$fMatchFound) { __debug__printLine("'Unable to search Moz data; no effective_domain found for company = ".$arrRecordToUpdate['company_name'], C__DISPLAY_ERROR__);  }
+            }
+
 			return;
 	    }
 
@@ -70,7 +84,7 @@
 
 		private function _batchQueryMozAPI_($arrRecordsToQuery)
 		{
-			$this->_returnIfExcluded();
+            if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 			
 			// From https://github.com/seomoz/SEOmozAPISamples/blob/master/php/batching_urls_sample.php
 				

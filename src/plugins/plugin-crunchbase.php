@@ -20,21 +20,27 @@ require_once dirname(__FILE__).'/plugin-base.php';
 /****          Crunchbase Plugin Class                                                                               ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-class CrunchbasePluginClass extends SitePluginBaseClass
+class CrunchbasePluginClass extends ScooterPluginBaseClass
 {
-	
-	function __construct($fExcludeThisData)
+
+    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    private $strDataProviderName  = 'Quantcast';
+
+
+    function __construct($fExcludeThisData)
 	{
-		parent::__construct($fExcludeThisData);
+        if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
+
+        __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
 	}
 	
     // Redefine the parent method
     public function addDataToRecord(&$arrRecordToUpdate) 
     {
-		$this->_returnIfExcluded();
-		$strFunc = "addCrunchbaseFacts(arrRecordToUpdate(size=".count($arrRecordToUpdate)."))";
-		__debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
+        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
+        $strFunc = "addCrunchbaseFacts(arrRecordToUpdate(size=".count($arrRecordToUpdate)."))";
+		__debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
 
 		/****************************************************************************************************************/
 		/****                                                                                                        ****/
@@ -59,8 +65,10 @@ class CrunchbasePluginClass extends SitePluginBaseClass
 
 		//
 		// Call the Crunchbase Search API 
-		// 
-		$arrCrunchBaseSearchResultsRecords = getObjectsFromAPI($url, 'results');
+		//
+        $classAPICall = new APICallWrapperClass();
+
+		$arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results');
 
         if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_RESULT__);  }
 		$fCrunchMatchFound = false;
@@ -120,7 +128,7 @@ class CrunchbasePluginClass extends SitePluginBaseClass
 	{
 		$arrCrunchAPIData = array();
 		$arrCrunchAPIData[] = getObjectsFromAPI($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
-		$classOutputFile = new FileBaseClass($fileOutFullPath, "w");
+		$classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
         $classOutputFile->writeArrayToCSVFile($arrCrunchAPIData);
 	}
 
@@ -138,14 +146,14 @@ class CrunchbasePluginClass extends SitePluginBaseClass
 				if($arrRecordToUpdate['namespace'] && strlen($arrRecordToUpdate['namespace']) > 0)
 				{
 					$cbEntityType = 	$arrRecordToUpdate['namespace'];
-				}
-				$arrCrunchCompanyEntity = $this->_getCrunchbaseEntityFacts_($cbEntityType, $arrRecordToUpdate['permalink']);
-				if(is_array($arrCrunchCompanyEntity))
-				{
-					$arrPrefixedResult = addPrefixToArrayKeys($arrCrunchEntityData, $cbEntityType, ".");
-                    $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrPrefixedResult);
-				}
-			}
+                    $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($cbEntityType, $arrRecordToUpdate['permalink']);
+                    if(is_array($arrCrunchEntityData))
+                    {
+                        $arrPrefixedResult = addPrefixToArrayKeys($arrCrunchEntityData, $cbEntityType, ".");
+                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrPrefixedResult);
+                    }
+                }
+            }
 		}
 			
 		__debug__printLine('returning from '.$strFunc, C__DISPLAY_FUNCTION__, true);
@@ -159,7 +167,7 @@ class CrunchbasePluginClass extends SitePluginBaseClass
 		if(!$strPermanlink || strlen($strPermanlink) == 0)
 		{
 			if($GLOBALS['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
-			return; 
+			return null;
 		}
 		
 		

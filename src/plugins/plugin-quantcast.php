@@ -22,35 +22,39 @@ require_once dirname(__FILE__).'/plugin-base.php';
 /****         Quantcast Plugin Class                                                                         ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-class QuantcastPluginClass extends SitePluginBaseClass
+class QuantcastPluginClass extends ScooterPluginBaseClass
 {
+    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    private $strDataProviderName  = 'Quantcast';
+
+    function __construct($fExcludeThisData)
+    {
+        if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
+        __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
+    }
+
     // Redefine the parent method
     function addDataToRecord(&$arrRecordToUpdate) 
     {
-		$strFunc = __debug__FuncStart__("addQuantcastFacts(arrRecordToUpdate(size=".count($arrRecordToUpdate).",first=".array_keys($arrRecordToUpdate)[0].")");
-
-		if(!$GLOBALS['OPTS']['exclude_quantcast'])
-		{
-			if($arrRecordToUpdate['effective_domain'] && strlen($arrRecordToUpdate['effective_domain']) > 0 && strcasecmp($arrRecordToUpdate['effective_domain'], "N/A") != 0)
-			{
-				$arrQuant = $this->_getData_($arrRecordToUpdate['effective_domain']);
-				$arrRecordToUpdate = my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
-			}
-		}
-		__debug__FuncEnd__($strFunc);
+        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
+        if($arrRecordToUpdate['effective_domain'] && strlen($arrRecordToUpdate['effective_domain']) > 0 && strcasecmp($arrRecordToUpdate['effective_domain'], "N/A") != 0)
+        {
+            $arrQuant = $this->_getData_($arrRecordToUpdate['effective_domain']);
+            $arrRecordToUpdate = my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
+        }
     }
 
    private function _getData_($var) 
 	{
+        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
+        $classAPIWrap = new APICallWrapperClass();
 		$domain = $var;
-		$strFunc = __debug__FuncStart__("getQuantcastDataByDomain(".$domain.")");
 		$url = 'https://www.quantcast.com/'.$domain;
-		$curl_obj = curlWrap($url);
+		$curl_obj = $classAPIWrap->cURL($url);
 		  $uniqs = $this->_getUniqsFromHTML_($curl_obj);
 			
 		$arrNew = array("Monthly Uniques" => $uniqs);
 		$arrReturn = addPrefixToArrayKeys($arrNew, "Quantcast", ".");
-		__debug__FuncEnd__($strFunc);
 		return $arrReturn;
     }
 

@@ -15,9 +15,10 @@
  * under the License.
  */
 
+require_once dirname(__FILE__) . '/config.php';
 require_once dirname(__FILE__) . '/lib/pharse.php';
-require_once dirname(__FILE__) . '/include/helpers.php';
-require_once dirname(__FILE__) . '/include/debug_functions.php';
+require_once dirname(__FILE__) . '/include/SimpleScooterCSVFileClass.php';
+require_once dirname(__FILE__) . '/include/common.php';
 require_once dirname(__FILE__) . '/include/fields_functions.php';
 require_once dirname(__FILE__) . '/config_pashua_settings.php';
 require_once dirname(__FILE__) . '/plugins/plugin-base.php';
@@ -63,9 +64,30 @@ function __main__ ()
 
 	if($GLOBALS['VERBOSE'] == true) { echo 'Options set: '; var_dump($GLOBALS['OPTS']); }
 	$arrExclusions = array();
-    if($GLOBALS['OPTS']['exclude_moz_given'] ) {  $GLOBALS['OPTS']['exclude_moz'] = 1;  $arrExclusions[] = 'Moz'; }else { $GLOBALS['OPTS']['exclude_moz'] = 0; }
     if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  $arrExclusions[] = 'Quantcast'; } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
     if($GLOBALS['OPTS']['exclude_crunchbase_given'] ) {  $GLOBALS['OPTS']['exclude_crunchbase'] = 1;  $arrExclusions[] = 'Crunchbase'; }else { $GLOBALS['OPTS']['exclude_crunchbase'] = 0; }
+
+    if(!$GLOBALS['OPTS']['moz_access_id_given'] )
+    {
+        $GLOBALS['OPTS']['moz_access_id'] = C_MOZ_API_ACCESS_ID;
+        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_ID.")." , C__DISPLAY_ERROR__);
+    }
+    if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
+    {
+        $GLOBALS['OPTS']['moz_secret_key'] = C_MOZ_API_ACCESS_ID;
+        __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_SECRETKEY.")." , C__DISPLAY_ERROR__);
+    }
+
+if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
+    {
+        if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Excluding Moz.com data: missing Moz API access ID and secret key.", C__DISPLAY_ERROR__); }
+        $GLOBALS['OPTS']['exclude_moz'] = 1;
+        $arrExclusions[] = 'Moz';
+    }
+    else
+    {
+        $GLOBALS['OPTS']['exclude_moz'] = 0;
+    }
 
 
 	__debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
@@ -82,9 +104,18 @@ function __main__ ()
     $strInputBase = implode(".", $arrInputFileNameParts);    // put the rest of the filename back together into a string.
 
     $baseDefaultOutputFileName = $strInputBase."_output_".date("Ymd-Hm").".csv";
+
+    //
+    // handle the case where we only got the file name with no path; default to the current directory
+    //
+    if(strlen($baseInputFilePath) <= 1) { $baseInputFilePath = "./"; }
+
+    //
+    // Set the initial output file path & name
+    //
     $fileOutFullPath = $baseInputFilePath."/".$baseDefaultOutputFileName;
 
-    if(file_exists($GLOBALS['OPTS']['outputfile'])) // it's a valid folder. but not a file
+    if($GLOBALS['OPTS']['outputfile_given'] && file_exists($GLOBALS['OPTS']['outputfile'])) // it's a valid folder. but not a file
     {
        if(is_file($GLOBALS['OPTS']['outputfile']))
        {
@@ -100,7 +131,7 @@ function __main__ ()
     if(!$GLOBALS['OPTS']['suppressUI_given'] || !$GLOBALS['OPTS']['inputfile'] || strlen($GLOBALS['OPTS']['inputfile']) <=0 || !$GLOBALS['OPTS']['outputfile'] || strlen($GLOBALS['OPTS']['outputfile']) <= 0)
     {
         $classMacSettingsUI = new MacSettingsUIClass();
-        $ret = $classMacSettingsUI->getOptionsFromUser();
+        $classMacSettingsUI->getOptionsFromUser();
     }
 
     if(count($arrExclusions) > 0) { __debug__printLine("Excluding data from: ".implode(',', $arrExclusions), C__DISPLAY_NORMAL__); }
@@ -114,17 +145,17 @@ function __main__ ()
 	/****                                                                                                        ****/
 	/****************************************************************************************************************/
 	__debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-    $classFileIn = new FileBaseClass($fileInFullPath, 'r');
+    $classFileIn = new SimpleScooterCSVFileClass($fileInFullPath, 'r');
 
     $classFileIn->readAllRowsFromCSV($arrInputCSVData, true);
 
 	__debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
-	__debug__printSectionHeader("Read Input File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+	__debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
-    $classFileOut = new FileBaseClass($fileOutFullPath, 'w+');
+    $classFileOut = new SimpleScooterCSVFileClass($fileOutFullPath, 'w+');
 
-	
-	/****************************************************************************************************************/
+
+    /****************************************************************************************************************/
 	/****                                                                                                        ****/
 	/****    Get the basic facts for the loaded CSV input data                                                   ****/
 	/****                                                                                                        ****/
@@ -141,22 +172,18 @@ function __main__ ()
 	/****   Initialize the data plugin classes                                                                   ****/
 	/****                                                                                                        ****/
 	/****************************************************************************************************************/
-	$pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
-	
-	/////////////////////////
-	// BUGBUG:  These need to stay in the order Quant -> Moz -> CB for now.  If CB moves earlier, than
-	//          CB records != company entity will have incorrectly shifted data.
+
+    $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
 	$pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
 	$pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-	//          
-	/////////////////////////
+
 
 	/****************************************************************************************************************/
 	/****                                                                                                        ****/
 	/****   Process the list of company / URL records to get the additional data for each one.                   ****/
 	/****                                                                                                        ****/
 	/****************************************************************************************************************/
-	__debug__printSectionHeader("Data Collection from CrunchBase, Quantcast, Moz", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+	__debug__printSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
 
     $arrRecordCopyForKeys = null;
@@ -176,14 +203,13 @@ function __main__ ()
         if($ncurRecordIndex % C__RECORD_CHUNK_SIZE__ == 0)  {         $classFileOut->writeArrayToCSVFile($arrAllRecordsProcessed );           }
         $ncurRecordIndex++;
 
-		__debug__printLine("Added ".$curRecord['company_name']. " to final results list.", C__DISPLAY_ITEM_RESULT__);
+		__debug__printLine("Added ".$arrAllRecordsProcessed[$ncurRecordIndex]['company_name']. " to final results list.", C__DISPLAY_ITEM_RESULT__);
 	}
 
-	__debug__printLine("Collected data for ".count($arrAllRecordsProcessed)." records", C__DISPLAY_NORMAL__);
-	__debug__printSectionHeader("Data Collection from CrunchBase, Quantcast, Moz", C__NAPPFIRSTLEVEL__, C__SECTION_END__ ); 
+	__debug__printSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+    __debug__printLine("Total records processed: ".count($arrAllRecordsProcessed).".", C__DISPLAY_NORMAL__);
 
 		
-	__debug__printSectionHeader("Data Collection from Moz", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
 	/****************************************************************************************************************/
@@ -205,14 +231,6 @@ function __main__ ()
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-
-
-
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Helper Functions:  Validating Sites, making API Calls                                          ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
 
 
 ?>

@@ -1,9 +1,7 @@
 ##Scooper
-=================
 Author:  Selner (bry.int@bryanselner.com)
 
 ##What It Does
-------------
 Takes an input CSV of URLs and gathers site data about it from Quantcast, Moz.com and Crunchbase such as
 estimated monthly uniques, company type & description, and domain authority
 
@@ -13,16 +11,13 @@ INPUT CSV FORMAT:
 ..etc
 
 #Bugs
-------------
 * None reported.
 
 
 #Near Term Changes
-------------
 * Add comments for publish
 
 # Known Issues
-------------
 * 	Cannot use file names with hyphens in them due to a bug in the Pharse library (https://github.com/chrisallenlane/pharse/issues/3)
 * 	Crunchbase Offices and other columns appear as "Array" in the final CSV; need to implode them into strings.
 * Occasionally see timeout errors with the Crunchbase API.  Example: 'Error: ""---> Processing row#33: C2S Technologies  Error #28: Resolving timed out after 10000 milliseconds""'
@@ -30,7 +25,6 @@ INPUT CSV FORMAT:
 
 
 ##Future Ideas for Improvement
-=================
 * Add a single company or URL lookup mode that presents UI and doesn't require an input CSV
 * Generalize the plugin PHPs to have a common class so that it's easy to drop a new plugin support file in
 * If a data set is excluded by the command line, change the default values for those fields from 'N/A' to something else. Maybe use array array_replace_recursive ( array $array1 , array $array2 [, array $... ] )

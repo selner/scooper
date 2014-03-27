@@ -1,5 +1,9 @@
 ## Scooper Change Log
 
+# 03/27/2014 (BJS)
+	* Fixed:  missing multiple column headers for Crunchbase Service Providers
+	* Fixed: Quantcast displays as the very last column. 
+	* 
 # 03/26/2014 (BJS)
 	* Added support for Moz API values to be passed via the command line or by changing values in a new, separate config.php file.
 	* Merged the two curlWrap functions into a single new APICallWrapperClass

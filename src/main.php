@@ -15,16 +15,16 @@
  * under the License.
  */
 
-require_once './lib/pharse.php';
-require_once './include/helpers.php';
-require_once './include/debug_functions.php';
-require_once './include/fields_functions.php';
-require_once 'config_pashua_settings.php';
-require_once './plugins/plugin-base.php';
-require_once './plugins/plugin-basicfacts.php';
-require_once './plugins/plugin-crunchbase.php';
-require_once './plugins/plugin-moz.php';
-require_once './plugins/plugin-quantcast.php';
+require_once dirname(__FILE__) . '/lib/pharse.php';
+require_once dirname(__FILE__) . '/include/helpers.php';
+require_once dirname(__FILE__) . '/include/debug_functions.php';
+require_once dirname(__FILE__) . '/include/fields_functions.php';
+require_once dirname(__FILE__) . '/config_pashua_settings.php';
+require_once dirname(__FILE__) . '/plugins/plugin-base.php';
+require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';
+require_once dirname(__FILE__) . '/plugins/plugin-crunchbase.php';
+require_once dirname(__FILE__) . '/plugins/plugin-moz.php';
+require_once dirname(__FILE__) . '/plugins/plugin-quantcast.php';
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/

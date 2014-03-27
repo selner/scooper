@@ -22,12 +22,9 @@ INPUT CSV FORMAT:
 
 #Near Term Changes
 ------------
-* column header key matching should be case insensitive ('company name') fails to be a valid format.  
 * If there is a URL column as well as a Company Name column, load the 2nd column as URLs for the companies and use those for lookups 1st instead of the company name matching.  Basically, change from one or other to name, url or both.   
 * * change curlWrap() calls to use curlWrapNew() instead; remove original curl_wrap (two uses of curlWrap remain)
-* Choose license; add license details for publish
 * Add comments for publish
-* Figure out differences between classes, constants, static variables and defines in PHP.  Clean up code to match learning.
 
 # Known Issues
 ------------
@@ -41,7 +38,6 @@ INPUT CSV FORMAT:
 =================
 * Add a single company or URL lookup mode that presents UI and doesn't require an input CSV
 * Generalize the plugin PHPs to have a common class so that it's easy to drop a new plugin support file in
-* Support Persons and Financial Institutions entity types
 * If a data set is excluded by the command line, change the default values for those fields from 'N/A' to something else. Maybe use array array_replace_recursive ( array $array1 , array $array2 [, array $... ] )
 * if company is mismatched in Crunch, Site Basics or Moz, it's still marked as TRUE and valid.  Need to clear. 
     * Look at first 15 characters of name?  

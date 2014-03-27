@@ -1,7 +1,7 @@
 ## Scooper Change Log
 
 # 03/26/2014 (Bryan Selner)
-	• Initial version uploaded to Github.  Forked to v0.1dev.
+	* Initial version uploaded to Github.  Forked to v0.1dev.
 	* Fixed url-only input issues.  Company name is now computed based on the actual site's domain when possible.
     * Removed obsolete get_basicDataFacts() call
 	* Updated CrunchbasePlugin getArt
@@ -11,6 +11,7 @@
 	* Removed untested and unused array flattening functions.
 	* Moved IsRealSite function into BaseFactsPluginClass (the only place it was used.)
 	* Added developer/debugger helper function __debug__var_dump_exit__()
+	* Fixed: Input source CSV key does not case-insensitive match "company name"
 
 
 

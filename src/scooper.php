@@ -208,9 +208,10 @@ function __main__ ()
 	while($ncurRecordIndex < count($arrAllRecordsProcessed))
 	{
 
+        $pluginQuantcast->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
 
         $pluginCrunchbase->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
-		$pluginQuantcast->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
+
         $pluginMoz->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
 
         // Every X records, Update the output data file with what we've gotten so far.

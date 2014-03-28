@@ -24,12 +24,18 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 {
 
     private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-    private $strDataProviderName  = 'Quantcast';
+    private $strDataProviderName  = 'Crunchbase';
 
 
     function __construct($fExcludeThisData)
 	{
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
+
+        if(strlen(C__CRUNCHBASE_API_KEY__) == 0 || C__CRUNCHBASE_API_KEY__ == "")
+        {
+            __log__("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", C__LOGLEVEL_ERROR__);
+            $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
+        }
 
         __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
 	}
@@ -38,9 +44,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     public function addDataToRecord(&$arrRecordToUpdate) 
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
-
-        $strFunc = "addCrunchbaseFacts(arrRecordToUpdate(size=".count($arrRecordToUpdate)."))";
-		__debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
 
 		/****************************************************************************************************************/
 		/****                                                                                                        ****/
@@ -61,27 +64,28 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		// 
 		$company_name_urlenc = urlencode($arrRecordToUpdate['company_name']); 
 		$company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc); 
-		$url = "http://api.crunchbase.com/v/1/search.js?api_key=7d379mfwxm876tvgw3xhf2fs&entity=company&query=" . $company_name_urlenc;
+		$url = "http://api.crunchbase.com/v/1/search.js?api_key=".C__CRUNCHBASE_API_KEY__."&entity=company&query=" . $company_name_urlenc;
 
 		//
 		// Call the Crunchbase Search API 
 		//
         $classAPICall = new APICallWrapperClass();
 
-		$arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results');
-
+		$arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
         if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_RESULT__);  }
 		$fCrunchMatchFound = false;
-		
-		$nMatchCrunchResult = -1;
+        __debug__var_dump_exit__('$arrCrunchBaseSearchResultsRecords = '. var_export($arrCrunchBaseSearchResultsRecords));
+
+        $nMatchCrunchResult = -1;
 		$nCurResult = 0;
 		if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
 		{
-//            __debug__var_dump_exit__(array('record'=>$arrRecordToUpdate, 'CB results'=>$arrCrunchBaseSearchResultsRecords), 'CB API Call');
 			foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
 			{
-				$curCrunchResult->computed_domain = getPrimaryDomain($curCrunchResult->homepage_url);
-				if(strcasecmp($curCrunchResult->computed_domain, $arrRecordToUpdate['effective_domain']) == 0)
+                __debug__var_dump_exit__('$curCrunchResult = '. var_export($curCrunchResult));
+
+                $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
+				if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
 				{
 					// Match found
 					$nMatchCrunchResult = $nCurResult;
@@ -98,9 +102,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 			}
 
 			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);			$cbEntityType = $arrRetCrunchResult['namespace'];
-            $arrPrefixedCrunchResult = $this->addKeyPrefixToCEntityData($arrRetCrunchResult, $cbEntityType);
-//            $arrPrefixedCrunchResult = addPrefixToArrayKeys($arrRetCrunchResult, $cbEntityType, ".");
-//           __debug__var_dump_exit__(array('$arrPrefixedCrunchResult' => $arrPrefixedCrunchResult, 'record'=>$arrRecordToUpdate, 'company_name_urlenc'=>$company_name_urlenc, 'API_url' => $url), 'CB API Call');
+            $arrPrefixedCrunchResult = $this->updateCBDataWithCommonPrefixes($arrRetCrunchResult, $cbEntityType);
 
             merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
 		}
@@ -110,61 +112,51 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 			$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
 			__debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);  
 		}
-
-        addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
-
-        //
-        // Now that we have a Crunchbase entity permalink to use, go add the extended entity facts as well
-        //
-        if($nMatchCrunchResult == -1)
+        else
         {
+            //
+            // Now that we have a Crunchbase entity permalink to use, go add the extended entity facts as well
+            //
             $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
         }
 
-        __debug__printLine('returning from '.$strFunc, C__DISPLAY_FUNCTION__, true);
-	}
+        addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
 
 
-	public function getArbitraryAPICallData($strAPICallURL, $fileOutFullPath)
-	{
-		$arrCrunchAPIData = array();
-        $classAPICall = new APICallWrapperClass();
-
-        $arrCrunchAPIData[] = $classAPICall->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
-    	$classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
-        $classOutputFile->writeArrayToCSVFile($arrCrunchAPIData);
 	}
 
 
 
-	private function _addCrunchbaseEntityFacts_(&$arrRecordToUpdate)
-	{
-		$strFunc = "addCrunchbaseEntityFacts(arrRecordToUpdate(size=".count($arrRecordToUpdate)."))";
-		__debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
 
-		if($GLOBALS['OPTS']['exclude_crunchbase'] != true)
-		{
-			if($arrRecordToUpdate['permalink'] && strlen($arrRecordToUpdate['permalink']) > 0)
-			{
-				if($arrRecordToUpdate['namespace'] && strlen($arrRecordToUpdate['namespace']) > 0)
-				{
-					$cbEntityType = 	$arrRecordToUpdate['namespace'];
-                    $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($cbEntityType, $arrRecordToUpdate['permalink']);
-                    if(is_array($arrCrunchEntityData))
-                    {
-                        $arrPrefixedResult = addPrefixToArrayKeys($arrCrunchEntityData, $cbEntityType, ".");
-                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrPrefixedResult);
-                    }
-                }
+    private function _addCrunchbaseEntityFacts_(&$arrRecordToUpdate)
+    {
+        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
+
+        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['cb.namespace'] ." entity-specific facts for ".$arrRecordToUpdate['cb.name'] , C__DISPLAY_ITEM_RESULT__);
+
+        if(($arrRecordToUpdate['cb.permalink'] && strlen($arrRecordToUpdate['cb.permalink']) > 0) &&
+            ($arrRecordToUpdate['cb.namespace'] && strlen($arrRecordToUpdate['cb.namespace']) > 0))
+        {
+            $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($arrRecordToUpdate['cb.namespace'], $arrRecordToUpdate['cb.permalink']);
+            if(is_array($arrCrunchEntityData))
+            {
+                $arrPrefixedResult = addPrefixToArrayKeys($arrCrunchEntityData, $arrRecordToUpdate['cb.namespace'], ".");
+                __debug__var_dump_exit__('$arrPrefixedResult = '. var_export($arrPrefixedResult ));
+                $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrPrefixedResult);
             }
-		}
-			
-		__debug__printLine('returning from '.$strFunc, C__DISPLAY_FUNCTION__, true);
+        }
+        else
+        {
+            $strErr = "Could not lookup entity-specific facts for ".$arrRecordToUpdate['cb.name']. ".  Invalid cb.permalink or cb.namespace value was given.";
+            __debug__printLine($strErr , C__DISPLAY_ERROR__);
+            addToAccuracyField($arrRecordToUpdate, $strErr);
+        }
 
-	}
-	
+    }
 
-	private function _getCrunchbaseEntityFacts_($entity_type, $strPermanlink)
+
+
+    private function _getCrunchbaseEntityFacts_($entity_type, $strPermanlink)
 	{
 
 		if(!$strPermanlink || strlen($strPermanlink) == 0)
@@ -186,55 +178,88 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         $classAPICall = new APICallWrapperClass();
 
-        $classAPICall ->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+        $arrCrunchEntityData = $classAPICall->getObjectsFromAPICall($strAPIURL, '', C__API_RETURN_TYPE_ARRAY__);
 
-		$arrCrunchEntityData = getObjectsFromAPI($strAPIURL, '');
-		if($arrCrunchEntityData && is_array($arrCrunchEntityData))
+/*		if($arrCrunchEntityData && is_array($arrCrunchEntityData))
 		{
-            $this->addKeyPrefixToCEntityData($arrCrunchEntityData, $entity_type);
-//           merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
-//			addPrefixToArrayKeys($arrCrunchEntityData, "Crunchbase", ".");
-		} 
-		return $arrCrunchEntityData;
+            $this->updateCBDataWithCommonPrefixes($arrCrunchEntityData, $entity_type);
+            __debug__var_dump_exit__('$arrCrunchEntityData = '. var_export($arrCrunchEntityData));
+
+            $this->expandFieldArray($arrCrunchEntityData['cb.offices'], 'STRING', 1);
+
+		}
+*/		return $arrCrunchEntityData;
 		
 	}
 
-    private function addKeyPrefixToCEntityData($arrEntityData, $entityType)
+    private function expandFieldArray($arrField, $nTypeToExpandTo = 'STRING', $nLevelsToExpand = -1, $fTruncateUnexpandedLevels = true )
     {
-        $arrKeys = array_keys($arrEntityData);
-        $arrNewKeyValues = $arrKeys;
-        $arrNewKeys = array();
-        foreach ($arrKeys as $key)
+        $arrFlattend = $arrField;
+        if(is_array($arrField))
         {
-            if($this->arrCBCommonEntityFieldPrefixes[$key])
-            {
-                $key = 'cb.'.$key;
-            }
-            else
-            {
-                $key = $entityType.'.'.$key;
-            }
-            $arrNewKeys[] = $key;
-        }
-        return array_combine($arrNewKeys, $arrEntityData);
+            $arrFlattend = array_flatten_n($arrField, $nLevelsToExpand == -1 ? null : $nLevelsToExpand);
 
+        }
+        __debug__var_dump_exit__('$arrField = '. var_export($arrField) . '$nLevelsToExpand='. $nLevelsToExpand.'$arrFlattend = '. var_export($arrFlattend));
+
+        return $arrFlattend ;
     }
 
-    private $arrCBCommonEntityFieldPrefixes = array(
-        'category_code' => 'N/A',
-        'field_name' => 'N/A',
-        'crunchbase_url' => 'N/A',
-        'description' => 'N/A',
-        'homepage_url' => 'N/A',
-        'image' => 'N/A',
-        'name' => 'N/A',
-        'namespace' => 'N/A',
-        'offices' => 'N/A',
-        'overview' => 'N/A',
-        'permalink' => 'N/A',
-        'computed_domain' => 'N/A'
-    );
 
+
+    static public function updateCBDataWithCommonPrefixes($arrEntityData)
+    {
+        __debug__var_dump_exit__('updateCBDataWithCommonPrefixes $arrEntityData = '. var_export($arrEntityData));
+        if(is_array($arrEntityData))
+        {
+             $arrCBCommonEntityFieldPrefixes = array(
+                'category_code' => 'N/A',
+                'field_name' => 'N/A',
+                'crunchbase_url' => 'N/A',
+                'description' => 'N/A',
+                'homepage_url' => 'N/A',
+                'image' => 'N/A',
+                'name' => 'N/A',
+                'namespace' => 'N/A',
+                'offices' => 'N/A',
+                'overview' => 'N/A',
+                'permalink' => 'N/A',
+                'computed_domain' => 'N/A'
+                );
+
+
+            $arrKeys = array_keys($arrEntityData);
+
+            $arrNewKeys = array();
+            __debug__var_dump_exit__('$arrNewKeys = '. var_export($arrNewKeys).'  $arrEntityData = '. var_export($arrEntityData).'$arrKeys = '. var_export($arrKeys));
+            foreach ($arrKeys as $key)
+            {
+                if($arrCBCommonEntityFieldPrefixes[$key])
+                {
+                    $key = 'cb.'.$key;
+                }
+                else
+                {
+                    $key = $arrEntityData['cb.namespace'].'.'.$key;
+                }
+                $arrNewKeys[] = $key;
+            }
+            __debug__var_dump_exit__('$arrNewKeys = '. var_export($arrNewKeys).'  $arrEntityData = '. var_export($arrEntityData).'$arrKeys = '. var_export($arrKeys));
+            return array_combine($arrNewKeys, $arrEntityData);
+        }
+    }
+
+
+
+    public function getArbitraryAPICallData($strAPICallURL, $fileOutFullPath)
+    {
+        $arrCrunchAPIData = array();
+        $classAPICall = new APICallWrapperClass();
+
+        $arrCrunchAPIData[] = $classAPICall->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+        $classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
+        $classOutputFile->writeArrayToCSVFile($arrCrunchAPIData);
+    }
 
 
 

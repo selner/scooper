@@ -23,5 +23,5 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-const C_MOZ_API_ACCESS_ID  = "member-0c068bd3a1";
-const C_MOZ_API_ACCESS_SECRETKEY = "c09f545d7ff6c27b43c3e1b01bc6ba11";;
+const C__MOZ_API_ACCESS_ID__  = "member-0c068bd3a1";
+const C__MOZ_API_ACCESS_SECRETKEY__ = "c09f545d7ff6c27b43c3e1b01bc6ba11";;

@@ -98,7 +98,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 			}
 
 			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);			$cbEntityType = $arrRetCrunchResult['namespace'];
-            $arrPrefixedCrunchResult = $this->addKeyPrefixToCEntityData($arrRetCrunchResult, $cbEntityType);
+            $arrPrefixedCrunchResult = $this->updateCBDataWithCommonPrefixes($arrRetCrunchResult, $cbEntityType);
 //            $arrPrefixedCrunchResult = addPrefixToArrayKeys($arrRetCrunchResult, $cbEntityType, ".");
 //           __debug__var_dump_exit__(array('$arrPrefixedCrunchResult' => $arrPrefixedCrunchResult, 'record'=>$arrRecordToUpdate, 'company_name_urlenc'=>$company_name_urlenc, 'API_url' => $url), 'CB API Call');
 
@@ -191,7 +191,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		$arrCrunchEntityData = getObjectsFromAPI($strAPIURL, '');
 		if($arrCrunchEntityData && is_array($arrCrunchEntityData))
 		{
-            $this->addKeyPrefixToCEntityData($arrCrunchEntityData, $entity_type);
+            $this->updateCBDataWithCommonPrefixes($arrCrunchEntityData, $entity_type);
 //           merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
 //			addPrefixToArrayKeys($arrCrunchEntityData, "Crunchbase", ".");
 		} 
@@ -199,7 +199,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		
 	}
 
-    private function addKeyPrefixToCEntityData($arrEntityData, $entityType)
+    private function updateCBDataWithCommonPrefixes($arrEntityData, $entityType)
     {
         $arrKeys = array_keys($arrEntityData);
         $arrNewKeyValues = $arrKeys;

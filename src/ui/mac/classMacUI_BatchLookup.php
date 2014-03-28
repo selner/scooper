@@ -33,7 +33,7 @@ class classMacUI_BatchLookup extends classMacUI
 
         # Introductory text
         intro_txt.type = text
-        intro_txt.default = This app gathers site data from Quantcast, Moz.com and Crunchbase for a list of company names or company URLs input as a CSV file.  Fields returned include estimated monthly uniques, company type, description, domain authority and many others.[return][return]     INPUT CSV FORMAT:[return]     Line 1:   File List Type { 'Company Name', 'URL' }[return]     Line 2+: String Values for Names or URLs[return][return]     Example:[return]          \"Company Name\"[return]          \"Apple\"[return]          \"Google\"[return]           ...etc
+        intro_txt.default = This app gathers site data from Quantcast, Moz.com and Crunchbase for a list of company names or company URLs input as a CSV file.  Fields returned include estimated monthly_uniques, company type, description, domain authority and many others.[return][return]     INPUT CSV FORMAT:[return]     Line 1:   File List Type { 'Company Name', 'URL' }[return]     Line 2+: String Values for Names or URLs[return][return]     Example:[return]          \"Company Name\"[return]          \"Apple\"[return]          \"Google\"[return]           ...etc
         #intro_txt.height = 276
         intro_txt.width = 500
         #intro_txt.x = 10

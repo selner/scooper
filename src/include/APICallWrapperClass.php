@@ -26,12 +26,13 @@ class APICallWrapperClass {
     /****************************************************************************************************************/
 
 
-    function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $pagenum = 0)
+    function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
     {
         $retData = null;
 
         $curl_obj = $this->cURL($baseURL, "", "GET", "application/json", $pagenum);
         $srcdata = json_decode($curl_obj['output']);
+        __debug__var_dump_exit__('GetObjects C__API_RETURN_TYPE_ARRAY__ $curl_obj {{ '.var_export($curl_obj) .'}}');
         if($srcdata != null)
         {
             if($objName == "")
@@ -57,8 +58,7 @@ class APICallWrapperClass {
                     $patternPagePrefix = "/.*page=/";
                     $pattern = "/(\/api\/v2\/).*/";
                     $pagenum = preg_replace($patternPagePrefix, "", $srcdata->next_page);
-                    $retSecondary = getObjectsFromAPI($baseURL, $objName, $pagenum);
-                    $this->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+                    $retSecondary = $this->getObjectsFromAPI($baseURL, $objName, null, null, $pagenum);
 
                     //
                     // Merge the primary and secondary result sets into one result
@@ -85,6 +85,16 @@ class APICallWrapperClass {
                 // do nothing;
                 break;
         }
+
+
+        //
+        // if we have a handler for the results, call it now
+        //
+        if ($callback && is_callable($callback))
+        {
+            call_user_func($callback, $retData);
+        }
+
 
         return $retData;
     }

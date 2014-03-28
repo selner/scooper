@@ -48,3 +48,5 @@ TestCases/TestCases_OneName_Person_DanRosen.csv
 TestCases/TestCases_OneName_Financial_Maveron.csv
 
 TestCases/TestCases_OneName_Financial_Maveron.csv
+
+*.log

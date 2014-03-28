@@ -20,7 +20,8 @@ require_once dirname(__FILE__) . '/lib/pharse.php';
 require_once dirname(__FILE__) . '/include/SimpleScooterCSVFileClass.php';
 require_once dirname(__FILE__) . '/include/common.php';
 require_once dirname(__FILE__) . '/include/fields_functions.php';
-require_once dirname(__FILE__) . '/config_pashua_settings.php';
+require_once dirname(__FILE__) . '/ui/mac/classMacUI_BatchLookup.php';
+require_once dirname(__FILE__) . '/ui/mac/classMacUI_SingleLookup.php';
 require_once dirname(__FILE__) . '/plugins/plugin-base.php';
 require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';
 require_once dirname(__FILE__) . '/plugins/plugin-crunchbase.php';
@@ -33,8 +34,7 @@ require_once dirname(__FILE__) . '/plugins/plugin-quantcast.php';
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-
-__main__ ();
+// __main__ ();
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
@@ -99,7 +99,7 @@ function __main__ ()
                }
             }
         */
-        $classMacSettingsUI = new MacSettingsUIClass();
+        $classMacSettingsUI = new classMacUI_BatchLookup();
         $classMacSettingsUI->getOptionsFromUser();
     }
 

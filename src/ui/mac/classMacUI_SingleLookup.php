@@ -1,12 +1,25 @@
 <?php
+/**
+ * Copyright 2014 Bryan Selner
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
 
-require_once 'pashua_wrapper_functions.php';
-/*
-*** DRAFTED, BUT NOT YET IMPLEMENTED OR TESTED
+require_once dirname(__FILE__).'/pashua_wrapper.php';
 
-class MacLookupDialogUIClass
+
+class classMacUI_SingleLookup extends classMacUI
 {
-
     function getUserInput()
     {
         $appConf = $this->_get_pashua_lookup_UI_();
@@ -26,7 +39,7 @@ class MacLookupDialogUIClass
     *.transparency=0.95
 
     # Set window title
-    *.title = Scooter
+    *.title = " . C__APPNAME__." Company Lookup
 
     # Introductory text
     intro_txt.type = text
@@ -102,7 +115,7 @@ class MacLookupDialogUIClass
 
 
 
-    private function _updateOptionsFromPashua_($arrPashuaResults)
+    public static function _updateOptionsFromPashua_($arrPashuaResults)
     {
 
         if($arrPashuaResults['ok_button'] && $arrPashuaResults['ok_button'] == 1)
@@ -124,7 +137,7 @@ class MacLookupDialogUIClass
             {
                 $strErrorMessage = "The following settings were not valid:" . $strErrorMessage."[return][return]Please re-check them.";
 
-                return $this->_showErrorDialog_($strErrorMessage );
+                return parent::_showErrorDialog_($strErrorMessage );
             }
         }
         else
@@ -138,47 +151,8 @@ class MacLookupDialogUIClass
 
 
 
-    private function _showErrorDialog_($strErrorText)
-    {
 
-        $confErrDialog = "
-            # Set transparency: 0 is transparent, 1 is opaque
-            *.transparency=0.95
-
-            # Set window title
-            *.title = Invalid Configuration Settings
-
-            # Introductory text
-            intro_txt.type = text
-            intro_txt.default = ". $strErrorText."
-            intro_txt.height = 276
-            intro_txt.width = 310
-            intro_txt.x = 340
-            intro_txt.y = 44
-
-
-            # Add a cancel button with default label
-            button_cancel.type=cancelbutton
-            ok_button.label = Exit App
-
-            # Add a cancel button with default label
-            ok_button.type = defaultbutton
-            ok_button.label = Edit Settings
-
-            ";
-
-        # Pass the configuration string to the Pashua module
-        $dialog_result = pashua_run($confErrDialog, 'utf8', null);
-
-        if($dialog_result['button_cancel'] == 1)
-        {
-            exit("User clicked \"Exit App\".");
-        }
-
-        return $this->getOptionsFromUser();
-    }
 }
 
 
-*/
 ?>

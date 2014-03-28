@@ -1,6 +1,12 @@
 ## Scooper Change Log
 
-
+# 03/27/2014 (BJS)
+	* Added Pashua.app binary for Mac UI dialogs
+	* Removed pashua_wrapper files and created new classes for Mac UI in ui/mac/ directory.  
+	* Added draft template_Scooper.app and related build files to the repository.  Builds are not yet functional. 
+	* Changed main.php to scooper.php. Added new run_scooper.php called from Pashua.
+	
+	
 # 03/27/2014 (BJS)
 	* Added new single record lookup modes:  --lookup_name/-ln and --lookup_url/-lu.  These options do not require an input CSV.
 	* Fixed: calls to previously deleted function "GetObjectsFromAPI"

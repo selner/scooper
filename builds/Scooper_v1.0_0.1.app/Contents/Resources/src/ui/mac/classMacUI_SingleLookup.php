@@ -1,24 +1,37 @@
 <?php
+/**
+ * Copyright 2014 Bryan Selner
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may obtain
+ * a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations
+ * under the License.
+ */
 
-require_once 'pashua_wrapper_functions.php';
-// Define what the dialog should be like
-// Take a look at Pashua's Readme file for more info on the syntax
+require_once dirname(__FILE__).'/pashua_wrapper.php';
 
-class MacSettingsUIClass
+
+class classMacUI_SingleLookup extends classMacUI
 {
-
-    function getOptionsFromUser()
+    function getUserInput()
     {
-        $appConf = $this->_get_pashua_Settngs_UI_();
+        $appConf = $this->_get_pashua_lookup_UI_();
 
         # Pass the configuration string to the Pashua module
         $dialog_result = pashua_run($appConf, $encoding = 'utf8', $apppath = dirname(__FILE__));
 
-        $this->_updateOptionsFromPashua_($dialog_result);
+        return $this->_updateOptionsFromPashua_($dialog_result);
     }
 
 
-    private function _get_pashua_Settngs_UI_()
+    private function _get_pashua_lookup_UI_()
     {
 
         $conf = "
@@ -26,23 +39,15 @@ class MacSettingsUIClass
     *.transparency=0.95
 
     # Set window title
-    *.title = Site Evaluator
+    *.title = " . C__APPNAME__." Company Lookup
 
     # Introductory text
     intro_txt.type = text
-    intro_txt.default = This app athers site data from Quantcast, Moz.com and Crunchbase for a list of company names or company URLs input as a CSV file.  Fields returned include estimated monthly uniques, company type, description, domain authority and many others.[return][return]     INPUT CSV FORMAT:[return]     Line 1:   File List Type { 'Company Name', 'URL' }[return]     Line 2+: String Values for Names or URLs[return][return]     Example:[return]          \"Company Name\"[return]          \"Apple\"[return]          \"Google\"[return]           ...etc
+    intro_txt.default = THIS SCREEN IS TBD.
     #intro_txt.height = 276
     intro_txt.width = 500
     #intro_txt.x = 10
     #intro_txt.y = 10
-
-    # InputFile
-    path_in.type = openbrowser
-    path_in.label = Select the Input CSV File...
-    #path_in.x = 350
-    #path_in.y = 10
-    path_in.width=310
-    path_in.tooltip = Browse...
 
     # OutputFilePath
     path_out.type = openbrowser
@@ -103,7 +108,6 @@ class MacSettingsUIClass
         $conf = $conf . "check_quant.default = " . $GLOBALS['OPTS']['exclude_quantcast'].PHP_EOL;
         $conf = $conf . "check_moz.default = " . $GLOBALS['OPTS']['exclude_moz'].PHP_EOL;
         $conf = $conf . "check_cb.default = "  . $GLOBALS['OPTS']['exclude_crunchbase'].PHP_EOL;
-        $conf = $conf . "path_in.default = "  . $GLOBALS['OPTS']['inputfile'].PHP_EOL;
         $conf = $conf . "path_out.default = "  . $GLOBALS['OPTS']['outputfile'].PHP_EOL;
 
         return $conf;
@@ -111,7 +115,7 @@ class MacSettingsUIClass
 
 
 
-    private function _updateOptionsFromPashua_($arrPashuaResults)
+    public static function _updateOptionsFromPashua_($arrPashuaResults)
     {
 
         if($arrPashuaResults['ok_button'] && $arrPashuaResults['ok_button'] == 1)
@@ -119,19 +123,21 @@ class MacSettingsUIClass
             $GLOBALS['OPTS']['exclude_quantcast'] = $arrPashuaResults['check_quant'];
             $GLOBALS['OPTS']['exclude_moz'] = $arrPashuaResults['check_moz'];
             $GLOBALS['OPTS']['exclude_crunchbase'] = $arrPashuaResults['check_cb'];
-            $GLOBALS['OPTS']['inputfile'] = $arrPashuaResults['path_in'];
             $GLOBALS['OPTS']['outputfile'] = $arrPashuaResults['path_out'];
 
 
-            $strArgErrs = __check_args__();
-            __log__($strArgErrs, C__LOGLEVEL_WARN__);
+            if(!file_exists(dirname($GLOBALS['OPTS']['outputfile'])) )
+            {
+                $strLocType = 'folder';
+                if(is_file($GLOBALS['OPTS']['outputfile'])) { $strLocType = 'file'; }
+                $strErrorMessage = $strErrorMessage . "[return]- The ".$strLocType." '".$GLOBALS['OPTS']['outputfile']."' is not a valid directory or file for output..";
+            }
 
-
-            if(strlen($strArgErrs) > 0)
+            if(strlen($strErrorMessage) > 0)
             {
                 $strErrorMessage = "The following settings were not valid:" . $strErrorMessage."[return][return]Please re-check them.";
 
-                $this->_showErrorDialog_($strErrorMessage );
+                return parent::_showErrorDialog_($strErrorMessage );
             }
         }
         else
@@ -145,47 +151,8 @@ class MacSettingsUIClass
 
 
 
-    private function _showErrorDialog_($strErrorText)
-    {
 
-        $confErrDialog = "
-            # Set transparency: 0 is transparent, 1 is opaque
-            *.transparency=0.95
-
-            # Set window title
-            *.title = Invalid Configuration Settings
-
-            # Introductory text
-            intro_txt.type = text
-            intro_txt.default = ". $strErrorText."
-            intro_txt.height = 276
-            intro_txt.width = 310
-            intro_txt.x = 340
-            intro_txt.y = 44
-
-
-            # Add a cancel button with default label
-            button_cancel.type=cancelbutton
-            ok_button.label = Exit App
-
-            # Add a cancel button with default label
-            ok_button.type = defaultbutton
-            ok_button.label = Edit Settings
-
-            ";
-
-        # Pass the configuration string to the Pashua module
-        $dialog_result = pashua_run($confErrDialog, 'utf8', null);
-
-        if($dialog_result['button_cancel'] == 1)
-        {
-            exit("User clicked \"Exit App\".");
-        }
-
-        $this->getOptionsFromUser();
-    }
 }
-
 
 
 ?>

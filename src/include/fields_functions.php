@@ -175,10 +175,12 @@ function array_flatten_sep($sep, $array) {
     $stack = array();
     array_push($stack, array("", $array));
 
-    while (count($stack) > 0) {
+    while (count($stack) > 0)
+    {
         list($prefix, $array) = array_pop($stack);
 
-        foreach ($array as $key => $value) {
+        foreach ($array as $key => $value)
+        {
             $new_key = $prefix . strval($key);
 
             if (is_array($value))

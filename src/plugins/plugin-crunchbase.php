@@ -80,7 +80,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		{
 			foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
 			{
-//                __debug__var_dump_exit__('$curCrunchResult = '. var_export($curCrunchResult ).PHP_EOL."  $arrCrunchBaseSearchResultsRecords".var_export($arrCrunchBaseSearchResultsRecords));
                 if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
                 {
                     $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
@@ -101,13 +100,11 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 				$nMatchCrunchResult = 0;
 				$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
 			}
-
-//			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);
-//            $cbEntityType = $arrRetCrunchResult['namespace'];
-//            $arrPrefixedCrunchResult = $this->updateCBDataWithCommonPrefixes($arrRetCrunchResult, $cbEntityType);
-//          merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
 		}
 
+        //
+        // If we didn't get a match, note it in the record
+        //
 		if($nMatchCrunchResult == -1) 
 		{		
 			$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
@@ -116,13 +113,15 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         else
         {
             //
-            // Now that we have a Crunchbase entity permalink to use, go add the extended entity facts as well
+            // Otherwise, go get the full entity facts for that record
             //
             $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
         }
 
         addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
 
+
+        $this->_expandArraysInFields_($arrRecordToUpdate);
 
 	}
 
@@ -141,8 +140,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($arrRecordToUpdate['cb.namespace'], $arrRecordToUpdate['cb.permalink']);
             if(is_array($arrCrunchEntityData))
             {
-//                $arrPrefixedResult = addPrefixToArrayKeys($arrCrunchEntityData, $arrRecordToUpdate['cb.namespace'], ".");
-//                __debug__var_dump_exit__('$arrPrefixedResult = '. var_export($arrPrefixedResult ));
                 $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
             }
         }
@@ -185,18 +182,68 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		
 	}
 
-    private function expandFieldArray($arrField, $nTypeToExpandTo = 'STRING', $nLevelsToExpand = -1, $fTruncateUnexpandedLevels = true )
-    {
-        $arrFlattend = $arrField;
-        if(is_array($arrField))
+     private function _expandArrays_(&$arrToExpand)
+     {
+
+        $keys = array_keys($arrToExpand);
+        foreach($keys as $curKey)
         {
-            $arrFlattend = array_flatten_n($arrField, $nLevelsToExpand == -1 ? null : $nLevelsToExpand);
+            $val = $arrToExpand[$curKey];
 
+            if(is_array($arrToExpand[$curKey]))
+            {
+                $valFlattened = array_flatten_sep(".", $val);
+                $arrToExpand[$curKey] = $valFlattened;
+            }
         }
-        __debug__var_dump_exit__('$arrField = '. var_export($arrField) . '$nLevelsToExpand='. $nLevelsToExpand.'$arrFlattend = '. var_export($arrFlattend));
 
-        return $arrFlattend ;
+
+        foreach($arrToExpand as $field)
+        {
+            if(is_array($field))
+            {
+                $keyField = key($field);
+                $strValField = implode("|", $field);
+                $arrToExpand[$keyField] = $strValField;
+            }
+        }
+
     }
+
+    private function _expandArraysInFields_(&$arrRecordToUpdate)
+    {
+//        $this->_expandArrays_($arrRecordToUpdate);
+
+
+/*
+        $keys = array_keys($arrRecordToUpdate);
+        foreach($keys as $curKey)
+        {
+            $val = $arrRecordToUpdate[$curKey];
+
+            if(is_array($arrRecordToUpdate[$curKey]))
+            {
+                $valFlattened = array_flatten_sep(".", $val);
+                $arrRecordToUpdate[$curKey] = $valFlattened;
+            }
+        }
+
+        foreach($arrRecordToUpdate as $field)
+        {
+            if(is_array($field))
+            {
+                $keyField = key($field);
+                $valExpandedField  = $field;
+                $this-> _expandArrays_($valExpandedField  );
+
+                $strValField = implode("|", array($field, $valExpandedField));
+                $arrRecordToUpdate[$keyField] = $strValField;
+            }
+        }
+*/
+
+    }
+
 
 
 

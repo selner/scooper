@@ -97,7 +97,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 				$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
 			}
 
-			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);			$cbEntityType = $arrRetCrunchResult['namespace'];
+			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);
+            $cbEntityType = $arrRetCrunchResult['namespace'];
             $arrPrefixedCrunchResult = $this->updateCBDataWithCommonPrefixes($arrRetCrunchResult, $cbEntityType);
 //            $arrPrefixedCrunchResult = addPrefixToArrayKeys($arrRetCrunchResult, $cbEntityType, ".");
 //           __debug__var_dump_exit__(array('$arrPrefixedCrunchResult' => $arrPrefixedCrunchResult, 'record'=>$arrRecordToUpdate, 'company_name_urlenc'=>$company_name_urlenc, 'API_url' => $url), 'CB API Call');
@@ -186,9 +187,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         $classAPICall = new APICallWrapperClass();
 
-        $classAPICall ->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+        $classAPICall->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
 
-		$arrCrunchEntityData = getObjectsFromAPI($strAPIURL, '');
 		if($arrCrunchEntityData && is_array($arrCrunchEntityData))
 		{
             $this->updateCBDataWithCommonPrefixes($arrCrunchEntityData, $entity_type);

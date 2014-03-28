@@ -32,19 +32,37 @@ class APICallWrapperClass {
 
         $curl_obj = $this->cURL($baseURL, "", "GET", "application/json", $pagenum);
         $srcdata = json_decode($curl_obj['output']);
-        __debug__var_dump_exit__('GetObjects C__API_RETURN_TYPE_ARRAY__ $curl_obj {{ '.var_export($curl_obj) .'}}');
         if($srcdata != null)
         {
             if($objName == "")
             {
+                //
+                // if we have a handler for the results, call it now
+                //
+                if ($callback && is_callable($callback))
+                {
+                    call_user_func_array($callback, array(&$srcdata));
+//                    call_user_func($callback, $srcdata);
+                }
                 $retData = $srcdata;
+                // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
             }
             else
             {
 
                 foreach($srcdata->$objName as $value)
+                {
+                    //
+                    // if we have a handler for the results, call it now
+                    //
+                    if ($callback && is_callable($callback))
+                    {
+                        call_user_func_array($callback, array(&$value));
+//                        call_user_func($callback, $value);
+                    }
                     $retData[] = $value;
-
+                    // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
+                }
 
                 //
                 // If the data returned has a next_page value, then we have more results available
@@ -66,8 +84,17 @@ class APICallWrapperClass {
                     //
 
                     foreach($retSecondary as $moreVal)
+                    {
+                        //
+                        // if we have a handler for the results, call it now
+                        //
+                        if ($callback && is_callable($callback))
+                        {
+                            call_user_func_array($callback, array(&$moreVal));
+//                            call_user_func($callback, $moreVal);
+                        }
                         $retData[] = $moreVal;
-
+                    }
                 }
             }
         }
@@ -84,15 +111,6 @@ class APICallWrapperClass {
             default:
                 // do nothing;
                 break;
-        }
-
-
-        //
-        // if we have a handler for the results, call it now
-        //
-        if ($callback && is_callable($callback))
-        {
-            call_user_func($callback, $retData);
         }
 
 

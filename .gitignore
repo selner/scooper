@@ -49,3 +49,5 @@ TestCases/TestCases_OneName_Financial_Maveron.csv
 *.log
 
 src/config*.php
+
+src/config.php

@@ -21,17 +21,25 @@
 /****         Helper Functions:  Debug Functions                                                             ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-/*
-function __debug__DumpVarToLog($var_name, $var_case_details, $var)
-{
-	$strVarValue = var_export($var);
-	$message = 'Variable $'.$var_name.' written to log by '.$var_case_details.' Value=:\n'.$strVarValue.'\n';
-	syslog ( LOG_DEBUG , $message );
-	
-}
-*/
+
 require_once 'common.php';
 const C__DEBUG_MODE__ = false;
+
+
+const C__NAPPTOPLEVEL__ = 0;
+const C__NAPPFIRSTLEVEL__ = 1;
+const C__NAPPSECONDLEVEL__ = 2;
+const C__SECTION_BEGIN__ = 1;
+const C__SECTION_END__ = 2;
+const C__DISPLAY_NORMAL__ = 100;
+const C__DISPLAY_ITEM_START__ = 200;
+const C__DISPLAY_ITEM_DETAIL__ = 300;
+const C__DISPLAY_ITEM_RESULT__ = 350;
+
+const C__DISPLAY_MOMENTARY_INTERUPPT__ = 400;
+const C__DISPLAY_ERROR__ = 500;
+const C__DISPLAY_RESULT__ = 600;
+const C__DISPLAY_FUNCTION__= 700;
 
 
 function __debug__var_dump_exit__($var, $desc="__debug__var_dump_exit__")
@@ -67,45 +75,45 @@ function __debug__printLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = fal
 		// Valid $varLogLevels found at http://www.php.net/manual/en/function.syslog.php
 		switch ($varDisplayStyle)
 		{
-				case C__DISPLAY_FUNCTION__: 
-					$strLineBeginning = '<<<<<<<< function "';
-					$strLineEnd = '" called >>>>>>> ';
-					$logLevel = LOG_INFO;
-					break;
+			case C__DISPLAY_FUNCTION__:
+				$strLineBeginning = '<<<<<<<< function "';
+				$strLineEnd = '" called >>>>>>> ';
+				$logLevel = C__LOGLEVEL_DEBUG__;
+				break;
 
 				case C__DISPLAY_RESULT__: 
 					$strLineBeginning = '==> ';
-					$logLevel = LOG_INFO;
+					$logLevel = C__LOGLEVEL_INFO__;
 					break;
 
 			case C__DISPLAY_ERROR__: 
 				$strLineBeginning = '!!!!! ';
-				$logLevel = LOG_ERR;
+				$logLevel = C__LOGLEVEL_ERROR__;
 				break;
 				
 			case C__DISPLAY_ITEM_START__: 
 				$strLineBeginning = '---> ';
-				$logLevel = LOG_INFO;
+				$logLevel = C__LOGLEVEL_INFO__;
 				break;
 				
 			case C__DISPLAY_ITEM_DETAIL__: 
 				$strLineBeginning = '     ';
-				$logLevel = LOG_INFO;
+				$logLevel = C__LOGLEVEL_INFO__;
 				break;
 				
 			case C__DISPLAY_ITEM_RESULT__: 
 				$strLineBeginning = '======> ';
-				$logLevel = LOG_INFO;
+				$logLevel = C__LOGLEVEL_INFO__;
 				break;
 					
 			case C__DISPLAY_MOMENTARY_INTERUPPT__: 
 				$strLineBeginning = '......';
-				$logLevel = LOG_INFO;
+				$logLevel = C__LOGLEVEL_WARN__;
 				break;
 						
 			case C__DISPLAY_NORMAL__: 
 				$strLineBeginning = '';
-				$logLevel = LOG_INFO;
+				$logLevel = C__LOGLEVEL_INFO__;
 				break;
 		
 			default:
@@ -115,7 +123,8 @@ function __debug__printLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = fal
 		}
 
 
-		print $strLineBeginning . $strToPrint . $strLineEnd . PHP_EOL;
+        __log__($strLineBeginning . $strToPrint . $strLineEnd, $logLevel);
+
 	}
 }
 

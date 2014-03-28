@@ -54,7 +54,6 @@ function addToAccuracyField(&$arrRecord, $strValueToAdd)
 /****         Helper Functions:  Array processing                                                            ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-
 function addPrefixToArrayKeys( $arr, $strPrefix = "", $strSep = "" )
 {
 

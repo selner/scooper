@@ -14,13 +14,34 @@ INPUT CSV FORMAT:
 * service-provider entity types from Crunchbase appear shifted in the results without header row values.  (Example: Lockerz,  http://lockerz.com/)
 
 
-#Near Term Changes
-* Add comments for publish
-
 # Known Issues
 * 	Cannot use file names with hyphens in them due to a bug in the Pharse library (https://github.com/chrisallenlane/pharse/issues/3)
 * 	Crunchbase Offices and other columns appear as "Array" in the final CSV; need to implode them into strings.
 * Occasionally see timeout errors with the Crunchbase API.  Example: 'Error: ""---> Processing row#33: C2S Technologies  Error #28: Resolving timed out after 10000 milliseconds""'
+
+# Usage
+## Running the script
+Run php ./main.php --help to see the command line options.
+
+Options:
+         --suppressUI, -q <i>: Show user interface.
+            --verbose, -v <i>: Show debug statements and other information.
+ --verbose-api-calls, -va <i>: Show API calls in verbose mode.
+          --inputfile, -i <s>: Full file path of the CSV file to use as the input data.
+         --outputfile, -o <s>: (optional) Output path or full file path and name for writing the results.
+       --exclude-moz, -em <i>: Include moz.com data in the final result set.
+ --exclude-quantcast, -eq <i>: Include quantcast.com uniq visitors data in the final result set.
+--exclude-crunchbase, -ec <i>: Include TechCrunch's Crunchbase data in the final result set.
+  --moz-access-id, -mozid <s>: Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
+--moz-secret-key, -mozkey <s>: Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
+                   --help, -h: Display this help banner
+
+## Enabling Logging
+If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
+a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
+
+#Near Term Changes
+* Add comments for publish
 
 
 

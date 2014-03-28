@@ -1,9 +1,16 @@
 ## Scooper Change Log
 
 # 03/27/2014 (BJS)
+	* Crunchbase: combined entity facts common across namespaces to use same key naming patter of cb.<field>.
+	* Added KLogger v0.1 support for logging each run to a log file.  Continues to print to stdout if KLogger is not found.
 	* Fixed:  missing multiple column headers for Crunchbase Service Providers
-	* Fixed: Quantcast displays as the very last column. 
-	* 
+	* Added input source CSV file examples
+
+
+# 03/27/2014 (BJS)
+	* Fixed: Quantcast displays as the very last column.
+	* Removed unused constant C__OUTPUT_HEADERKEY_LISTS_TO_FILE
+
 # 03/26/2014 (BJS)
 	* Added support for Moz API values to be passed via the command line or by changing values in a new, separate config.php file.
 	* Merged the two curlWrap functions into a single new APICallWrapperClass

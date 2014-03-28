@@ -47,6 +47,21 @@ function __main__ ()
 	ini_set('auto_detect_line_endings', true);
     date_default_timezone_set('America/Los_Angeles');
 
+    __initLogger__();
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****    Configure the app settings for this run.                                                            ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+
+
+
 	/****************************************************************************************************************/
 	/****                                                                                                        ****/
 	/****    Initialize the app and setup the options based on the command line variables                        ****/
@@ -93,25 +108,62 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
 	__debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
 
     __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-	$fileInFullPath = $GLOBALS['OPTS']['inputfile'];
-    // use the folder passed in and use the input file name to generate a new output file name
-    //
-    $arrInputFilePathParts = explode("/", $fileInFullPath); // separate into elements by '/'
-    $strInputFileName = array_pop($arrInputFilePathParts);  // pop the last element (the file name + extension) into a string
-    $baseInputFilePath = implode("/", $arrInputFilePathParts); // put the rest of the path parts back together into a path string
-    $arrInputFileNameParts = explode(".", $strInputFileName); // separate the file name by '.' to break the extension out
-    $strInputExtension = array_pop($arrInputFileNameParts);  // pop off the extension
-    $strInputBase = implode(".", $arrInputFileNameParts);    // put the rest of the filename back together into a string.
 
-    $baseDefaultOutputFileName = $strInputBase."_output_".date("Ymd-Hm").".csv";
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    Build a default Output FilePath as our starting value based on the current inputfile path           ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+    //
+    //  Build the new output file name
+    //
+
+    $fileInFullPath = $GLOBALS['OPTS']['inputfile'];
+
+    // separate into elements by '/'
+    $arrInputFilePathParts = explode("/", $fileInFullPath);
+
+    // pop the last element (the file name + extension) into a string
+    $strInputFileName = array_pop($arrInputFilePathParts);
+
+    // put the rest of the path parts back together into a path string
+    $baseInputFilePath = implode("/", $arrInputFilePathParts);
+
+    // separate the file name by '.' to break the extension out
+    $arrInputFileNameParts = explode(".", $strInputFileName);
+
+    // pop off the extension
+    $strInputExtension = array_pop($arrInputFileNameParts);
+
+    // put the rest of the filename back together into a string.
+    $strInputBase = implode(".", $arrInputFileNameParts);
+
+    //
+    // Default Output Name Format is <DATE>_output_<INPUTBASE>.csv
+    //
+    $baseDefaultOutputFileName = date("Ymd-Hm")."_output_".$strInputBase.".csv";
+
+
+
+    //
+    // Make sure we've got a good input directory path to use
+    //
 
     //
     // handle the case where we only got the file name with no path; default to the current directory
     //
-    if(strlen($baseInputFilePath) <= 1) { $baseInputFilePath = "./"; }
+    if(strlen($baseInputFilePath) <= 1)
+    {
+           $baseInputFilePath = "./";
+    }
 
     //
-    // Set the initial output file path & name
+    //  Combine the output path & filename into the output file path
+    //
+
+    //
+    //  Update the user options with the new values
     //
     $fileOutFullPath = $baseInputFilePath."/".$baseDefaultOutputFileName;
 
@@ -128,6 +180,13 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
     }
     $GLOBALS['OPTS']['outputfile'] = $fileOutFullPath;
 
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    Check if we need to display the settings UI to the user.  Show it, if so.                           ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
     if(!$GLOBALS['OPTS']['suppressUI_given'] || !$GLOBALS['OPTS']['inputfile'] || strlen($GLOBALS['OPTS']['inputfile']) <=0 || !$GLOBALS['OPTS']['outputfile'] || strlen($GLOBALS['OPTS']['outputfile']) <= 0)
     {
         $classMacSettingsUI = new MacSettingsUIClass();
@@ -137,6 +196,21 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
     if(count($arrExclusions) > 0) { __debug__printLine("Excluding data from: ".implode(',', $arrExclusions), C__DISPLAY_NORMAL__); }
 
     __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+
+
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****    App Setup is done.   Let's start processing the user's data.                                        ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+
 
 
 	/****************************************************************************************************************/
@@ -153,6 +227,9 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
 	__debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
     $classFileOut = new SimpleScooterCSVFileClass($fileOutFullPath, 'w+');
+
+
+
 
 
     /****************************************************************************************************************/

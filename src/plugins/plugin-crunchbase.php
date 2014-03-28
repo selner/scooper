@@ -98,8 +98,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 			}
 
 			$arrRetCrunchResult = json_decode(json_encode($arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult]), true);			$cbEntityType = $arrRetCrunchResult['namespace'];
-            $arrPrefixedCrunchResult = addPrefixToArrayKeys($arrRetCrunchResult, $cbEntityType, ".");
-//            __debug__var_dump_exit__(array('record'=>$arrRecordToUpdate, 'company_name_urlenc'=>$company_name_urlenc, 'API_url' => $url), 'CB API Call');
+            $arrPrefixedCrunchResult = $this->addKeyPrefixToCEntityData($arrRetCrunchResult, $cbEntityType);
+//            $arrPrefixedCrunchResult = addPrefixToArrayKeys($arrRetCrunchResult, $cbEntityType, ".");
+//           __debug__var_dump_exit__(array('$arrPrefixedCrunchResult' => $arrPrefixedCrunchResult, 'record'=>$arrRecordToUpdate, 'company_name_urlenc'=>$company_name_urlenc, 'API_url' => $url), 'CB API Call');
 
             merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
 		}
@@ -185,11 +186,52 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		$arrCrunchEntityData = getObjectsFromAPI($strAPIURL, '');
 		if($arrCrunchEntityData && is_array($arrCrunchEntityData))
 		{
-			addPrefixToArrayKeys($arrCrunchEntityData, "Crunchbase", ".");
+            $this->addKeyPrefixToCEntityData($arrCrunchEntityData, $entity_type);
+//           merge_into_array_and_add_new_keys($arrRecordToUpdate, $arrPrefixedCrunchResult);
+//			addPrefixToArrayKeys($arrCrunchEntityData, "Crunchbase", ".");
 		} 
 		return $arrCrunchEntityData;
 		
 	}
+
+    private function addKeyPrefixToCEntityData($arrEntityData, $entityType)
+    {
+        $arrKeys = array_keys($arrEntityData);
+        $arrNewKeyValues = $arrKeys;
+        $arrNewKeys = array();
+        foreach ($arrKeys as $key)
+        {
+            if($this->arrCBCommonEntityFieldPrefixes[$key])
+            {
+                $key = 'cb.'.$key;
+            }
+            else
+            {
+                $key = $entityType.'.'.$key;
+            }
+            $arrNewKeys[] = $key;
+        }
+        return array_combine($arrNewKeys, $arrEntityData);
+
+    }
+
+    private $arrCBCommonEntityFieldPrefixes = array(
+        'category_code' => 'N/A',
+        'field_name' => 'N/A',
+        'crunchbase_url' => 'N/A',
+        'description' => 'N/A',
+        'homepage_url' => 'N/A',
+        'image' => 'N/A',
+        'name' => 'N/A',
+        'namespace' => 'N/A',
+        'offices' => 'N/A',
+        'overview' => 'N/A',
+        'permalink' => 'N/A',
+        'computed_domain' => 'N/A'
+    );
+
+
+
 
 }
 

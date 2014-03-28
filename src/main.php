@@ -59,126 +59,18 @@ function __main__ ()
     /****                                                                                                        ****/
     /****************************************************************************************************************/
 
+    //
+    // Gather and check that the command line arguments are valid
+    //
+    $strArgErrs = __check_args__();
+    if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
 
 
 
-	/****************************************************************************************************************/
-	/****                                                                                                        ****/
-	/****    Initialize the app and setup the options based on the command line variables                        ****/
-	/****                                                                                                        ****/
-	/****************************************************************************************************************/
-
-	// 
-	// Gather and check that the command line arguments are valid
-	//
-	$GLOBALS['OPTS'] = __check_args__();
-
-
-	if($GLOBALS['OPTS']['verbose_given']) {  $GLOBALS['VERBOSE'] = true; } else { $GLOBALS['VERBOSE'] = false; }
-	if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
-
-	if($GLOBALS['VERBOSE'] == true) { echo 'Options set: '; var_dump($GLOBALS['OPTS']); }
-	$arrExclusions = array();
-    if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  $arrExclusions[] = 'Quantcast'; } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
-    if($GLOBALS['OPTS']['exclude_crunchbase_given'] ) {  $GLOBALS['OPTS']['exclude_crunchbase'] = 1;  $arrExclusions[] = 'Crunchbase'; }else { $GLOBALS['OPTS']['exclude_crunchbase'] = 0; }
-
-    if(!$GLOBALS['OPTS']['moz_access_id_given'] )
-    {
-        $GLOBALS['OPTS']['moz_access_id'] = C_MOZ_API_ACCESS_ID;
-        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_ID.")." , C__DISPLAY_ERROR__);
-    }
-    if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
-    {
-        $GLOBALS['OPTS']['moz_secret_key'] = C_MOZ_API_ACCESS_ID;
-        __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_SECRETKEY.")." , C__DISPLAY_ERROR__);
-    }
-
-if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
-    {
-        if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Excluding Moz.com data: missing Moz API access ID and secret key.", C__DISPLAY_ERROR__); }
-        $GLOBALS['OPTS']['exclude_moz'] = 1;
-        $arrExclusions[] = 'Moz';
-    }
-    else
-    {
-        $GLOBALS['OPTS']['exclude_moz'] = 0;
-    }
-
-
-	__debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
+    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
 
     __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
-    /****************************************************************************************************************/
-    /****                                                                                                        ****/
-    /****    Build a default Output FilePath as our starting value based on the current inputfile path           ****/
-    /****                                                                                                        ****/
-    /****************************************************************************************************************/
-
-    //
-    //  Build the new output file name
-    //
-
-    $fileInFullPath = $GLOBALS['OPTS']['inputfile'];
-
-    // separate into elements by '/'
-    $arrInputFilePathParts = explode("/", $fileInFullPath);
-
-    // pop the last element (the file name + extension) into a string
-    $strInputFileName = array_pop($arrInputFilePathParts);
-
-    // put the rest of the path parts back together into a path string
-    $baseInputFilePath = implode("/", $arrInputFilePathParts);
-
-    // separate the file name by '.' to break the extension out
-    $arrInputFileNameParts = explode(".", $strInputFileName);
-
-    // pop off the extension
-    $strInputExtension = array_pop($arrInputFileNameParts);
-
-    // put the rest of the filename back together into a string.
-    $strInputBase = implode(".", $arrInputFileNameParts);
-
-    //
-    // Default Output Name Format is <DATE>_output_<INPUTBASE>.csv
-    //
-    $baseDefaultOutputFileName = date("Ymd-Hm")."_output_".$strInputBase.".csv";
-
-
-
-    //
-    // Make sure we've got a good input directory path to use
-    //
-
-    //
-    // handle the case where we only got the file name with no path; default to the current directory
-    //
-    if(strlen($baseInputFilePath) <= 1)
-    {
-           $baseInputFilePath = "./";
-    }
-
-    //
-    //  Combine the output path & filename into the output file path
-    //
-
-    //
-    //  Update the user options with the new values
-    //
-    $fileOutFullPath = $baseInputFilePath."/".$baseDefaultOutputFileName;
-
-    if($GLOBALS['OPTS']['outputfile_given'] && file_exists($GLOBALS['OPTS']['outputfile'])) // it's a valid folder. but not a file
-    {
-       if(is_file($GLOBALS['OPTS']['outputfile']))
-       {
-           $fileOutFullPath = $GLOBALS['OPTS']['outputfile'];
-       }
-       else
-       {
-           $fileOutFullPath = $GLOBALS['OPTS']['outputfile']."/".$baseDefaultOutputFileName;
-       }
-    }
-    $GLOBALS['OPTS']['outputfile'] = $fileOutFullPath;
 
 
 
@@ -187,13 +79,32 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
     /****    Check if we need to display the settings UI to the user.  Show it, if so.                           ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-    if(!$GLOBALS['OPTS']['suppressUI_given'] || !$GLOBALS['OPTS']['inputfile'] || strlen($GLOBALS['OPTS']['inputfile']) <=0 || !$GLOBALS['OPTS']['outputfile'] || strlen($GLOBALS['OPTS']['outputfile']) <= 0)
+    if(!$GLOBALS['OPTS']['suppressUI_given'])
     {
+        //
+        //  Update the user options with the new values
+        //
+        /*
+            $GLOBALS['output_file_details']['full_file_name'] = $baseInputFilePath."/".$baseDefaultOutputFileName;
+
+            if($GLOBALS['OPTS']['outputfile_given'] && file_exists($GLOBALS['OPTS']['outputfile'])) // it's a valid folder. but not a file
+            {
+               if(is_file($GLOBALS['OPTS']['outputfile']))
+               {
+                   $GLOBALS['output_file_details']['full_file_name'] = $GLOBALS['OPTS']['outputfile'];
+               }
+               else
+               {
+                   $GLOBALS['output_file_details']['full_file_name'] = $GLOBALS['OPTS']['outputfile']."/".$baseDefaultOutputFileName;
+               }
+            }
+        */
         $classMacSettingsUI = new MacSettingsUIClass();
         $classMacSettingsUI->getOptionsFromUser();
     }
 
-    if(count($arrExclusions) > 0) { __debug__printLine("Excluding data from: ".implode(',', $arrExclusions), C__DISPLAY_NORMAL__); }
+    __log__('Input File Details = '.var_export($GLOBALS['input_file_details']), C__LOGLEVEL_INFO__);
+    __log__('Input File Details = '.var_export($GLOBALS['output_file_details']), C__LOGLEVEL_INFO__);
 
     __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
@@ -211,22 +122,48 @@ if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access
     /****************************************************************************************************************/
 
 
+    $arrInputCSVData = array();
+
+    if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
+    {
+
+        if($GLOBALS['OPTS']['lookup_url_given'])
+        {
+            $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_URL__;
+            $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_url']);
+
+        }
+        else
+        {
+            $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_NAME__;
+            $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_name']);
+        }
+    }
+    else if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE)
+    {
+        /****************************************************************************************************************/
+        /****                                                                                                        ****/
+        /****    Read the Input CSV File into an array                                                               ****/
+        /****                                                                                                        ****/
+        /****************************************************************************************************************/
+        __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+        $classFileIn = new SimpleScooterCSVFileClass($GLOBALS['input_file_details']['full_file_path'], 'r');
+
+        $classFileIn->readAllRowsFromCSV($arrInputCSVData, true);
+
+        __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
+        __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+
+    }
+    else
+    {
+        __log__("Unable to determine single or input file mode.  Cannot continue.", C__LOGLEVEL_FATAL__);
+
+    }
 
 
-	/****************************************************************************************************************/
-	/****                                                                                                        ****/
-	/****    Read the Input CSV File into an array                                                               ****/
-	/****                                                                                                        ****/
-	/****************************************************************************************************************/
-	__debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-    $classFileIn = new SimpleScooterCSVFileClass($fileInFullPath, 'r');
 
-    $classFileIn->readAllRowsFromCSV($arrInputCSVData, true);
-
-	__debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
-	__debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
-
-    $classFileOut = new SimpleScooterCSVFileClass($fileOutFullPath, 'w+');
+    $classFileOut = new SimpleScooterCSVFileClass($GLOBALS['output_file_details']['full_file_path'], 'w+');
 
 
 

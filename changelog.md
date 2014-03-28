@@ -1,5 +1,13 @@
 ## Scooper Change Log
 
+
+# 03/27/2014 (BJS)
+	* Added new single record lookup modes:  --lookup_name/-ln and --lookup_url/-lu.  These options do not require an input CSV.
+	* Fixed: calls to previously deleted function "GetObjectsFromAPI"
+	* Minor fixes to output file headers such as making quantcast plugin header names consistent with other data sources.
+	* Moved user options parsing out of main.php and into common.php so it can be reused in UI and command line modes
+
+
 # 03/27/2014 (BJS)
 	* Crunchbase: combined entity facts common across namespaces to use same key naming patter of cb.<field>.
 	* Added KLogger v0.1 support for logging each run to a log file.  Continues to print to stdout if KLogger is not found.

@@ -128,8 +128,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 	public function getArbitraryAPICallData($strAPICallURL, $fileOutFullPath)
 	{
 		$arrCrunchAPIData = array();
-		$arrCrunchAPIData[] = getObjectsFromAPI($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
-		$classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
+        $classAPICall = new APICallWrapperClass();
+
+        $arrCrunchAPIData[] = $classAPICall->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+    	$classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
         $classOutputFile->writeArrayToCSVFile($arrCrunchAPIData);
 	}
 
@@ -181,7 +183,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		//
 		// Call the Crunchbase Search API 
 		// 
-		
+
+        $classAPICall = new APICallWrapperClass();
+
+        $classAPICall ->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
 
 		$arrCrunchEntityData = getObjectsFromAPI($strAPIURL, '');
 		if($arrCrunchEntityData && is_array($arrCrunchEntityData))

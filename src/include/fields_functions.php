@@ -129,6 +129,7 @@ function my_merge( $arr1, $arr2 )
      *
      * @param array $aSource
      * @return array    copy of source array
+     * @throws Exception if array is not valid
      */
     function array_copy ($aSource) {
         // check if input is really an array

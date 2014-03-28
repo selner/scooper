@@ -122,20 +122,12 @@ class MacSettingsUIClass
             $GLOBALS['OPTS']['inputfile'] = $arrPashuaResults['path_in'];
             $GLOBALS['OPTS']['outputfile'] = $arrPashuaResults['path_out'];
 
-            $strErrorMessage = "";
-            if(!file_exists($GLOBALS['OPTS']['inputfile']) || !is_file($GLOBALS['OPTS']['inputfile']) )
-            {
-                $strErrorMessage = $strErrorMessage . "[return]- The file '".$GLOBALS['OPTS']['inputfile']."' is not a valid input CSV file.";
-            }
 
-            if(!file_exists(dirname($GLOBALS['OPTS']['outputfile'])) )
-            {
-                $strLocType = 'folder';
-                if(is_file($GLOBALS['OPTS']['outputfile'])) { $strLocType = 'file'; }
-                $strErrorMessage = $strErrorMessage . "[return]- The ".$strLocType." '".$GLOBALS['OPTS']['outputfile']."' is not a valid directory or file for output..";
-            }
+            $strArgErrs = __check_args__();
+            __log__($strArgErrs, C__LOGLEVEL_WARN__);
 
-            if(strlen($strErrorMessage) > 0)
+
+            if(strlen($strArgErrs) > 0)
             {
                 $strErrorMessage = "The following settings were not valid:" . $strErrorMessage."[return][return]Please re-check them.";
 

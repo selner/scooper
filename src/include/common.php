@@ -40,6 +40,20 @@ const C__APP_VERSION_MINOR___ = ".11";
 const C__RECORD_CHUNK_SIZE__ = 2;
 const C__FSHOWVERBOSE_APICALL__ = 0;
 
+const C_LOOKUP_MODE_UNKNOWN = -1;
+const C_LOOKUP_MODE_SINGLE = 1;
+const C_LOOKUP_MODE_FILE = 2;
+$GLOBALS['lookup_mode'] = C_LOOKUP_MODE_UNKNOWN;
+
+const C__LOOKUP_DATATYPE_NAME__ = 1;
+const C__LOOKUP_DATATYPE_URL__ = 2;
+const C__LOOKUP_DATATYPE_BASICFACTS__ = 3;
+
+function getDefaultFileName($strFilePrefix, $strBase, $strExt)
+{
+    return sprintf(C__APPNAME__."_". date("Ymd-Hms")."%s_%s.%s", ($strFilePrefix != null ? "_".$strFilePrefix : ""), ($strBase != null  ? "_".$strBase : ""), $strExt);
+}
+
 /****************************************************************************************************************/
 /****                                                                                                        ****/
 /****         Logging                                                                                        ****/
@@ -58,8 +72,9 @@ const C__LOGLEVEL_OFF__		= 6;	// Nothing at all.
 //
 if ( file_exists ( dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php') )
 {
-    require_once dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php';
     define(C_USE_KLOGGER, 1);
+    require_once dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php';
+
 }
 else
 {
@@ -84,7 +99,7 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'result_accuracy_warnings' => 'N/A',
     'effective_domain' => 'N/A',
     'actual_site_url' => 'N/A',
-	 'Quantcast.Monthly Uniques' => 'N/A',
+	'quantcast.uniques' => 'N/A',
     'crunchbase_match_accuracy' => 'N/A',
     'cb.name' => 'N/A',
     'cb.namespace' => 'N/A',
@@ -94,6 +109,7 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'cb.permalink' => 'N/A',
     'cb.crunchbase_url' => 'N/A',
     'cb.homepage_url' => 'N/A',
+    'cb.computed_domain' => 'N/A',
     'cb.image' => 'N/A',
     'cb.offices' => 'N/A',
     'person.first_name' => 'N/A',
@@ -127,9 +143,8 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
 
 function __initLogger__($strBaseFileName = null, $strOutputDirPath = null)
 {
-    if($strBaseFileName == null) { $strBaseFileName = "_".C__APPNAME__."_".date("Ymd_Hm"); }
+    $fileLogFullPath = getDefaultFileName(null,$strBaseFileName,"log");
     if($strOutputDirPath == null) {            $strOutputDirPath = "."; }
-    $fileLogFullPath = $strOutputDirPath."/".$strBaseFileName."__.log";
 
     $GLOBALS['logger'] = null;
 
@@ -193,12 +208,170 @@ function __log__($strToLog, $LOG_LEVEL)
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
+function addToErrs(&$strErr, $strNew)
+{
+    $strErr = (strlen($strErr) > 0 ? "; " : ""). $strNew;
+
+}
 
 function __check_args__()
+{
+    $strErrOptions = "";
+    $fHadFatalError = false;
+
+    $GLOBALS['OPTS'] = __get_args__();
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    Initialize the app and setup the options based on the command line variables                        ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+    if($GLOBALS['OPTS']['verbose_given']) {  $GLOBALS['VERBOSE'] = true; } else { $GLOBALS['VERBOSE'] = false; }
+    if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
+
+
+    if($GLOBALS['VERBOSE'] == true) { __log__ ('Options set: '.var_export($GLOBALS['OPTS']), C__LOGLEVEL_INFO__); }
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    Get the input and output file settings                                                              ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+    $GLOBALS['input_file_details'] = null;
+    $GLOBALS['output_file_details'] = null;
+
+
+    $GLOBALS['input_file_details'] = parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
+    $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['OPTS']['outputfile'], false);
+    $strDefaultOutFileName = getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
+
+
+    if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
+    {
+        if(strlen($GLOBALS['output_file_details']['directory']) > 0 )
+        {
+            $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . $strDefaultOutFileName , false);
+        }
+        else if(strlen($GLOBALS['output_file_details']['directory'] == 0) && strlen($GLOBALS['input_file_details']['directory']) > 0)
+        {
+            $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['input_file_details']['directory']."/".$strDefaultOutFileName, false);
+        }
+        else
+        {
+            $GLOBALS['output_file_details'] = parseFilePath("./".$strDefaultOutFileName, false);
+        }
+    }
+
+    if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
+    {
+        addToErrs($strErrOptions,  "Output file path '". $GLOBALS['output_file_details']['full_file_path'] ."' could not be found.");
+        $fHadFatalError = true;
+    }
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    Determine whether we're doing a single lookup or processing an input file                           ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+    if($GLOBALS['OPTS']['lookup_name_given'] || $GLOBALS['OPTS']['lookup_url_given'])
+    {
+        $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_SINGLE;
+
+        if($GLOBALS['OPTS']['lookup_url_given'] && strlen($GLOBALS['OPTS']['lookup_url']) == 0 )
+        {
+            addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
+            $fHadFatalError = true;
+        }
+        else if($GLOBALS['OPTS']['lookup_name_given'] && strlen($GLOBALS['OPTS']['lookup_name']) == 0 )
+        {
+            addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
+            $fHadFatalError = true;
+        }
+
+        if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
+        {
+            addToErrs($strErrOptions, 'Output file path required (--outputfile / -o) when using single lookup mode.');
+            $fHadFatalError = true;
+        }
+    }
+    else
+    {
+        $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE ;
+    }
+
+
+    if($GLOBALS['OPTS']['suppressUI_given'] && $GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE  && strlen($GLOBALS['input_file_details']['full_file_path']) == 0)
+    {
+        addToErrs($strErrOptions, 'You must specify the input file (--inputfile / -i) to use the command-line mode.');
+        $fHadFatalError = true;
+    }
+
+
+    /****************************************************************************************************************/
+    /****                                                                                                        ****/
+    /****    get the settings for the plugins                                                                    ****/
+    /****                                                                                                        ****/
+    /****************************************************************************************************************/
+
+
+    if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
+    if($GLOBALS['OPTS']['exclude_crunchbase_given'] ) {  $GLOBALS['OPTS']['exclude_crunchbase'] = 1; }else { $GLOBALS['OPTS']['exclude_crunchbase'] = 0; }
+    if(!$GLOBALS['OPTS']['moz_access_id_given'] )
+    {
+        $GLOBALS['OPTS']['moz_access_id'] = C_MOZ_API_ACCESS_ID;
+        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_ID.")." , C__DISPLAY_ERROR__);
+    }
+    if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
+    {
+        $GLOBALS['OPTS']['moz_secret_key'] = C_MOZ_API_ACCESS_ID;
+        __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_SECRETKEY.")." , C__DISPLAY_ERROR__);
+    }
+
+    if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
+    {
+        if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Excluding Moz.com data: missing Moz API access ID and secret key.", C__DISPLAY_ERROR__); }
+        $GLOBALS['OPTS']['exclude_moz'] = 1;
+    }
+    else
+    {
+        $GLOBALS['OPTS']['exclude_moz'] = 0;
+    }
+
+
+    if($fHadFatalError == true)
+    {
+        __log__($strErrOptions, C__LOGLEVEL_FATAL__);
+        exit(PHP_EOL."Unable to run with the settings specified. See --help for more information.");
+    }
+
+    return $strErrOptions;
+
+}
+
+function __get_args__()
 {
 
     # specify some options
     $options = array(
+        'lookup_name' => array(
+            'description'   => 'The name of the company to lookup. (Requires --outputfile.)',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'ln',
+        ),
+        'lookup_url' => array(
+            'description'   => 'The website URL for the company to lookup. (Requires --outputfile.)',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'lu',
+        ),
         'suppressUI' => array(
             'description'   => 'Show user interface.',
             'default'       => 0,
@@ -224,7 +397,7 @@ function __check_args__()
             'description'   => 'Full file path of the CSV file to use as the input data.',
             'default'       => '',
             'type'          => Pharse::PHARSE_STRING,
-            'required'      => true,
+            'required'      => false,
             'short'      => 'i'
         ),
         'outputfile' => array(
@@ -273,13 +446,92 @@ function __check_args__()
     );
 
     # You may specify a program banner thusly:
-    $banner = "Import a list of company names or URLs from a CSV and export Moz, Crunchbase and Quantcast data about each one.";
+    $banner = "Find and export basic website, Moz.com, Crunchbase and Quantcast data for any company name or URL.";
     Pharse::setBanner($banner);
 
     # After you've configured Pharse, run it like so:
     $GLOBALS['OPTS'] = Pharse::options($options);
 
+    $HaveMiniumumSettings= false;
+
+    $strErrOptions = "";
+
+
     return $GLOBALS['OPTS'];
+}
+
+function parseFilePath($strFilePath, $fFileMustExist = false)
+{
+    $arrReturnFileDetails= array ('full_file_path' => '', 'directory' => '', 'file_name' => '', 'file_name_base' => '', 'file_extension' => '');
+
+
+    if(strlen($strFilePath) > 0)
+    {
+        if(is_dir($strFilePath))
+        {
+            $arrReturnFileDetails['directory'] = $strFilePath;
+        }
+        else
+        {
+            // separate into elements by '/'
+            $arrFilePathParts = explode("/", $strFilePath);
+
+            if(count($arrFilePathParts) <= 1)
+            {
+                $arrReturnFileDetails['directory'] = "";
+                $arrReturnFileDetails['file_name'] = $arrFilePathParts[0];
+            }
+            else
+            {
+                // pop the last element (the file name + extension) into a string
+                $arrReturnFileDetails['file_name'] = array_pop($arrFilePathParts);
+
+                // put the rest of the path parts back together into a path string
+                $arrReturnFileDetails['directory']= implode("/", $arrFilePathParts);
+            }
+
+            if(strlen($arrReturnFileDetails['directory']) == 0 && strlen($arrReturnFileDetails['file_name']) > 0 && file_exists($arrReturnFileDetails['file_name']))
+            {
+                $arrReturnFileDetails['directory'] = dirname($arrReturnFileDetails['file_name']);
+
+            }
+            if(!file_exists($arrReturnFileDetails['directory']))
+            {
+                __log__('Specfied path '.$strFilePath.' does not exist.', C__LOGLEVEL_WARN__);
+            }
+            else
+            {
+                // since we have a directory and a file name, combine them into the full file path
+                $arrReturnFileDetails['full_file_path'] = $arrReturnFileDetails['directory'] . "/" . $arrReturnFileDetails['file_name'];
+
+                if($fFileMustExist == true && !is_file($arrReturnFileDetails['full_file_path']))
+                {
+                    __log__('Required file '.$arrReturnFileDetails['full_file_path'].' does not exist.', C__LOGLEVEL_WARN__);
+                }
+                else
+                {
+
+                    // separate the file name by '.' to break the extension out
+                    $arrFileNameParts = explode(".", $arrReturnFileDetails['file_name']);
+
+                    // pop off the extension
+                    $arrReturnFileDetails['file_extension'] = array_pop($arrFileNameParts );
+
+                    // put the rest of the filename back together into a string.
+                    $arrReturnFileDetails['file_name_base'] = implode(".", $arrFileNameParts );
+                }
+            }
+        }
+    }
+
+    __log__('parsed path ('. $strFilePath.') as'. ($fFileMustExist ? " " : " not ") . 'required into $arrReturnFileDetails { '.var_export($arrReturnFileDetails)." }".PHP_EOL, C__LOGLEVEL_DEBUG__);
+    return $arrReturnFileDetails;
+
+}
+
+function getEmptyUserInputRecord()
+{
+    return array('header_keys'=>null, 'data_type' => null, 'data_rows'=>array());
 }
 
 

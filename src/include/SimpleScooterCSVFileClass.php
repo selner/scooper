@@ -79,7 +79,7 @@ class SimpleScooterCSVFileClass {
         __debug__printLine("File: ".$this->_strFilePath_, C__DISPLAY_NORMAL__);
 
 
-        $arrDataLoaded = array('header_keys'=>null, 'data_type' => null, 'data_rows'=>array());
+        $arrDataLoaded = getEmptyUserInputRecord();
         $nInputRow = 0;
 
         while (($data = fgetcsv($this->_fp_, 0, ',')) !== FALSE)
@@ -90,14 +90,14 @@ class SimpleScooterCSVFileClass {
                 switch (strtolower($data[0]))
                 {
                     case 'company_name';
-                        $arrDataLoaded['data_type'] = 'LOOKUP_BY_BASIC_FACTS';
+                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_BASICFACTS__;
                         __debug__printLine("CSV file type: company basic facts list", C__DISPLAY_NORMAL__);
                         break;
 
                     case 'company name';
                     case 'company names';
                     case 'names';
-                        $arrDataLoaded['data_type'] = 'LOOKUP_BY_NAME';
+                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_NAME__;
                         __debug__printLine("CSV file type: company name list", C__DISPLAY_NORMAL__);
                         break;
 
@@ -105,7 +105,7 @@ class SimpleScooterCSVFileClass {
                     case 'url';
                     case 'urls';
                     case 'input_source_url';
-                        $arrDataLoaded['data_type'] = 'LOOKUP_BY_URL';
+                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_URL__;
                         __debug__printLine("CSV file type: URL list", C__DISPLAY_NORMAL__);
                         break;
 

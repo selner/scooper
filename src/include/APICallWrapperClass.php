@@ -58,6 +58,7 @@ class APICallWrapperClass {
                     $pattern = "/(\/api\/v2\/).*/";
                     $pagenum = preg_replace($patternPagePrefix, "", $srcdata->next_page);
                     $retSecondary = getObjectsFromAPI($baseURL, $objName, $pagenum);
+                    $this->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
 
                     //
                     // Merge the primary and secondary result sets into one result

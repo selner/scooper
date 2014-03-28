@@ -16,7 +16,6 @@
  */
 
 require_once dirname(__FILE__).'/plugin-base.php';
-require_once dirname(__FILE__).'../../include/APICallWrapperClass.php';
 
 
 
@@ -59,7 +58,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $arrRecordsToProcess[] = getEmptyFullRecordArray();
             switch ( $this->_data_type)
             {
-                case 'LOOKUP_BY_BASIC_FACTS':
+                case C__LOOKUP_DATATYPE_BASICFACTS__:
 
                     if((count($strCurInputDataRecord) >= 5))
                     {
@@ -78,7 +77,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
                     break;
 
 
-                case 'LOOKUP_BY_NAME':
+                case C__LOOKUP_DATATYPE_NAME__:
                     $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
                     $strMessage = $arrRecordsToProcess[$nRow]['company_name'];
                     //
@@ -101,7 +100,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
                     break;
 
-                case 'LOOKUP_BY_URL':
+                case C__LOOKUP_DATATYPE_URL__:
                     $arrRecordsToProcess[$nRow]['input_source_url'] = strtolower($strCurInputDataRecord[0]);
                     __debug__printLine("Getting basic data for row#".$nRow.": ".$arrRecordsToProcess[$nRow]['input_source_url'], C__DISPLAY_ITEM_START__);
                     break;
@@ -143,7 +142,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $arrNewBasicSiteFactsRecord = $this->_getData_($arrRecordToUpdate);
             $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrNewBasicSiteFactsRecord  );
         }
-        else if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) &&  strcasecmp($this->_data_type, 'LOOKUP_BY_URL') == 0 )
+        else if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) &&  strcasecmp($this->_data_type, C__LOOKUP_DATATYPE_URL__) == 0 )
         {
             throw new Exception("You should not get here for input source files that are URL lists.");
             exit("You should not get here for input source files that are URL lists.");

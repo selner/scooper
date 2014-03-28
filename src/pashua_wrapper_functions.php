@@ -10,6 +10,7 @@
  * @param string $apppath [optional]  Absolute filesystem path to directory containing Pashua
  *
  * @return array Associative array of values returned by Pashua
+ * @throws Exception if array is not valid
  *
  * @author Carsten Bluem <carsten@bluem.net>
  */

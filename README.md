@@ -2,28 +2,10 @@
 Author:  Selner (bry.int@bryanselner.com)
 
 ##What It Does
-Takes an input CSV of URLs and gathers site data about it from Quantcast, Moz.com and Crunchbase such as
-estimated monthly uniques, company type & description, and domain authority
-
-INPUT CSV FORMAT: 
-	  Line 1:  "Company Name" or "Company URL" 
-	  Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
-..etc
-
-#Bugs
-* service-provider entity types from Crunchbase appear shifted in the results without header row values.  (Example: Lockerz,  http://lockerz.com/)
-
-
-# Known Issues
-* 	Cannot use file names with hyphens in them due to a bug in the Pharse library (https://github.com/chrisallenlane/pharse/issues/3)
-* 	Crunchbase Offices and other columns appear as "Array" in the final CSV; need to implode them into strings.
-* Occasionally see timeout errors with the Crunchbase API.  Example: 'Error: ""---> Processing row#33: C2S Technologies  Error #28: Resolving timed out after 10000 milliseconds""'
-
-# Usage
-## Running the script
-Run php ./main.php --help to see the command line options.
-
+Find and export basic website, Moz.com, Crunchbase and Quantcast data for any company name or URL.
 Options:
+       --lookup-name, -ln <s>: The name of the company to lookup. (Requires --outputfile.)
+        --lookup-url, -lu <s>: The website URL for the company to lookup. (Requires --outputfile.)
          --suppressUI, -q <i>: Show user interface.
             --verbose, -v <i>: Show debug statements and other information.
  --verbose-api-calls, -va <i>: Show API calls in verbose mode.
@@ -35,13 +17,25 @@ Options:
   --moz-access-id, -mozid <s>: Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
 --moz-secret-key, -mozkey <s>: Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
                    --help, -h: Display this help banner
+##How to Batch Lookup Companies
+With the -i switch, you can specify a list of names or URLs to process.
+
+INPUT CSV FORMAT:
+	  Line 1:  "Company Name" or "Company URL" 
+	  Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
+..etc
+
+There are some same CSVs in the 'Input Examples' diretory.
+
 
 ## Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
 a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
 
-#Near Term Changes
-* Add comments for publish
+# Known Issues
+* 	Cannot use file names with hyphens in them due to a bug in the Pharse library (https://github.com/chrisallenlane/pharse/issues/3)
+* 	Crunchbase Offices and other columns appear as "Array" in the final CSV; need to implode them into strings.
+* Occasionally see timeout errors with the Crunchbase API.  Example: 'Error: ""---> Processing row#33: C2S Technologies  Error #28: Resolving timed out after 10000 milliseconds""'
 
 
 

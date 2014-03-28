@@ -53,8 +53,8 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 		$curl_obj = $classAPIWrap->cURL($url);
 		  $uniqs = $this->_getUniqsFromHTML_($curl_obj);
 			
-		$arrNew = array("Monthly Uniques" => $uniqs);
-		$arrReturn = addPrefixToArrayKeys($arrNew, "Quantcast", ".");
+		$arrNew = array("monthly uniques" => $uniqs);
+		$arrReturn = addPrefixToArrayKeys($arrNew, "quantcast", ".");
 		return $arrReturn;
     }
 

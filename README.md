@@ -27,11 +27,12 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
 * Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
 *.etc
 Example:
+```
      "Company Name", "Company URL"
      "Apple", "http://www.apple.com"
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
-
+```
 
 ## Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to

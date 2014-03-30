@@ -332,7 +332,7 @@ function __check_args__()
 
     if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE  && strlen($GLOBALS['input_file_details']['full_file_path']) == 0)
     {
-        addToErrs($strErrOptions, 'You must specify an input CSV file.');
+        addToErrs($strErrOptions, 'You must specify a valid input CSV file.');
 
     }
 
@@ -396,7 +396,7 @@ function __check_args__()
     {
         __log__($strErrOptions, C__LOGLEVEL_FATAL__);
 
-       exit(PHP_EOL."Unable to run with the settings specified. See --help for more information.");
+       exit(PHP_EOL."Unable to run with the settings specified: ".PHP_EOL.var_export($GLOBALS['OPTS'], true).PHP_EOL."Run --help option to view the required settings.".PHP_EOL);
     }
 
     return $strErrOptions;
@@ -573,7 +573,7 @@ function parseFilePath($strFilePath, $fFileMustExist = false)
         }
     }
 
-    __log__('parsed path ('. $strFilePath.') as'. ($fFileMustExist ? " " : " not ") . 'required into $arrReturnFileDetails { '.var_export($arrReturnFileDetails)." }".PHP_EOL, C__LOGLEVEL_DEBUG__);
+//     __log__('parsed path ('. $strFilePath.') as'. ($fFileMustExist ? " " : " not ") . 'required into $arrReturnFileDetails { '.var_export($arrReturnFileDetails)." }".PHP_EOL, C__LOGLEVEL_DEBUG__);
     return $arrReturnFileDetails;
 
 }

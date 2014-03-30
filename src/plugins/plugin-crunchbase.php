@@ -37,7 +37,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
         }
 
-        __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
+        __debug__printLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_NORMAL__);
 	}
 	
     // Redefine the parent method
@@ -75,9 +75,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         try
         {
+            if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
             $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
 
-            if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_RESULT__);  }
+            if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
 
             if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
             {
@@ -133,10 +134,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
         }
 
-
-
-        if($GLOBALS['VERBOSE'] == true) { __log__ ('Updated Record: '.var_export($arrRecordToUpdate), C__LOGLEVEL_DEBUG__); }
-
 	}
 
 
@@ -146,7 +143,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
-        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['cb.namespace'] ." entity-specific facts for ".$arrRecordToUpdate['cb.name'] , C__DISPLAY_ITEM_RESULT__);
+        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['cb.namespace'] ." entity-specific facts for ".$arrRecordToUpdate['cb.name'] , C__DISPLAY_ITEM_DETAIL__);
 
         if(($arrRecordToUpdate['cb.permalink'] && strlen($arrRecordToUpdate['cb.permalink']) > 0) &&
             ($arrRecordToUpdate['cb.namespace'] && strlen($arrRecordToUpdate['cb.namespace']) > 0))

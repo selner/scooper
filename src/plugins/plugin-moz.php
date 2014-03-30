@@ -34,7 +34,7 @@
 		{
             if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-            __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_RESULT__);
+            __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
 			$this->_batchQueryMozAPI_($arrAllRecords);
         }
 		
@@ -42,10 +42,13 @@
 	    {
             if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
-			if($this->_arrMozBulkAPIResults_ == null)
-			{
-		        throw new Exception("MozPlugin was not initialized correctly.  You must use the MozPluginClass($arrAllRecords) constructor.");
-			}
+            if($this->_arrMozBulkAPIResults_ == null)
+            {
+                throw new Exception("MozPlugin was not initialized correctly.  You must use the MozPluginClass($arrAllRecords) constructor.");
+            }
+
+            __debug__printLine("Looking for a match in Moz data for ".$arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+
 				
 			$fMatchFound = false;
             if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['effective_domain']))
@@ -130,10 +133,9 @@
 			if($GLOBALS['VERBOSE'])
 			{
 				$strDomainList = implode(';  ', $arrDomainsToQuery);
-				
-				print 'MOZ API call: '.$requestUrl.PHP_EOL;
-				print 'Domain List:'.PHP_EOL;
-				print $strDomainList.PHP_EOL;
+                __debug__printLine("'Moz API call: ".$requestUrl.data, C__DISPLAY_ITEM_DETAIL__);
+                __debug__printLine("Domains:".$strDomainList, C__DISPLAY_ITEM_DETAIL__);
+
 			}
 
 			$counter = 0;

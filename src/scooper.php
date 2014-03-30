@@ -191,7 +191,7 @@ function __main__ ()
             if($ncurRecordIndex % C__RECORD_CHUNK_SIZE__ == 0)  {         $classFileOut->writeArrayToCSVFile($arrAllRecordsProcessed );           }
             $ncurRecordIndex++;
 
-            __debug__printLine("Added ".$company . " to final results list.", C__DISPLAY_ITEM_RESULT__);
+            __debug__printLine("Added ".$company . " to final results list.".PHP_EOL, C__DISPLAY_ITEM_RESULT__);
         }
 
         __debug__printSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );

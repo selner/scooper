@@ -21,14 +21,7 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-if ( file_exists ( dirname(__FILE__) . '/../config_debug.php') )
-{
-    require_once dirname(__FILE__) . '/../config_debug.php';
-}
-else
-{
-    require_once dirname(__FILE__) . '/../config.php';
-}
+require_once dirname(__FILE__) . '/../config.php';
 require_once dirname(__FILE__) .'/SimpleScooterCSVFileClass.php';
 require_once dirname(__FILE__) . '/debug_functions.php';
 
@@ -352,7 +345,6 @@ function __check_args__()
 
 
     if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
-    if($GLOBALS['OPTS']['exclude_crunchbase_given'] ) {  $GLOBALS['OPTS']['exclude_crunchbase'] = 1; }else { $GLOBALS['OPTS']['exclude_crunchbase'] = 0; }
     if(!$GLOBALS['OPTS']['moz_access_id_given'] )
     {
         $GLOBALS['OPTS']['moz_access_id'] = C__MOZ_API_ACCESS_ID__;
@@ -364,15 +356,38 @@ function __check_args__()
         __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C__MOZ_API_ACCESS_SECRETKEY__.")." , C__DISPLAY_ERROR__);
     }
 
-    if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
+    if(!$GLOBALS['OPTS']['exclude_moz_given'] && (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
     {
-        if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Excluding Moz.com data: missing Moz API access ID and secret key.", C__DISPLAY_ERROR__); }
+        if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", C__DISPLAY_ERROR__); }
         $GLOBALS['OPTS']['exclude_moz'] = 1;
     }
     else
     {
         $GLOBALS['OPTS']['exclude_moz'] = 0;
     }
+
+    if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
+    {
+        $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
+    }
+    else
+    {
+        $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
+        if(!$GLOBALS['OPTS']['crunchbase_api_id_given']  || (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
+        {
+            $GLOBALS['OPTS']['crunchbase_api_id'] = C__CRUNCHBASE_API_KEY__;
+            if(strlen(C__CRUNCHBASE_API_KEY__) > 0)
+                __debug__printLine("No Crunchbase API Key given by the the user.  Defaulting to config value: (".C__CRUNCHBASE_API_KEY__.")." , C__DISPLAY_ERROR__);
+            else
+            {
+                $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
+                __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
+            }
+        }
+
+    }
+
+
 
 
 

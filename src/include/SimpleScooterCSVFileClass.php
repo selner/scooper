@@ -96,22 +96,23 @@ class SimpleScooterCSVFileClass {
                 {
                     case 'company_name';
                         $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_BASICFACTS__;
-                        __debug__printLine("CSV file type: company basic facts list", C__DISPLAY_NORMAL__);
+                        __debug__printLine("CSV file type: company basic facts", C__DISPLAY_NORMAL__);
                         break;
 
-                    case 'company name';
-                    case 'company names';
-                    case 'names';
+                    case 'company name':
+                    case 'company names':
+                    case 'names':
+                    case 'company':
                         $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_NAME__;
-                        __debug__printLine("CSV file type: company name list", C__DISPLAY_NORMAL__);
+                        __debug__printLine("CSV file type: company names", C__DISPLAY_NORMAL__);
                         break;
 
-                    case 'company url';
-                    case 'url';
-                    case 'urls';
-                    case 'input_source_url';
+                    case 'company url':
+                    case 'url':
+                    case 'urls':
+                    case 'input_source_url':
                         $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_URL__;
-                        __debug__printLine("CSV file type: URL list", C__DISPLAY_NORMAL__);
+                        __debug__printLine("CSV file type: URLs", C__DISPLAY_NORMAL__);
                         break;
 
                     default:

@@ -56,64 +56,41 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         foreach ($arrDataLoaded as $strCurInputDataRecord)
         {
             $arrRecordsToProcess[] = getEmptyFullRecordArray();
+            $valFirstField = '';
+
             switch ( $this->_data_type)
             {
-                case C__LOOKUP_DATATYPE_BASICFACTS__:
-
-                    if((count($strCurInputDataRecord) >= 5))
-                    {
-                        $arrRecordsToProcess[$nRow] = my_merge_add_new_keys($arrRecordsToProcess[$nRow], $strCurInputDataRecord);
-/*                        var_dump('$arrRecordsToProcess[$nRow]',$arrRecordsToProcess[$nRow]);
-                        var_dump('keys', array_keys($arrRecordsToProcess[$nRow]));
-                        exit("HERE");
-*/
-//                        $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
-//                        $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = $strCurInputDataRecord[2];
-//                        $arrRecordsToProcess[$nRow]['effective_domain'] = $strCurInputDataRecord[3];
-//                        $arrRecordsToProcess[$nRow]['actual_site_url'] = $strCurInputDataRecord[4];
-//                        $arrRecordsToProcess[$nRow]['input_source_url'] = $arrRecordsToProcess[$nRow]['actual_site_url'];
-                        __debug__printLine("Found full basic data in row#".$nRow.": ".$arrRecordsToProcess[$nRow]['company_name'].': '.$arrRecordsToProcess[$nRow]['actual_site_url'], C__DISPLAY_ITEM_START__);
-                        continue;
-                    }
-                    else
-                    {
-                        throw new Exception('Error processing input CSV.  Does not have valid basic facts columns.');
-                    }
-                    break;
-
-
-                case C__LOOKUP_DATATYPE_NAME__:
-                    $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
-                    $strMessage = $arrRecordsToProcess[$nRow]['company_name'];
-                    //
-                    // If there is a second column in the input data, let's assume that's a URL column and add it to the input source data URL field
-                    //
-                    if(count($strCurInputDataRecord) >= 2 and !isRecordFieldNullOrNotSet($strCurInputDataRecord[1])) // it's not "N/A" or empty
-                    {
-                        assert(strlen($strCurInputDataRecord[1]) > 0);
-                        $arrRecordsToProcess[$nRow]['input_source_url'] = $strCurInputDataRecord[1];
-                    }
-                    else
-                    {
-                        //
-                        // The input URL was missing or invalid.  Set it to N/A so we are sure later it was invalid
-                        //
-                        $arrRecordsToProcess[$nRow]['input_source_url'] = 'N/A';
-                    }
-
-                    __debug__printLine("Getting basic data for row#".$nRow.": ".$strMessage, C__DISPLAY_ITEM_START__);
-
-                    break;
-
                 case C__LOOKUP_DATATYPE_URL__:
-                    $arrRecordsToProcess[$nRow]['input_source_url'] = strtolower($strCurInputDataRecord[0]);
-                    __debug__printLine("Getting basic data for row#".$nRow.": ".$arrRecordsToProcess[$nRow]['input_source_url'], C__DISPLAY_ITEM_START__);
+                    $valFirstField  = array_shift($strCurInputDataRecord);
+                    $arrRecordsToProcess[$nRow]['input_source_url'] =  $valFirstField;
                     break;
 
+                case C__LOOKUP_DATATYPE_BASICFACTS__:
+                case C__LOOKUP_DATATYPE_NAME__:
                 default:
-                    exit ("Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL);
+                    $valFirstField  = array_shift($strCurInputDataRecord);
+                    $arrRecordsToProcess[$nRow]['company_name'] = $valFirstField;
+
+                    $keys = array_keys($strCurInputDataRecord);
+                    if(strcasecmp($keys[0], "input_source_url") == 0 || strcasecmp($keys[0], "url") == 0)
+                    {
+                        $arrRecordsToProcess[$nRow]['input_source_url'] =  array_shift($strCurInputDataRecord);
+                    }
                     break;
             }
+
+            if(!strlen($arrRecordsToProcess[$nRow]['company_name']) > 0 && !strlen(($arrRecordsToProcess[$nRow]['input_source_url'])>0))
+            {
+
+                exit ("Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL);
+
+
+            }
+
+            $arrRecordsToProcess[$nRow] = my_merge_add_new_keys($arrRecordsToProcess[$nRow],$strCurInputDataRecord );
+            $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = ""; // clear out any previous issues
+
+            __debug__printLine("Getting basic facts for ".$valFirstField, C__DISPLAY_ITEM_START__);
 
             $this->addDataToRecord($arrRecordsToProcess[$nRow]);
 

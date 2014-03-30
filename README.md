@@ -23,12 +23,12 @@ Gather and export website data from Moz.com, Crunchbase and Quantcast for any gi
 ###Bulk Company Searches 
 With the -i switch, you can specify a list of names or URLs to look up in batch.
 
-*Input CSV FIle Format*
+*Input CSV File Format:*
 * Line 1:  "Company Name" or "Company URL" 
 * Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
 *.etc
 
-Example:
+*Input CSV FIle Example:*
 ```
 "Company Name", "Company URL"
      "Apple", "http://www.apple.com"

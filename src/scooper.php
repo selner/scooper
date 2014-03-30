@@ -74,8 +74,8 @@ function __main__ ()
 
 
 
-        __log__('Input File Details = '.var_export($GLOBALS['input_file_details']), C__LOGLEVEL_INFO__);
-        __log__('Input File Details = '.var_export($GLOBALS['output_file_details']), C__LOGLEVEL_INFO__);
+        __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), C__LOGLEVEL_INFO__);
+        __log__('Input File Details = '.var_export($GLOBALS['output_file_details'], true), C__LOGLEVEL_INFO__);
 
         __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
@@ -94,6 +94,7 @@ function __main__ ()
 
 
         $arrInputCSVData = array();
+
 
         if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
         {

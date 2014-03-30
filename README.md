@@ -1,10 +1,10 @@
-##Scooper
+#Scooper
 Author:  Bryan Selner (dev@recoilvelocity.com)
 
 ##What It Does
 Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
 
-#Options:
+###Options:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.
 *   --inputfile, -i : Full file path of the CSV file to use as the input data.
@@ -20,7 +20,7 @@ Gather and export website data from Moz.com, Crunchbase and Quantcast for any gi
 *  --help, -h: Display this help banner
 
 
-##Bulk Company Searches 
+###Bulk Company Searches 
 With the -i switch, you can specify a list of names or URLs to look up in batch.
 #Input CSV FIle Format
 * Line 1:  "Company Name" or "Company URL" 
@@ -35,7 +35,7 @@ Example:
      "Google", "google.com"
 ```
 
-## Enabling Logging
+### Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from [http://codefury.net/projects/klogger/]. Extract the contents toa new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
 
 # Bugs & Issues

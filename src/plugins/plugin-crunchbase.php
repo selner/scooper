@@ -88,7 +88,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                         // Match found
                         $nMatchCrunchResult = $nCurResult;
                         $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
-                        $arrCrunchBaseSearchResultsRecords[$nMatchCrunchResult] = merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
+                        merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
                         break;
 
                     }

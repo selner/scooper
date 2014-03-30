@@ -367,17 +367,9 @@ function __check_args__()
 
     if($fHadFatalError == true)
     {
-        if($GLOBALS['OPTS']['suppressUI_given'])
-        {
-            __log__($strErrOptions, C__LOGLEVEL_FATAL__);
+        __log__($strErrOptions, C__LOGLEVEL_FATAL__);
 
-           exit(PHP_EOL."Unable to run with the settings specified. See --help for more information.");
-        }
-        else
-        {
-            __log__($strErrOptions, C__LOGLEVEL_ERROR__);
-
-        }
+       exit(PHP_EOL."Unable to run with the settings specified. See --help for more information.");
     }
 
     return $strErrOptions;
@@ -402,27 +394,6 @@ function __get_args__()
             'type'          => Pharse::PHARSE_STRING,
             'required'      => false,
             'short'      => 'lu',
-        ),
-        'suppressUI' => array(
-            'description'   => 'Show user interface.',
-            'default'       => 0,
-            'type'          => Pharse::PHARSE_INTEGER,
-            'required'      => false,
-            'short'      => 'q',
-        ),
-        'verbose' => array(
-            'description'   => 'Show debug statements and other information.',
-            'default'       => 0,
-            'type'          => Pharse::PHARSE_INTEGER,
-            'required'      => false,
-            'short'      => 'v',
-        ),
-        'verbose_api_calls' => array(
-            'description'   => 'Show API calls in verbose mode.',
-            'default'       => 0,
-            'type'          => Pharse::PHARSE_INTEGER,
-            'required'      => false,
-            'short'      => 'va',
         ),
         'inputfile' => array(
             'description'   => 'Full file path of the CSV file to use as the input data.',
@@ -474,6 +445,30 @@ function __get_args__()
             'required'      => false,
             'short'      => 'mozkey',
         ),
+
+        'crunchbase_api_id' => array(
+            'description'   => 'Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more about Moz.com access IDs at http://developer.crunchbase.com.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'mozid',
+        ),
+        'verbose' => array(
+            'description'   => 'Show debug statements and other information.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_INTEGER,
+            'required'      => false,
+            'short'      => 'v',
+        ),
+        'verbose_api_calls' => array(
+            'description'   => 'Show API calls in verbose mode.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_INTEGER,
+            'required'      => false,
+            'short'      => 'va',
+        ),
+
+
     );
 
     # You may specify a program banner thusly:

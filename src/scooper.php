@@ -20,8 +20,6 @@ require_once dirname(__FILE__) . '/lib/pharse.php';
 require_once dirname(__FILE__) . '/include/SimpleScooterCSVFileClass.php';
 require_once dirname(__FILE__) . '/include/common.php';
 require_once dirname(__FILE__) . '/include/fields_functions.php';
-require_once dirname(__FILE__) . '/ui/mac/classMacUI_BatchLookup.php';
-require_once dirname(__FILE__) . '/ui/mac/classMacUI_SingleLookup.php';
 require_once dirname(__FILE__) . '/plugins/plugin-base.php';
 require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';
 require_once dirname(__FILE__) . '/plugins/plugin-crunchbase.php';
@@ -62,46 +60,17 @@ function __main__ ()
     //
     // Gather and check that the command line arguments are valid
     //
+    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
+    __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+
     $strArgErrs = __check_args__();
     if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
 
 
 
-    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
-
-    __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
 
 
-
-    /****************************************************************************************************************/
-    /****                                                                                                        ****/
-    /****    Check if we need to display the settings UI to the user.  Show it, if so.                           ****/
-    /****                                                                                                        ****/
-    /****************************************************************************************************************/
-    if(!$GLOBALS['OPTS']['suppressUI_given'])
-    {
-        //
-        //  Update the user options with the new values
-        //
-        /*
-            $GLOBALS['output_file_details']['full_file_name'] = $baseInputFilePath."/".$baseDefaultOutputFileName;
-
-            if($GLOBALS['OPTS']['outputfile_given'] && file_exists($GLOBALS['OPTS']['outputfile'])) // it's a valid folder. but not a file
-            {
-               if(is_file($GLOBALS['OPTS']['outputfile']))
-               {
-                   $GLOBALS['output_file_details']['full_file_name'] = $GLOBALS['OPTS']['outputfile'];
-               }
-               else
-               {
-                   $GLOBALS['output_file_details']['full_file_name'] = $GLOBALS['OPTS']['outputfile']."/".$baseDefaultOutputFileName;
-               }
-            }
-        */
-        $classMacSettingsUI = new classMacUI_BatchLookup();
-        $classMacSettingsUI->getOptionsFromUser();
-    }
 
     __log__('Input File Details = '.var_export($GLOBALS['input_file_details']), C__LOGLEVEL_INFO__);
     __log__('Input File Details = '.var_export($GLOBALS['output_file_details']), C__LOGLEVEL_INFO__);

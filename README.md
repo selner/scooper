@@ -1,13 +1,13 @@
 #Scooper
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
-* (Issues)[https://github.com/selner/scooper/issues]
+* [Issues](https://github.com/selner/scooper/issues)
 
 ##What It Does
 Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
 
 ##Requirements
-* Moz.com data:  (Moz.com API account)[http://moz.com/products/api].
-* Crunchbase data:  (Crunchbase API account)[http://developer.crunchbase.com].
+* Moz.com data:  [Moz.com API account](http://moz.com/products/api).
+* Crunchbase data:  [Crunchbase API account](http://developer.crunchbase.com).
 
 Simply set -mozid, -mozkey and -cbid switche to match your account's specific values.  Alternatively, you can edit the src/config.pho file to set those values in the code directly.
 

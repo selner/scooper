@@ -23,7 +23,7 @@ Simply set -mozid, -mozkey and -cbid switche to match your account's specific va
 * --exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
 * --moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
 * --moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
-* --crunchbase-api-id, -n : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more at [http://developer.crunchbase.com].
+* --crunchbase-api-id, -cbid : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more at [http://developer.crunchbase.com].
 * --verbose, -v : Show debug statements and other information.
 * --verbose-api-calls, -va : Show API calls in verbose mode.
 * --help, -h: Display this help banner
@@ -44,6 +44,8 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
 ```
+If your Input CSV file has additional columns, those values will be copied into the resulting rows for each company as well.
+
 Example files are available in the /example directory.
 
 ### Enabling Logging

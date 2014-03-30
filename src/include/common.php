@@ -451,7 +451,7 @@ function __get_args__()
             'default'       => 0,
             'type'          => Pharse::PHARSE_STRING,
             'required'      => false,
-            'short'      => 'mozid',
+            'short'      => 'cbid',
         ),
         'verbose' => array(
             'description'   => 'Show debug statements and other information.',

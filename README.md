@@ -5,7 +5,7 @@
 ##What It Does
 Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
 
-Example: <i>php run_scooter.php -i "companies.csv" --crunchbase-api-id "123456"</i>
+Example: <i>php run_scooper.php -i "companies.csv" --crunchbase-api-id "123456"</i>
 
 ##Requirements
 * Moz.com data:  [Moz.com API account](http://moz.com/products/api).

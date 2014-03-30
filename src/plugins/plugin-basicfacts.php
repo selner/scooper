@@ -195,7 +195,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
         }
 
-        $arrRet = my_merge_add_new_keys( $var, $curRecord );
+//        $arrRet = my_merge_add_new_keys( $var, $curRecord );
 
         return $curRecord;
     }

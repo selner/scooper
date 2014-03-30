@@ -132,6 +132,19 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'cb.funds' => 'N/A',
     'cb.video_embeds' => 'N/A',
     'cb.external_links' => 'N/A',
+    'cb.deadpooled_year' => 'N/A',
+    'cb.deadpooled_month' => 'N/A',
+    'cb.deadpooled_day' => 'N/A',
+    'cb.deadpooled_url' => 'N/A',
+    'cb.products' => 'N/A',
+    'cb.competitions' => 'N/A',
+    'cb.total_money_raised' => 'N/A',
+    'cb.funding_rounds' => 'N/A',
+    'cb.acquisition' => 'N/A',
+    'cb.acquisitions' => 'N/A',
+    'cb.ipo' => 'N/A',
+    'cb.screenshots' => 'N/A',
+    'cb.partners' => 'N/A',
     'person.first_name' => 'N/A',
     'person.last_name' => 'N/A',
     'feid' => 'N/A',
@@ -164,7 +177,6 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
 function __initLogger__($strBaseFileName = null, $strOutputDirPath = null)
 {
     $fileLogFullPath = getDefaultFileName(null,$strBaseFileName,"log");
-    if($strOutputDirPath == null) {            $strOutputDirPath = "."; }
 
     $GLOBALS['logger'] = null;
 
@@ -477,10 +489,6 @@ function __get_args__()
 
     # After you've configured Pharse, run it like so:
     $GLOBALS['OPTS'] = Pharse::options($options);
-
-    $HaveMiniumumSettings= false;
-
-    $strErrOptions = "";
 
 
     return $GLOBALS['OPTS'];

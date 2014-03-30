@@ -160,8 +160,7 @@
 
 				$contents = json_decode($content);
 						
-				$mozResults = array();
-				foreach ($arrDomainsToQuery as $domain) 
+				foreach ($arrDomainsToQuery as $domain)
 				{
 					// print $contents[$counter].PHP_EOL;
 					$this->_arrMozBulkAPIResults_[$domain] = json_encode($contents[$counter]);

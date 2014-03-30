@@ -65,7 +65,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 
 			$regexMatch = '/\sclass="reach" id="[a-zA-Z0-9-:.]{1,}">\s*([N\/A0-9Mk.,]+)/mi';
 
-			$ret =	preg_match_all($regexMatch, $curl_obj['output'], $arrMatches);
+			preg_match_all($regexMatch, $curl_obj['output'], $arrMatches);
 			if(count($arrMatches) > 0)
 			{
 				$retValue = null;
@@ -79,6 +79,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 				{
 					$parentMatch = $arrMatches[1][$nMatch-1]; 
 					$parentValue = $this->_getExpandedNumber_($parentMatch);
+                    $retValue = $parentValue;
 				}
 			
 			

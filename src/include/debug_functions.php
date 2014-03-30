@@ -69,10 +69,8 @@ function __debug__printLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = fal
 {
 	if($fDebuggingOnly != true || C__DEBUG_MODE__ == true)
 	{
-		$strLineBeginning = '';
 		$strLineEnd = '';
 		$logLevel = null;
-		// Valid $varLogLevels found at http://www.php.net/manual/en/function.syslog.php
 		switch ($varDisplayStyle)
 		{
 			case C__DISPLAY_FUNCTION__:
@@ -133,9 +131,7 @@ function __debug__printSectionHeader($headerText, $nSectionLevel, $nType)
 {
 	
 	$strPaddingBefore = "";
-	$strSectionSeparatorLine = "" . PHP_EOL;
 	$strPaddingAfter = "";
-	$strSeparatorChars = "'";
 
 	//
 	// Set the section header box style and intro/outro padding based on it's level
@@ -171,7 +167,6 @@ function __debug__printSectionHeader($headerText, $nSectionLevel, $nType)
 	// Compute how wide the header box needs to be and then create a string of that length 
 	// filled in with just the separator characters.
 	// 
-	$nHeaderWidth = strlen($headerText);
 	$nHeaderWidth = 80;
 	$fmtSeparatorString = "%'".$strSeparatorChars.($nHeaderWidth+3)."s\n";
     $strSectionIntroSeparatorLine = sprintf($fmtSeparatorString, $strSeparatorChars);

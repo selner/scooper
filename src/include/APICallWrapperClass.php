@@ -25,8 +25,26 @@ class APICallWrapperClass {
     /****                                                                                                        ****/
     /****************************************************************************************************************/
 
+    private function __handleCallback__($callback, &$val, $fReturnType = C__API_RETURN_TYPE_OBJECT__ )
+    {
 
-    function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
+       if($fReturnType == C__API_RETURN_TYPE_ARRAY__)
+       {
+           $val =  json_decode(json_encode($val, JSON_HEX_APOS | JSON_HEX_QUOT), true);
+       }
+
+       if ($callback && is_callable($callback))
+       {
+            call_user_func_array($callback, array(&$val));
+       }
+
+        if($fReturnType == C__API_RETURN_TYPE_ARRAY__)
+        {
+            $val = json_decode(json_encode($val, JSON_HEX_APOS | JSON_HEX_QUOT), false);
+        }
+    }
+
+function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
     {
         $retData = null;
 
@@ -36,32 +54,15 @@ class APICallWrapperClass {
         {
             if($objName == "")
             {
-                //
-                // if we have a handler for the results, call it now
-                //
-                if ($callback && is_callable($callback))
-                {
-                    call_user_func_array($callback, array(&$srcdata));
-//                    call_user_func($callback, $srcdata);
-                }
-                $retData = $srcdata;
-                // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
+                $retData= $this->__handleCallback__($callback, $srcdata, $fReturnType);
             }
             else
             {
 
                 foreach($srcdata->$objName as $value)
                 {
-                    //
-                    // if we have a handler for the results, call it now
-                    //
-                    if ($callback && is_callable($callback))
-                    {
-                        call_user_func_array($callback, array(&$value));
-//                        call_user_func($callback, $value);
-                    }
+                    $this->__handleCallback__($callback, $value, $fReturnType);
                     $retData[] = $value;
-                    // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
                 }
 
                 //
@@ -72,9 +73,9 @@ class APICallWrapperClass {
                 {
                     if($GLOBALS['VERBOSE'] == true) { __debug__printLine('Multipage results detected. Getting results for ' . $srcdata->next_page . '...' . PHP_EOL, C__DISPLAY_ITEM_DETAIL__); }
 
-                    $patternPage = "/.*page=([0-9]{1,})/";
+                    // $patternPage = "/.*page=([0-9]{1,})/";
                     $patternPagePrefix = "/.*page=/";
-                    $pattern = "/(\/api\/v2\/).*/";
+                    // $pattern = "/(\/api\/v2\/).*/";
                     $pagenum = preg_replace($patternPagePrefix, "", $srcdata->next_page);
                     $retSecondary = $this->getObjectsFromAPI($baseURL, $objName, null, null, $pagenum);
 
@@ -85,14 +86,7 @@ class APICallWrapperClass {
 
                     foreach($retSecondary as $moreVal)
                     {
-                        //
-                        // if we have a handler for the results, call it now
-                        //
-                        if ($callback && is_callable($callback))
-                        {
-                            call_user_func_array($callback, array(&$moreVal));
-//                            call_user_func($callback, $moreVal);
-                        }
+                        $this->__handleCallback__($callback, $moreVal, $fReturnType);
                         $retData[] = $moreVal;
                     }
                 }
@@ -103,7 +97,7 @@ class APICallWrapperClass {
         switch ($fReturnType)
         {
             case  C__API_RETURN_TYPE_ARRAY__:
-                $retData = json_decode(json_encode($retData), true);
+                $retData = json_decode(json_encode($retData, JSON_HEX_APOS | JSON_HEX_QUOT), true);
                 break;
 
 

@@ -122,6 +122,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         $this->_expandArrays_($arrRecordToUpdate);
 
+        if($GLOBALS['VERBOSE'] == true) { __log__ ('Updated Record: '.var_export($arrRecordToUpdate), C__LOGLEVEL_DEBUG__); }
 
 	}
 
@@ -182,18 +183,15 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		
 	}
 
-
-
-
-
-
-
-    static public function updateCBDataWithCommonPrefixes(&$dataRecord)
+    static public function updateCBDataWithCommonPrefixes(&$arrRecord)
     {
-        $arrRecord = json_decode(json_encode($dataRecord), true);
-
         if(is_array($arrRecord))
         {
+
+            print '--- -HERE2---- '.PHP_EOL;
+
+
+
             $entityType = $arrRecord['namespace'];
             if(!$entityType || strlen($entityType) == 0) { $entityType = $arrRecord['cb.namespace']; };
 
@@ -229,8 +227,20 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                 'providerships' => 'N/A',
                 'funds' => 'N/A',
                 'video_embeds' => 'N/A',
-                'external_links' => 'N/A'
-                               );
+                'external_links' => 'N/A',
+                'deadpooled_year' => 'N/A',
+                'deadpooled_month' => 'N/A',
+                'deadpooled_day' => 'N/A',
+                'deadpooled_url' => 'N/A',
+                'products' => 'N/A',
+                 'competitions' => 'N/A',
+                 'total_money_raised' => 'N/A',
+                 'funding_rounds' => 'N/A',
+                 'acquisition' => 'N/A',
+                 'acquisitions' => 'N/A',
+                 'ipo' => 'N/A',
+                 'screenshots' => 'N/A',
+                 'partners' => 'N/A'                                          );
 
 
             $arrKeys = array_keys($arrRecord);
@@ -249,10 +259,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                 $arrNewKeys[] = $key;
             }
 
-            $retRecord = array_combine($arrNewKeys, $arrRecord);
-
-            $dataRecord= json_decode(json_encode($retRecord), true);
+            $arrRecord = array_copy(array_combine($arrNewKeys, $arrRecord));
         }
+
     }
 
 

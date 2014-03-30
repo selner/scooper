@@ -34,38 +34,20 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
 * Line 1:  "Company Name" or "Company URL" 
 * Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
 *.etc
-<<<<<<< HEAD
-Example:
-```
-     "Company Name", "Company URL"
-=======
 
 *Input CSV FIle Example:*
 ```
 "Company Name", "Company URL"
->>>>>>> FETCH_HEAD
      "Apple", "http://www.apple.com"
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
 ```
-<<<<<<< HEAD
 Example files are available in the /example directory.
 
 ## Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
 a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
 
-# Bugs & Issues
-* https://github.com/selner/scooper/issues
-
-
-##Future Ideas for Improvement
-* Generalize the plugin PHPs to have a common class so that it's easy to drop a new plugin support file in
-* add Platypus build support for the app
-
-=======
-
 ### Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from [http://codefury.net/projects/klogger/]. Extract the contents toa new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
->>>>>>> FETCH_HEAD
 

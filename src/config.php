@@ -23,6 +23,7 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-const C_MOZ_API_ACCESS_ID  = "";
-const C_MOZ_API_ACCESS_SECRETKEY = "";
-const C_CRUNCHBASE_API_KEY = "";
+
+const C__MOZ_API_ACCESS_ID__  = "";
+const C__MOZ_API_ACCESS_SECRETKEY__ = "";;
+const C__CRUNCHBASE_API_KEY__ = "";

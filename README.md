@@ -12,9 +12,9 @@ Gather and export website data from Moz.com, Crunchbase and Quantcast for any gi
 * --exclude-moz, -em : Include moz.com data in the final result set.
 *--exclude-quantcast, -eq : Include quantcast.com uniq visitors data in the final result set.
 *--exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
-*--moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
-*--moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.
-* --crunchbase-api-id, -n : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more about Moz.com access IDs at http://developer.crunchbase.com.
+*--moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at [http://moz.com/products/api].
+*--moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at [http://moz.com/products/api].
+* --crunchbase-api-id, -n : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more about Moz.com access IDs at [http://developer.crunchbase.com].
 *  --verbose, -v : Show debug statements and other information.
 *  --verbose-api-calls, -va : Show API calls in verbose mode.
 *  --help, -h: Display this help banner
@@ -26,6 +26,7 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
 * Line 1:  "Company Name" or "Company URL" 
 * Line 2 and on:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
 *.etc
+
 Example:
 ```
 "Company Name", "Company URL"
@@ -35,15 +36,8 @@ Example:
 ```
 
 ## Enabling Logging
-If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
-a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
+If you would like the script to output to log files, download the "Klogger v0.1" version from [http://codefury.net/projects/klogger/]. Extract the contents toa new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
 
 # Bugs & Issues
-* https://github.com/selner/scooper/issues
-
-
-##Future Ideas for Improvement
-* Generalize the plugin PHPs to have a common class so that it's easy to drop a new plugin support file in
-* add Platypus build support for the app
-
+* [https://github.com/selner/scooper/issues]
 

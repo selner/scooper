@@ -4,6 +4,12 @@ Author:  Bryan Selner (dev@recoilvelocity.com)
 ##What It Does
 Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
 
+##Requirements
+* Moz.com data:  (Moz.com API account)[http://moz.com/products/api].
+* Crunchbase data:  (Crunchbase API account)[http://developer.crunchbase.com].
+
+Simply set -mozid, -mozkey and -cbid switche to match your account's specific values.  Alternatively, you can edit the src/config.pho file to set those values in the code directly.
+
 ###Options:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.

@@ -14,17 +14,17 @@ Simply set -mozid, -mozkey and -cbid switche to match your account's specific va
 ##Options:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.
-*   --inputfile, -i : Full file path of the CSV file to use as the input data.
-*  --outputfile, -o : (optional) Output path or full file path and name for writing the results.
+* --inputfile, -i : Full file path of the CSV file to use as the input data.
+* --outputfile, -o : (optional) Output path or full file path and name for writing the results.
 * --exclude-moz, -em : Include moz.com data in the final result set.
-*--exclude-quantcast, -eq : Include quantcast.com uniq visitors data in the final result set.
-*--exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
-*--moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
-*--moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
+* --exclude-quantcast, -eq : Include quantcast.com uniq visitors data in the final result set.
+* --exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
+* --moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
+* --moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
 * --crunchbase-api-id, -n : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more at [http://developer.crunchbase.com].
-*  --verbose, -v : Show debug statements and other information.
-*  --verbose-api-calls, -va : Show API calls in verbose mode.
-*  --help, -h: Display this help banner
+* --verbose, -v : Show debug statements and other information.
+* --verbose-api-calls, -va : Show API calls in verbose mode.
+* --help, -h: Display this help banner
 
 
 ###Bulk Company Searches 

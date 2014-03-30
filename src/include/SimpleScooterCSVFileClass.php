@@ -15,6 +15,35 @@
  * under the License.
  */
 
+function getDataTypeFromString($strType)
+{
+    $ret = 'UNKNOWN';
+
+    switch (strtolower($strType))
+    {
+        case 'company_name';
+            $ret  = C__LOOKUP_DATATYPE_BASICFACTS__;
+            break;
+
+        case 'company name':
+        case 'company names':
+        case 'names':
+        case 'company':
+            $ret  = C__LOOKUP_DATATYPE_NAME__;
+            break;
+
+        case 'company url':
+        case 'url':
+        case 'urls':
+        case 'input_source_url':
+            $ret = C__LOOKUP_DATATYPE_URL__;
+
+            break;
+    }
+
+    return $ret;
+
+}
 
 class SimpleScooterCSVFileClass {
 
@@ -92,34 +121,7 @@ class SimpleScooterCSVFileClass {
             if($fHasHeaderRow == true && $nInputRow == 0)
             {
                 $arrDataLoaded['header_keys'] = $data;
-                switch (strtolower($data[0]))
-                {
-                    case 'company_name';
-                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_BASICFACTS__;
-                        __debug__printLine("CSV file type: company basic facts", C__DISPLAY_NORMAL__);
-                        break;
-
-                    case 'company name':
-                    case 'company names':
-                    case 'names':
-                    case 'company':
-                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_NAME__;
-                        __debug__printLine("CSV file type: company names", C__DISPLAY_NORMAL__);
-                        break;
-
-                    case 'company url':
-                    case 'url':
-                    case 'urls':
-                    case 'input_source_url':
-                        $arrDataLoaded['data_type'] = C__LOOKUP_DATATYPE_URL__;
-                        __debug__printLine("CSV file type: URLs", C__DISPLAY_NORMAL__);
-                        break;
-
-                    default:
-                        $arrDataLoaded['data_type'] = 'UNKNOWN';
-                        echo "Input CSV file ".$this->_strFilePath_." does not have a header row with a valid column name.  Possible values are 'Company Name' or 'Company URL'.  " . PHP_EOL . "Exited." . PHP_EOL;
-                        break;
-                }
+                $arrDataLoaded['data_type'] = getDataTypeFromString($data[0]);
             }
             else
             {

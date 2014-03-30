@@ -58,6 +58,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $arrRecordsToProcess[] = getEmptyFullRecordArray();
             $valFirstField = '';
 
+
             switch ( $this->_data_type)
             {
                 case C__LOOKUP_DATATYPE_URL__:
@@ -72,7 +73,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
                     $arrRecordsToProcess[$nRow]['company_name'] = $valFirstField;
 
                     $keys = array_keys($strCurInputDataRecord);
-                    if(strcasecmp($keys[0], "input_source_url") == 0 || strcasecmp($keys[0], "url") == 0)
+                    if(getDataTypeFromString($keys[0]) == C__LOOKUP_DATATYPE_URL__)
                     {
                         $arrRecordsToProcess[$nRow]['input_source_url'] =  array_shift($strCurInputDataRecord);
                     }
@@ -165,21 +166,26 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $strURLToCheck = $curRecord['actual_site_url'];
             $strErrMsg = "Could not find website for actual_site_url.";
         }
-
-        $curl_obj = $classAPIWrap->cURL($strURLToCheck );
-
-        if(!$this->_isRealSite_($curl_obj))
+        try
         {
-            addToAccuracyField($curRecord, $strErrMsg);
+            $curl_obj = $classAPIWrap->cURL($strURLToCheck );
+
+            if(!$this->_isRealSite_($curl_obj))
+            {
+                addToAccuracyField($curRecord, $strErrMsg);
+            }
+            else
+            {
+                $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
+                $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
+            }
+
         }
-        else
+        catch ( ErrorException $e )
         {
-            $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
-            $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
+            __log__("Error: ". $e->getMessage()."\r\n", C__LOGLEVEL_ERROR__);
+            addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
         }
-
-//        $arrRet = my_merge_add_new_keys( $var, $curRecord );
-
         return $curRecord;
     }
 

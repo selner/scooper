@@ -120,8 +120,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
 
+        $this->_expandArrays_($arrRecordToUpdate);
 
-        $this->_expandArraysInFields_($arrRecordToUpdate);
 
 	}
 
@@ -182,67 +182,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		
 	}
 
-     private function _expandArrays_(&$arrToExpand)
-     {
-
-        $keys = array_keys($arrToExpand);
-        foreach($keys as $curKey)
-        {
-            $val = $arrToExpand[$curKey];
-
-            if(is_array($arrToExpand[$curKey]))
-            {
-                $valFlattened = array_flatten_sep(".", $val);
-                $arrToExpand[$curKey] = $valFlattened;
-            }
-        }
 
 
-        foreach($arrToExpand as $field)
-        {
-            if(is_array($field))
-            {
-                $keyField = key($field);
-                $strValField = implode("|", $field);
-                $arrToExpand[$keyField] = $strValField;
-            }
-        }
-
-    }
-
-    private function _expandArraysInFields_(&$arrRecordToUpdate)
-    {
-//        $this->_expandArrays_($arrRecordToUpdate);
-
-
-/*
-        $keys = array_keys($arrRecordToUpdate);
-        foreach($keys as $curKey)
-        {
-            $val = $arrRecordToUpdate[$curKey];
-
-            if(is_array($arrRecordToUpdate[$curKey]))
-            {
-                $valFlattened = array_flatten_sep(".", $val);
-                $arrRecordToUpdate[$curKey] = $valFlattened;
-            }
-        }
-
-        foreach($arrRecordToUpdate as $field)
-        {
-            if(is_array($field))
-            {
-                $keyField = key($field);
-                $valExpandedField  = $field;
-                $this-> _expandArrays_($valExpandedField  );
-
-                $strValField = implode("|", array($field, $valExpandedField));
-                $arrRecordToUpdate[$keyField] = $strValField;
-            }
-        }
-*/
-
-    }
 
 
 

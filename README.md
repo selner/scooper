@@ -33,6 +33,7 @@ Example:
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
 ```
+Example files are available in the /example directory.
 
 ## Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to

@@ -26,7 +26,7 @@ class APICallWrapperClass {
     /****************************************************************************************************************/
 
 
-    function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $pagenum = 0)
+    function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
     {
         $retData = null;
 
@@ -36,14 +36,33 @@ class APICallWrapperClass {
         {
             if($objName == "")
             {
+                //
+                // if we have a handler for the results, call it now
+                //
+                if ($callback && is_callable($callback))
+                {
+                    call_user_func_array($callback, array(&$srcdata));
+//                    call_user_func($callback, $srcdata);
+                }
                 $retData = $srcdata;
+                // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
             }
             else
             {
 
                 foreach($srcdata->$objName as $value)
+                {
+                    //
+                    // if we have a handler for the results, call it now
+                    //
+                    if ($callback && is_callable($callback))
+                    {
+                        call_user_func_array($callback, array(&$value));
+//                        call_user_func($callback, $value);
+                    }
                     $retData[] = $value;
-
+                    // __debug__var_dump_exit__( '$srcDataPostPrefix= '.var_export($srcDataPostPrefix).PHP_EOL.'$srcdata = '.var_export($srcdata));
+                }
 
                 //
                 // If the data returned has a next_page value, then we have more results available
@@ -57,8 +76,7 @@ class APICallWrapperClass {
                     $patternPagePrefix = "/.*page=/";
                     $pattern = "/(\/api\/v2\/).*/";
                     $pagenum = preg_replace($patternPagePrefix, "", $srcdata->next_page);
-                    $retSecondary = getObjectsFromAPI($baseURL, $objName, $pagenum);
-                    $this->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+                    $retSecondary = $this->getObjectsFromAPI($baseURL, $objName, null, null, $pagenum);
 
                     //
                     // Merge the primary and secondary result sets into one result
@@ -66,8 +84,17 @@ class APICallWrapperClass {
                     //
 
                     foreach($retSecondary as $moreVal)
+                    {
+                        //
+                        // if we have a handler for the results, call it now
+                        //
+                        if ($callback && is_callable($callback))
+                        {
+                            call_user_func_array($callback, array(&$moreVal));
+//                            call_user_func($callback, $moreVal);
+                        }
                         $retData[] = $moreVal;
-
+                    }
                 }
             }
         }
@@ -85,6 +112,7 @@ class APICallWrapperClass {
                 // do nothing;
                 break;
         }
+
 
         return $retData;
     }

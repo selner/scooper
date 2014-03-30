@@ -44,6 +44,42 @@ class ScooterPluginBaseClass
         throw new Exception("_getData_ must be defined for any class extending ScooterPluginBaseClass. ");
     }
 
+    function _expandArrays_(&$arrToExpand)
+    {
+
+        $values = $arrToExpand;
+        $keys = array_keys($arrToExpand);
+        $nIndex = 0;
+        foreach($values as $val)
+        {
+            if(is_array($val))
+            {
+                $arrNewValue = array();
+                if(count($val) > 1)
+                    $sep = " | ";
+                else
+
+                    $sep = "";
+
+                foreach($val as $subItem)
+                {
+                    if(is_array($subItem))
+                    {
+                        $arrNewValue[] = implode(" ", array_flatten_sep(".", $subItem));
+                    }
+                    else
+                    {
+                        $arrNewValue[] = $subItem;
+                    }
+                }
+                $strNewValue = implode($sep, $arrNewValue);
+                $arrToExpand[$keys[$nIndex]] =$strNewValue;
+
+            }
+
+            $nIndex++;
+        }
+    }
 
 
     private $_strPluginDataProviderName_ = "UNKNOWN";

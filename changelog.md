@@ -1,5 +1,11 @@
 ## Scooper Change Log
 
+# 03-28
+    * Created v0.1.2-dev branch
+    * Added checking for valid Crunchbase API key; excludes Crunchbase data if not set
+    * Fixed naming issue in CB Plugin
+
+
 # 03/27/2014 (BJS)
 	* Added Pashua.app binary for Mac UI dialogs
 	* Removed pashua_wrapper files and created new classes for Mac UI in ui/mac/ directory.  

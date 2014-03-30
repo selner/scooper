@@ -99,7 +99,7 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'result_accuracy_warnings' => 'N/A',
     'effective_domain' => 'N/A',
     'actual_site_url' => 'N/A',
-	'quantcast.uniques' => 'N/A',
+	'quantcast.monthly_uniques' => 'N/A',
     'crunchbase_match_accuracy' => 'N/A',
     'cb.name' => 'N/A',
     'cb.namespace' => 'N/A',
@@ -112,6 +112,26 @@ $GLOBALS['ALL_POSSIBLE_RECORD_KEYS'] =  array(
     'cb.computed_domain' => 'N/A',
     'cb.image' => 'N/A',
     'cb.offices' => 'N/A',
+    'cb.blog_url' => 'N/A',
+    'cb.blog_feed_url' => 'N/A',
+    'cb.twitter_username' => 'N/A',
+    'cb.phone_number' => 'N/A',
+    'cb.email_address' => 'N/A',
+    'cb.number_of_employees' => 'N/A',
+    'cb.founded_year' => 'N/A',
+    'cb.founded_month' => 'N/A',
+    'cb.founded_day' => 'N/A',
+    'cb.tag_list' => 'N/A',
+    'cb.alias_list' => 'N/A',
+    'cb.created_at' => 'N/A',
+    'cb.updated_at' => 'N/A',
+    'cb.relationships' => 'N/A',
+    'cb.investments' => 'N/A',
+    'cb.milestones' => 'N/A',
+    'cb.providerships' => 'N/A',
+    'cb.funds' => 'N/A',
+    'cb.video_embeds' => 'N/A',
+    'cb.external_links' => 'N/A',
     'person.first_name' => 'N/A',
     'person.last_name' => 'N/A',
     'feid' => 'N/A',
@@ -323,13 +343,13 @@ function __check_args__()
     if($GLOBALS['OPTS']['exclude_crunchbase_given'] ) {  $GLOBALS['OPTS']['exclude_crunchbase'] = 1; }else { $GLOBALS['OPTS']['exclude_crunchbase'] = 0; }
     if(!$GLOBALS['OPTS']['moz_access_id_given'] )
     {
-        $GLOBALS['OPTS']['moz_access_id'] = C_MOZ_API_ACCESS_ID;
-        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_ID.")." , C__DISPLAY_ERROR__);
+        $GLOBALS['OPTS']['moz_access_id'] = C__MOZ_API_ACCESS_ID__;
+        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C__MOZ_API_ACCESS_ID__.")." , C__DISPLAY_ERROR__);
     }
     if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
     {
-        $GLOBALS['OPTS']['moz_secret_key'] = C_MOZ_API_ACCESS_ID;
-        __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C_MOZ_API_ACCESS_SECRETKEY.")." , C__DISPLAY_ERROR__);
+        $GLOBALS['OPTS']['moz_secret_key'] = C__MOZ_API_ACCESS_ID__;
+        __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C__MOZ_API_ACCESS_SECRETKEY__.")." , C__DISPLAY_ERROR__);
     }
 
     if($GLOBALS['OPTS']['exclude_moz_given'] || (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )

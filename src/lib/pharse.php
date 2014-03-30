@@ -14,104 +14,115 @@ class Pharse{
     const PHARSE_INTEGER = 'integer';
     const PHARSE_STRING  = 'string';
 
-    /**
-     * This is the main option parsing method
-     * 
-     * @param array $options            An array of options data
-     * @return string $text             Text output for the CLI
-     */
+
+
+/**
+ * This is the main option parsing method
+ *
+ * @param array $options            An array of options data
+ * @return string $text             Text output for the CLI
+ */
     static function options(array $options){
-        # use the globalized $argv and unset the filename argument
-        global $argv;
-        unset($argv[0]);
+    # use the globalized $argv and unset the filename argument
+    global $argv;
+    unset($argv[0]);
 
-        # manually add the default 'help' command
-        $options += array(
-            'help' => array(
-                'short'       => 'h',
-                'description' => 'Display this help banner',
-            )
-        );
+    # manually add the default 'help' command
+    $options += array(
+        'help' => array(
+            'short'       => 'h',
+            'description' => 'Display this help banner',
+        )
+    );
 
-        # create the option specifications
-        foreach($options as $option_name => $constraints){
-            Pharse::$options[$option_name] = new PharseOption($option_name, $constraints);
+    # create the option specifications
+    foreach($options as $option_name => $constraints){
+        Pharse::$options[$option_name] = new PharseOption($option_name, $constraints);
+    }
+
+    # now do the actual option parsing
+    # cheaply parse the args into $key => $val
+    $arg_string = trim(implode($argv, ' '));
+    $arg_string = str_replace('--', '-', $arg_string);
+    $arg_string = " " . $arg_string;
+
+    // BJS[03-30-2014] Fix to allow values with hyphens to be passed
+    //
+    $arg_string = preg_replace('/\s(-)([[:alnum:][:punct:]]{1,})/', "  $1$2", $arg_string);
+    $args       = explode(' -', $arg_string);
+    // END BJS FIX
+
+    unset($args[0]);
+
+    # assemble an array of proper options
+    foreach($args as $arg){
+        # null out the local variables in this loop on every iteration
+        $option  = null;
+        $value   = null;
+        $the_opt = null;
+
+
+
+        # separate the string on the equals sign if one exists
+        if(strpos($arg, '=')){
+            $option = trim(substr($arg, 0, strpos($arg, '=')));
+            $value  = trim(substr($arg, strpos($arg, '=') + 1));
         }
 
-        # now do the actual option parsing
-        # cheaply parse the args into $key => $val
-        $arg_string = trim(implode($argv, ' '));
-        $arg_string = str_replace('--', '-', $arg_string);
-        $args       = explode('-', $arg_string);
-        unset($args[0]);
-
-        # assemble an array of proper options
-        foreach($args as $arg){
-            # null out the local variables in this loop on every iteration
-            $option  = null;
-            $value   = null;
-            $the_opt = null;
-
-            # separate the string on the equals sign if one exists
-            if(strpos($arg, '=')){
-                $option = trim(substr($arg, 0, strpos($arg, '=')));
-                $value  = trim(substr($arg, strpos($arg, '=') + 1));
-            }
-
-            # otherwise, split on the first space
-            else if(strpos($arg, ' ')){
-                $option = trim(substr($arg, 0, strpos($arg, ' ')));
-                $value  = trim(substr($arg, strpos($arg, ' ') + 1));
-            }
-
-            # if an option is set with no value, handle it
-            else {
-                $option = trim($arg);
-            }
-
-            # locate the option whose value needs to be set
-            if(isset(Pharse::$options[$option])){
-                $the_opt = Pharse::$options[$option];
-            } else if(isset(Pharse::$shorts[$option])){
-                $the_opt = Pharse::$options[Pharse::$shorts[$option]];
-            } else {
-                die("Error: option {$option} is unrecognized.\n");
-            }
-
-            # if value was unspecified, look up the default
-            if($value == null){
-                $value = $the_opt->default;
-            }
-
-            # use some type-punning to cast $value to the appropriate
-            # PHP data-type
-            if(is_numeric($value)){
-                $value += 0;
-            } else {
-                $value .= "";
-            }
-
-            # now, set the value for the option
-            $the_opt->value = $value;
-
-            # Save the data in the array of data to be returned. If all
-            # of the provided options pass validation, this data will
-            # be returned to the host program.
-            self::$return[$the_opt->name] = $the_opt->value;
-            self::$return[$the_opt->name . "_given"] = true;
+        # otherwise, split on the first space
+        else if(strpos($arg, ' ')){
+            $option = trim(substr($arg, 0, strpos($arg, ' ')));
+            $value  = trim(substr($arg, strpos($arg, ' ') + 1));
         }
 
-        # Now that we've successfully parsed the options, simply
-        # show the help banner if --help or -h has been specified.
-        if(@self::$return['help_given']) { self::help(); }
-
-        # validate and prepare each key/value pair for return
-        foreach(Pharse::$options as $key => $option){
-            $option->validate();
+        # if an option is set with no value, handle it
+        else {
+            $option = trim($arg);
         }
 
-        # return the array of parsed options
-        return self::$return;
+        # locate the option whose value needs to be set
+        if(isset(Pharse::$options[$option])){
+            $the_opt = Pharse::$options[$option];
+        } else if(isset(Pharse::$shorts[$option])){
+            $the_opt = Pharse::$options[Pharse::$shorts[$option]];
+        } else {
+            die("Error: option {$option} is unrecognized.\n");
+        }
+
+        # if value was unspecified, look up the default
+        if($value == null){
+            $value = $the_opt->default;
+        }
+
+        # use some type-punning to cast $value to the appropriate
+        # PHP data-type
+        if(is_numeric($value)){
+            $value += 0;
+        } else {
+            $value .= "";
+        }
+
+        # now, set the value for the option
+        $the_opt->value = $value;
+
+        # Save the data in the array of data to be returned. If all
+        # of the provided options pass validation, this data will
+        # be returned to the host program.
+        self::$return[$the_opt->name] = $the_opt->value;
+        self::$return[$the_opt->name . "_given"] = true;
+    }
+
+    # Now that we've successfully parsed the options, simply
+    # show the help banner if --help or -h has been specified.
+    if(@self::$return['help_given']) { self::help(); }
+
+    # validate and prepare each key/value pair for return
+    foreach(Pharse::$options as $key => $option){
+        $option->validate();
+    }
+
+    # return the array of parsed options
+    return self::$return;
     }
 
 

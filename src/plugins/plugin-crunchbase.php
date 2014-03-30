@@ -70,57 +70,70 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		// Call the Crunchbase Search API 
 		//
         $classAPICall = new APICallWrapperClass();
-
-		$arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
-        if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_RESULT__);  }
-
         $nMatchCrunchResult = -1;
-		$nCurResult = 0;
-		if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
-		{
-			foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
-			{
-                if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
-                {
-                    $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
-                    if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
-                    {
-                        // Match found
-                        $nMatchCrunchResult = $nCurResult;
-                        $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
-                        merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
-                        break;
+        $nCurResult = 0;
 
+        try
+        {
+            $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
+
+            if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_RESULT__);  }
+
+            if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
+            {
+                foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
+                {
+                    if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
+                    {
+                        $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
+                        if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
+                        {
+                            // Match found
+                            $nMatchCrunchResult = $nCurResult;
+                            $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
+                            merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
+                            break;
+
+                        }
                     }
                 }
+                if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
+                {
+                    __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
+                    $nMatchCrunchResult = 0;
+                    $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
+                }
             }
-			if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
-			{
-				__debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);  
-				$nMatchCrunchResult = 0;
-				$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
-			}
-		}
+            //
+            // If we didn't get a match, note it in the record
+            //
+            if($nMatchCrunchResult == -1)
+            {
+                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
+                __debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);
+            }
+            else
+            {
+                //
+                // Otherwise, go get the full entity facts for that record
+                //
+                $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
+            }
 
-        //
-        // If we didn't get a match, note it in the record
-        //
-		if($nMatchCrunchResult == -1) 
-		{		
-			$arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
-			__debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);  
-		}
-        else
+            addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
+
+            $this->_expandArrays_($arrRecordToUpdate);
+
+
+        }
+        catch ( ErrorException $e )
         {
-            //
-            // Otherwise, go get the full entity facts for that record
-            //
-            $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
+            print ("Error: ". $e->getMessage()."\r\n" );
+            addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
+            $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
         }
 
-        addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
 
-        $this->_expandArrays_($arrRecordToUpdate);
 
         if($GLOBALS['VERBOSE'] == true) { __log__ ('Updated Record: '.var_export($arrRecordToUpdate), C__LOGLEVEL_DEBUG__); }
 
@@ -187,9 +200,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     {
         if(is_array($arrRecord))
         {
-
-            print '--- -HERE2---- '.PHP_EOL;
-
 
 
             $entityType = $arrRecord['namespace'];

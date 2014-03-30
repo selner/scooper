@@ -65,7 +65,12 @@ class SimpleScooterCSVFileClass {
     {
         $this->_strFilePath_ = $filepath;
         $this->_strAccessMode_ = $strAccessMode;
-        $this->_fp_ = fopen($this->_strFilePath_,$strAccessMode) or die("can't open file ".$this->_strFilePath_."");
+
+        $fp = fopen($this->_strFilePath_,$strAccessMode);
+        if($fp)
+            $this->_fp_ = $fp;
+        else
+            throw new ErrorException("Unable to open file '". $filepath . "' with access mode of '".$strAccessMode."'.".PHP_EOL .error_get_last()['message']) ;
     }
 
     private function _resetFile()
@@ -119,7 +124,7 @@ class SimpleScooterCSVFileClass {
             {
                 if(strlen($data[0])> 0)  // skip rows with blank values in the first field.
                 {
-                    $arrDataLoaded['data_rows'][] = $data;
+                    $arrDataLoaded['data_rows'][] = array_combine($arrDataLoaded['header_keys'], $data);
                 }
 
             }

@@ -37,7 +37,7 @@ $GLOBALS['OPTS'] = null;
 const C__APPNAME__ = "Scooper";
 const C__APP_VERSION_MAJOR___ = "0";
 const C__APP_VERSION_MINOR___ = ".11";
-const C__RECORD_CHUNK_SIZE__ = 2;
+const C__RECORD_CHUNK_SIZE__ = 1;
 const C__FSHOWVERBOSE_APICALL__ = 0;
 
 const C_LOOKUP_MODE_UNKNOWN = -1;
@@ -512,7 +512,7 @@ function parseFilePath($strFilePath, $fFileMustExist = false)
 
             if(count($arrFilePathParts) <= 1)
             {
-                $arrReturnFileDetails['directory'] = "";
+                $arrReturnFileDetails['directory'] = ".w";
                 $arrReturnFileDetails['file_name'] = $arrFilePathParts[0];
             }
             else

@@ -62,11 +62,16 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
                     if((count($strCurInputDataRecord) >= 5))
                     {
-                        $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
-                        $arrRecordsToProcess[$nRow]['actual_site_url'] = $strCurInputDataRecord[4];
-                        $arrRecordsToProcess[$nRow]['effective_domain'] = $strCurInputDataRecord[3];
-                        $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = $strCurInputDataRecord[2];
-                        $arrRecordsToProcess[$nRow]['input_source_url'] = $arrRecordsToProcess[$nRow]['actual_site_url'];
+                        $arrRecordsToProcess[$nRow] = my_merge_add_new_keys($arrRecordsToProcess[$nRow], $strCurInputDataRecord);
+/*                        var_dump('$arrRecordsToProcess[$nRow]',$arrRecordsToProcess[$nRow]);
+                        var_dump('keys', array_keys($arrRecordsToProcess[$nRow]));
+                        exit("HERE");
+*/
+//                        $arrRecordsToProcess[$nRow]['company_name'] = $strCurInputDataRecord[0];
+//                        $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = $strCurInputDataRecord[2];
+//                        $arrRecordsToProcess[$nRow]['effective_domain'] = $strCurInputDataRecord[3];
+//                        $arrRecordsToProcess[$nRow]['actual_site_url'] = $strCurInputDataRecord[4];
+//                        $arrRecordsToProcess[$nRow]['input_source_url'] = $arrRecordsToProcess[$nRow]['actual_site_url'];
                         __debug__printLine("Found full basic data in row#".$nRow.": ".$arrRecordsToProcess[$nRow]['company_name'].': '.$arrRecordsToProcess[$nRow]['actual_site_url'], C__DISPLAY_ITEM_START__);
                         continue;
                     }
@@ -127,6 +132,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         // If we don't yet have an URL for the company but we do have a company name,
         // let's guess at the URL and use that
         //
+
         if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
         {
             $strSimplifiedCompName = $this->_simplifyCompanyNameForDomainURL_($arrRecordToUpdate['company_name']);

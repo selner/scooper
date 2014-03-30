@@ -186,9 +186,10 @@ function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN
 
         $curl_object['actual_site_url'] = strtolower($last_url);
         if (curl_errno($ch)) {
-            print 'Error #' . curl_errno($ch) . ': ' . curl_error($ch) . PHP_EOL;
+            $strErr = 'Error #' . curl_errno($ch) . ': ' . curl_error($ch);
             $curl_object['error_number'] = curl_errno($ch);
             $curl_object['output'] = curl_error($ch);
+            throw new ErrorException($strErr,curl_errno($ch),E_RECOVERABLE_ERROR );
         }
         else
         {

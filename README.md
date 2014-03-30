@@ -1,8 +1,9 @@
 ##Scooper
-Author:  Selner (bry.int@bryanselner.com)
+Author:  Bryan Selner (dev@recoilvelocity.com)
 
 ##What It Does
-Find and export basic website, Moz.com, Crunchbase and Quantcast data for any company name or URL.
+Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
+
 Options:
 * --lookup-name, -ln <s>: The name of the company to lookup. (Requires --outputfile.)
 * --lookup-url, -lu <s>: The website URL for the company to lookup. (Requires --outputfile.)

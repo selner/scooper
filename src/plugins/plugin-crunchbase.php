@@ -278,7 +278,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         $arrCrunchAPIData = array();
         $classAPICall = new APICallWrapperClass();
 
-        $arrCrunchAPIData[] = $classAPICall->getObjectsFromAPICall($strAPICallURL, '', C__API_RETURN_TYPE_ARRAY__);
+        $apiURL = $strAPICallURL."api_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+        __log__("Calling Crunchbase API ".$apiURL, C__LOGLEVEL_INFO__);
+        $arrCrunchAPIData[] = $classAPICall->getObjectsFromAPICall($apiURL, C__API_RETURN_TYPE_ARRAY__);
         $classOutputFile = new SimpleScooterCSVFileClass($fileOutFullPath, "w");
         $classOutputFile->writeArrayToCSVFile($arrCrunchAPIData);
     }

@@ -11,7 +11,7 @@ Gather and export website data from Moz.com, Crunchbase and Quantcast for any gi
 
 Simply set -mozid, -mozkey and -cbid switche to match your account's specific values.  Alternatively, you can edit the src/config.pho file to set those values in the code directly.
 
-###Options:
+##Options:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.
 *   --inputfile, -i : Full file path of the CSV file to use as the input data.
@@ -44,10 +44,6 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
 ```
 Example files are available in the /example directory.
 
-## Enabling Logging
+### Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
 a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
-
-### Enabling Logging
-If you would like the script to output to log files, download the "Klogger v0.1" version from [http://codefury.net/projects/klogger/]. Extract the contents toa new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
-

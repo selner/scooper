@@ -31,7 +31,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 	{
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-        if(strlen(C__CRUNCHBASE_API_KEY__) == 0 || C__CRUNCHBASE_API_KEY__ == "")
+        if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0 || $GLOBALS['OPTS']['crunchbase_api_id'] == "")
         {
             __log__("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", C__LOGLEVEL_ERROR__);
             $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
@@ -52,7 +52,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		/****************************************************************************************************************/
 		__debug__printLine("Querying Crunchbase for ".$arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
 
-		$arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => 'N/A'));
+		$arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => '<not set>'));
 
         if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
         {
@@ -64,7 +64,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		// 
 		$company_name_urlenc = urlencode($arrRecordToUpdate['company_name']); 
 		$company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc); 
-		$url = "http://api.crunchbase.com/v/1/search.js?api_key=".C__CRUNCHBASE_API_KEY__."&entity=company&query=" . $company_name_urlenc;
+		$url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_api_id']."&entity=company&query=" . $company_name_urlenc;
 
 		//
 		// Call the Crunchbase Search API 
@@ -178,7 +178,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		//
 		//  Encode the company name for use in the API call.  Change any space characters to = characters.
 		// 
-		$strAPIURL = "http://api.crunchbase.com/v/1/".$entity_type."/".$strPermanlink.".js?api_key=7d379mfwxm876tvgw3xhf2fs";
+		$strAPIURL = "http://api.crunchbase.com/v/1/".$entity_type."/".$strPermanlink.".js?api_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
 		if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
 		//
@@ -203,51 +203,51 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             if(!$entityType || strlen($entityType) == 0) { $entityType = $arrRecord['cb.namespace']; };
 
              $arrCBCommonEntityFieldPrefixes = array(
-                'category_code' => 'N/A',
-                'field_name' => 'N/A',
-                'crunchbase_url' => 'N/A',
-                'description' => 'N/A',
-                'homepage_url' => 'N/A',
-                'image' => 'N/A',
-                'name' => 'N/A',
-                'namespace' => 'N/A',
-                'offices' => 'N/A',
-                'overview' => 'N/A',
-                'permalink' => 'N/A',
-                'computed_domain' => 'N/A',
-                'blog_url' => 'N/A',
-                'blog_feed_url' => 'N/A',
-                'twitter_username' => 'N/A',
-                'phone_number' => 'N/A',
-                'email_address' => 'N/A',
-                'number_of_employees' => 'N/A',
-                'founded_year' => 'N/A',
-                'founded_month' => 'N/A',
-                'founded_day' => 'N/A',
-                'tag_list' => 'N/A',
-                'alias_list' => 'N/A',
-                'created_at' => 'N/A',
-                'updated_at' => 'N/A',
-                'relationships' => 'N/A',
-                'investments' => 'N/A',
-                'milestones' => 'N/A',
-                'providerships' => 'N/A',
-                'funds' => 'N/A',
-                'video_embeds' => 'N/A',
-                'external_links' => 'N/A',
-                'deadpooled_year' => 'N/A',
-                'deadpooled_month' => 'N/A',
-                'deadpooled_day' => 'N/A',
-                'deadpooled_url' => 'N/A',
-                'products' => 'N/A',
-                 'competitions' => 'N/A',
-                 'total_money_raised' => 'N/A',
-                 'funding_rounds' => 'N/A',
-                 'acquisition' => 'N/A',
-                 'acquisitions' => 'N/A',
-                 'ipo' => 'N/A',
-                 'screenshots' => 'N/A',
-                 'partners' => 'N/A'                                          );
+                'category_code' => '<not set>',
+                'field_name' => '<not set>',
+                'crunchbase_url' => '<not set>',
+                'description' => '<not set>',
+                'homepage_url' => '<not set>',
+                'image' => '<not set>',
+                'name' => '<not set>',
+                'namespace' => '<not set>',
+                'offices' => '<not set>',
+                'overview' => '<not set>',
+                'permalink' => '<not set>',
+                'computed_domain' => '<not set>',
+                'blog_url' => '<not set>',
+                'blog_feed_url' => '<not set>',
+                'twitter_username' => '<not set>',
+                'phone_number' => '<not set>',
+                'email_address' => '<not set>',
+                'number_of_employees' => '<not set>',
+                'founded_year' => '<not set>',
+                'founded_month' => '<not set>',
+                'founded_day' => '<not set>',
+                'tag_list' => '<not set>',
+                'alias_list' => '<not set>',
+                'created_at' => '<not set>',
+                'updated_at' => '<not set>',
+                'relationships' => '<not set>',
+                'investments' => '<not set>',
+                'milestones' => '<not set>',
+                'providerships' => '<not set>',
+                'funds' => '<not set>',
+                'video_embeds' => '<not set>',
+                'external_links' => '<not set>',
+                'deadpooled_year' => '<not set>',
+                'deadpooled_month' => '<not set>',
+                'deadpooled_day' => '<not set>',
+                'deadpooled_url' => '<not set>',
+                'products' => '<not set>',
+                 'competitions' => '<not set>',
+                 'total_money_raised' => '<not set>',
+                 'funding_rounds' => '<not set>',
+                 'acquisition' => '<not set>',
+                 'acquisitions' => '<not set>',
+                 'ipo' => '<not set>',
+                 'screenshots' => '<not set>',
+                 'partners' => '<not set>'                                          );
 
 
             $arrKeys = array_keys($arrRecord);

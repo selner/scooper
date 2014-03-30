@@ -92,8 +92,8 @@
 			// From https://github.com/seomoz/SEOmozAPISamples/blob/master/php/batching_urls_sample.php
 				
 			// you can obtain you access id and secret key here: http://www.seomoz.org/api/keys
-			$accessID = "member-0c068bd3a1";
-			$secretKey = "c09f545d7ff6c27b43c3e1b01bc6ba11";
+			$accessID = $GLOBALS['OPTS']['moz_access_id'];
+			$secretKey = $GLOBALS['OPTS']['moz_secret_key'];
 
 			// Set your expires for several minutes into the future.
 			// Values excessively far in the future will not be honored by the Mozscape API.
@@ -117,7 +117,7 @@
 			
 			foreach ($arrRecordsToQuery as $curRecord) 
 			{
-				if($curRecord['effective_domain'] && strcasecmp($curRecord['effective_domain'], "N/A") != 0)
+				if($curRecord['effective_domain'] && strcasecmp($curRecord['effective_domain'], "<not set>") != 0)
 				{
 					$curDomain = $curRecord['effective_domain'];
 				}

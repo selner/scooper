@@ -15,17 +15,17 @@ function getEmptyFullRecordArray()
 
 function isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
 {
-    // true = not valid (e.g. "N/A", "n/a", "", 0, null, etc.)
+    // true = not valid (e.g. "<not set>", "n/a", "", 0, null, etc.)
     // false = valid data
     if(!$val) return true;
     if(($fZeroIsValid == true) && ($val == 0)) { return true; }
 
-    if(is_string($val) && (strcasecmp($val, "N/A") == 0 || (strlen($val) == 0 && $fEmptyStringIsValid != true)))
+    if(is_string($val) && (strcasecmp($val, "<not set>") == 0 || (strlen($val) == 0 && $fEmptyStringIsValid != true)))
     {
         return true;
     }
 
-//    __debug__var_dump_exit__(array('acc_val' => $val, 'is_string' => is_string($val), 'N/A match' => strcasecmp($val, "N/A"), 'empty_is_invalid' => $fEmptyStringEqualsInvalid, 'ret' => $retValid));
+//    __debug__var_dump_exit__(array('acc_val' => $val, 'is_string' => is_string($val), '<not set> match' => strcasecmp($val, "<not set>"), 'empty_is_invalid' => $fEmptyStringEqualsInvalid, 'ret' => $retValid));
 
     return false;
 }

@@ -1,6 +1,6 @@
 #Scooper
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
-* [Issues](https://github.com/selner/scooper/issues)
+* Issues:  [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
 
 ##What It Does
 Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.

@@ -44,17 +44,19 @@ class APICallWrapperClass {
         }
     }
 
-function getObjectsFromAPICall( $baseURL, $objName, $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
+function getObjectsFromAPICall( $baseURL, $objName = "", $fReturnType = C__API_RETURN_TYPE_OBJECT__, $callback = null, $pagenum = 0)
     {
         $retData = null;
 
         $curl_obj = $this->cURL($baseURL, "", "GET", "application/json", $pagenum);
+
         $srcdata = json_decode($curl_obj['output']);
         if($srcdata != null)
         {
             if($objName == "")
             {
-                $retData= $this->__handleCallback__($callback, $srcdata, $fReturnType);
+                $this->__handleCallback__($callback, $srcdata, $fReturnType);
+                $retData = $srcdata;
             }
             else
             {

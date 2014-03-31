@@ -149,6 +149,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             ($arrRecordToUpdate['cb.namespace'] && strlen($arrRecordToUpdate['cb.namespace']) > 0))
         {
             $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($arrRecordToUpdate['cb.namespace'], $arrRecordToUpdate['cb.permalink']);
+
             if(is_array($arrCrunchEntityData))
             {
                 $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
@@ -189,7 +190,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         $arrCrunchEntityData = $classAPICall->getObjectsFromAPICall($strAPIURL, '', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
 
-    	return $arrCrunchEntityData;
+        return $arrCrunchEntityData;
 		
 	}
 

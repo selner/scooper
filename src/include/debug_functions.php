@@ -46,8 +46,7 @@ function __debug__var_dump_exit__($var, $desc="__debug__var_dump_exit__")
 {
 
     var_dump($desc, $var);
-    throw new ErrorException($desc);
-    exit($desc);
+    throw new ErrorException($desc, 1);
 
 }
 

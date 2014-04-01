@@ -1,23 +1,24 @@
 #Scooper
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
-* Issues:  [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
 
 ##What It Does
-Gather and export website data from Moz.com, Crunchbase and Quantcast for any given company name or website URL.
+Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.  
+
+Scooper can be run for just a single name or URL or you can pass it a CSV file with a whole list of them.  
 
 ##Requirements
 * Moz.com data:  [Moz.com API account](http://moz.com/products/api).
 * Crunchbase data:  [Crunchbase API account](http://developer.crunchbase.com).
 
-Simply set -mozid, -mozkey and -cbid switche to match your account's specific values.  Alternatively, you can edit the src/config.pho file to set those values in the code directly.
+Simply set -mozid, -mozkey and -cbid switches to match your account's specific values.  Alternatively, you can edit the /config.php file to set those values directly for all script.
 
 ###Options:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.
 * --inputfile, -i : Full file path of the CSV file to use as the input data.
 * --outputfile, -o : (optional) Output path or full file path and name for writing the results.
-* --exclude-moz, -em : Include moz.com data in the final result set.
-* --exclude-quantcast, -eq : Include quantcast.com uniq visitors data in the final result set.
+* --exclude-moz, -em : Include Moz.com data in the final result set.
+* --exclude-quantcast, -eq : Include Quantcast.com uniq visitors data in the final result set.
 * --exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
 * --moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
 * --moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
@@ -47,6 +48,10 @@ Example files are available in the /example directory.
 If your Input CSV file has additional columns, those values will be copied into the resulting rows for each company as well.
 
 ## Enabling Logging
-If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Extract the contents to
-a new folder in /lib called "KLogger".  The script should pick it up automatically the next time you run.
+If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Drop the  "KLogger".  The script should pick it up automatically the next time you run.
 
+#Issues & Bugs
+See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
+
+#License#
+This product is licensed under the GPL (http://www.gnu.org/copyleft/gpl.html). It comes with no warranty, expressed or implied.

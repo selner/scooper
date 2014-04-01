@@ -1,5 +1,4 @@
 #Scooper
-##What It Does
 Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.  
 
 Scooper can be run for just a single name or URL or you can pass it a CSV file with a whole list of them.  

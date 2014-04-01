@@ -44,7 +44,7 @@ Example files are available in the /example directory.
 
 If your Input CSV file has additional columns, those values will be copied into the resulting rows for each company as well.
 
-## Enabling Logging
+###Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Drop the  "KLogger".  The script should pick it up automatically the next time you run.
 
 #Other Stuff

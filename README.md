@@ -1,6 +1,4 @@
 #Scooper
-* Author:  Bryan Selner (dev at recoilvelocity dot com)
-
 ##What It Does
 Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.  
 
@@ -50,8 +48,9 @@ If your Input CSV file has additional columns, those values will be copied into 
 ## Enabling Logging
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Drop the  "KLogger".  The script should pick it up automatically the next time you run.
 
-#Issues & Bugs
-See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
-
-#License#
+#License & Other Stuff
+*Issues & Bugs:  See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
+* Author:  Bryan Selner (dev at recoilvelocity dot com)
+ 
+##License
 This product is licensed under the GPL (http://www.gnu.org/copyleft/gpl.html). It comes with no warranty, expressed or implied.

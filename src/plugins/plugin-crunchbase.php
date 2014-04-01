@@ -14,7 +14,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-require_once dirname(__FILE__).'/plugin-base.php';
+require_once dirname(__FILE__) . '/../include/plugin-base.php';
 /****************************************************************************************************************/
 /****                                                                                                        ****/
 /****          Crunchbase Plugin Class                                                                               ****/

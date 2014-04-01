@@ -20,7 +20,7 @@ require_once dirname(__FILE__) . '/lib/pharse.php';
 require_once dirname(__FILE__) . '/include/SimpleScooterCSVFileClass.php';
 require_once dirname(__FILE__) . '/include/common.php';
 require_once dirname(__FILE__) . '/include/fields_functions.php';
-require_once dirname(__FILE__) . '/plugins/plugin-base.php';
+require_once dirname(__FILE__) . '/include/plugin-base.php';
 require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';
 require_once dirname(__FILE__) . '/plugins/plugin-crunchbase.php';
 require_once dirname(__FILE__) . '/plugins/plugin-moz.php';

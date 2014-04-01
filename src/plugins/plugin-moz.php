@@ -21,7 +21,7 @@
 	/****         Moz Plugin Class                                                                               ****/
 	/****                                                                                                        ****/
 	/****************************************************************************************************************/
-    require_once dirname(__FILE__).'/plugin-base.php';
+    require_once dirname(__FILE__) . '/../include/plugin-base.php';
 
 
     class MozPluginClass extends ScooterPluginBaseClass

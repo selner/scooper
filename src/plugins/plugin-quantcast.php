@@ -15,7 +15,7 @@
  * under the License.
  */
 
-require_once dirname(__FILE__).'/plugin-base.php';
+require_once dirname(__FILE__) . '/../include/plugin-base.php';
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/

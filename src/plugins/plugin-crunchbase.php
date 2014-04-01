@@ -190,6 +190,13 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         $arrCrunchEntityData = $classAPICall->getObjectsFromAPICall($strAPIURL, '', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
 
+        //
+        // There are a couple fields that tend to problematic
+        // due to their encoding and length.  For now, just blank those
+        // columns out from the record and mark them accordingly.
+        //
+        $arrCrunchEntityData['cb.relationships'] = '<filtered>';
+
         return $arrCrunchEntityData;
 		
 	}

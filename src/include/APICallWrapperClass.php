@@ -30,7 +30,7 @@ class APICallWrapperClass {
 
        if($fReturnType == C__API_RETURN_TYPE_ARRAY__)
        {
-           $val =  json_decode(json_encode($val, JSON_HEX_APOS | JSON_HEX_QUOT), true);
+           $val =  json_decode(json_encode($val, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), true);
        }
 
        if ($callback && is_callable($callback))
@@ -40,7 +40,7 @@ class APICallWrapperClass {
 
         if($fReturnType == C__API_RETURN_TYPE_ARRAY__)
         {
-            $val = json_decode(json_encode($val, JSON_HEX_APOS | JSON_HEX_QUOT), false);
+            $val = json_decode(json_encode($val, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), false);
         }
     }
 
@@ -99,7 +99,7 @@ function getObjectsFromAPICall( $baseURL, $objName = "", $fReturnType = C__API_R
         switch ($fReturnType)
         {
             case  C__API_RETURN_TYPE_ARRAY__:
-                $retData = json_decode(json_encode($retData, JSON_HEX_APOS | JSON_HEX_QUOT), true);
+                $retData = json_decode(json_encode($retData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), true);
                 break;
 
 

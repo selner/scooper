@@ -221,6 +221,12 @@ class SimpleScooterCSVFileClass {
 
     function getSortedDeDupedCSVArray($arrCSVRows, $arrFieldsToUseInKey)
     {
+
+        if(!$arrFieldsToUseInKey || !is_array($arrFieldsToUseInKey))
+        {
+            __debug__printLine("Field keys to use for deduping were not set.  Skipping dedupe", C__DISPLAY_MOMENTARY_INTERUPPT__);
+            return $arrCSVRows;
+        }
 //        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
         $arrKeyedCSV = array();
         $inputKeys = array_keys($arrCSVRows);
@@ -232,11 +238,9 @@ class SimpleScooterCSVFileClass {
             {
                 $strThisKey .= $rec[$fieldName] . "-";
             }
-//            print 'key = ' . $strThisKey.PHP_EOL;
             if($arrKeyedCSV[$strThisKey])
             {
                 $arrKeyedCSV[$strThisKey] = array_merge($rec, $arrKeyedCSV[$strThisKey] );
-                //               __debug__printLine('Duplicate job found: ' .$strThisKey ,C__DISPLAY_NORMAL__);
             }
             else
             {
@@ -248,9 +252,6 @@ class SimpleScooterCSVFileClass {
                 $retArray[] = $rec;
             }
         }
-//        print 'keyed array rows = ' . count($arrKeyedCSV).PHP_EOL;
-
-//        print '$retArray rows = ' . count($retArray).PHP_EOL;
 
         return $retArray;
 
@@ -301,20 +302,20 @@ class SimpleScooterCSVFileClass {
 
     }
 
-    function combineMultipleCSVs($arrFullFilePaths, $keysToUse = null)
+    function combineMultipleCSVs($arrFullFilePaths, $keysToUseForOutputCSV = null, $arrKeysToUseForDedupe = null)
     {
+
         $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUse);
 
         print 'Total records before de-dupe= '. count($arrRecordsCombinedOutput).'...'.PHP_EOL;
 
         // sort the list and get to only the uniq records we haven't seen before
-        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, array('job_site', 'job_id'));
-//        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, array('job_site', 'job_id', 'notes', 'interested'));
+        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, $arrKeysToUseForDedupe );
 
         print 'Total final records = '. count($arrUniq).'...'.PHP_EOL;
 
         // write the uniq values out to the results file
-        $this->writeArrayToCSVFile($arrUniq );
+        $this->writeArrayToCSVFile($arrUniq, $keysToUseForOutputCSV );
 
         //
         // And, finally, return the uniqure records

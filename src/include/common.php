@@ -25,6 +25,8 @@ require_once dirname(__FILE__) . '/../config.php';
 require_once dirname(__FILE__) .'/SimpleScooterCSVFileClass.php';
 require_once dirname(__FILE__) . '/debug_functions.php';
 
+ini_set('auto_detect_line_endings', true);
+
 $GLOBALS['VERBOSE'] = false;
 $GLOBALS['OPTS'] = null;
 const C__APPNAME__ = "Scooper";

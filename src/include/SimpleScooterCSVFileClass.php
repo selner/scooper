@@ -116,7 +116,7 @@ class SimpleScooterCSVFileClass {
         $arrDataLoaded = getEmptyUserInputRecord();
         $nInputRow = 0;
 
-        while (($data = fgetcsv($this->_fp_, 0, ',')) !== FALSE)
+        while (($data = fgetcsv($this->_fp_, 0, ',', '"')) !== FALSE)
         {
             if($fHasHeaderRow == true && $nInputRow == 0)
             {
@@ -136,6 +136,51 @@ class SimpleScooterCSVFileClass {
 
         $arrCSVRecords = $arrDataLoaded;
         return $arrCSVRecords;
+    }
+
+
+    function readAllRecords($fHasHeaderRow, $arrKeysToUse = null)
+    {
+        __debug__printLine("Reading CSV records from: ".$this->_strFilePath_, C__DISPLAY_ITEM_DETAIL__);
+
+        $arrDataLoaded = array();
+        $nInputRow = 0;
+        $keys = (!$arrKeysToUse ? $arrKeysToUse : null);
+
+
+        while (($data = fgetcsv($this->_fp_, 0, ',', '"')) !== FALSE)
+        {
+            if(!$keys && !$arrKeysToUse && !$fHasHeaderRow)
+            {
+                __debug__printLine("No idea where we should get the keys for the array: ".$this->_strFilePath_, C__DISPLAY_NORMAL__);
+            }
+            else if(!$keys && $fHasHeaderRow == true && $nInputRow == 0)
+            {
+                $keys = array_values($data);
+//                __debug__printLine("Using keys from the first row:  ". var_export($keys, true), C__DISPLAY_NORMAL__);
+            }
+            else
+            {
+                if(strlen($data[0])> 0)  // skip rows with blank values in the first field.
+                {
+                    $arrDataLoaded[] = array_combine($keys, $data);
+                }
+
+            }
+            $nInputRow++;
+        }
+
+        if($keys)
+        {
+            $retArr = array();
+            $retArr = my_merge_add_new_keys($retArr , $arrDataLoaded);
+        }
+        else
+        {
+            $retArr = $arrDataLoaded;
+        }
+
+        return $retArr;
     }
 
     function writeArrayToCSVFile($records, $keys=null)
@@ -172,6 +217,112 @@ class SimpleScooterCSVFileClass {
             // throw new Exception("writeArrayToCSVFile. ");
         }
     }
+
+
+    function getSortedDeDupedCSVArray($arrCSVRows, $arrFieldsToUseInKey)
+    {
+//        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
+        $arrKeyedCSV = array();
+        $inputKeys = array_keys($arrCSVRows);
+
+        foreach($arrCSVRows as $rec)
+        {
+            $strThisKey = "";
+            foreach($arrFieldsToUseInKey as $fieldName)
+            {
+                $strThisKey .= $rec[$fieldName] . "-";
+            }
+//            print 'key = ' . $strThisKey.PHP_EOL;
+            if($arrKeyedCSV[$strThisKey])
+            {
+                $arrKeyedCSV[$strThisKey] = array_merge($rec, $arrKeyedCSV[$strThisKey] );
+                //               __debug__printLine('Duplicate job found: ' .$strThisKey ,C__DISPLAY_NORMAL__);
+            }
+            else
+            {
+
+                // add it to the array with new key's  records we're returning
+                $arrKeyedCSV[$strThisKey] = $rec;
+
+                // add it to the normal array of records we're returning
+                $retArray[] = $rec;
+            }
+        }
+//        print 'keyed array rows = ' . count($arrKeyedCSV).PHP_EOL;
+
+//        print '$retArray rows = ' . count($retArray).PHP_EOL;
+
+        return $retArray;
+
+    }
+
+
+    function readMultipleCSVsAndCombine($arrFullPaths, $keysToUse = null)
+    {
+        __debug__printLine("Loading and combining CSV records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_START__);
+
+        $arrRecordsCombined = null;
+        foreach($arrFullPaths as $curFilePath)
+        {
+            __debug__printLine("Loading ". $curFilePath." for combining into CSV records...", C__DISPLAY_ITEM_DETAIL__);
+
+            if(is_file($curFilePath))
+            {
+                $classCurrentInput = new SimpleScooterCSVFileClass($curFilePath, 'r');
+
+                $arrCSVInput = $classCurrentInput->readAllRecords(true, $keysToUse);
+
+                if(count($arrCSVInput) > 0)
+                {
+                    if(!$arrRecordsCombined)
+                    {
+                        $arrRecordsCombined = array_copy($arrCSVInput);
+                    }
+                    else
+                    {
+                        $arrRecordsCombined = array_merge($arrRecordsCombined, $arrCSVInput);
+
+                    }
+                    __debug__printLine("Added  ". count($arrCSVInput) . " records from " . $curFilePath . ". Total record counts is now ". count($arrRecordsCombined) .".", C__DISPLAY_ITEM_DETAIL__);
+
+                }
+                else
+                {
+                    __debug__printLine("Warning: No rows were loaded from " . $curFilePath, C__DISPLAY_ERROR__);
+
+                }
+
+            }
+        }
+
+        __debug__printLine("Loaded " . count($arrRecordsCombined). " records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_RESULT__);
+
+        return $arrRecordsCombined;
+
+    }
+
+    function combineMultipleCSVs($arrFullFilePaths, $keysToUse = null)
+    {
+        $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUse);
+
+        print 'Total records before de-dupe= '. count($arrRecordsCombinedOutput).'...'.PHP_EOL;
+
+        // sort the list and get to only the uniq records we haven't seen before
+        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, array('job_site', 'job_id'));
+//        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, array('job_site', 'job_id', 'notes', 'interested'));
+
+        print 'Total final records = '. count($arrUniq).'...'.PHP_EOL;
+
+        // write the uniq values out to the results file
+        $this->writeArrayToCSVFile($arrUniq );
+
+        //
+        // And, finally, return the uniqure records
+        //
+        return $arrUniq;
+
+    }
+
 
     private $_fp_ = null;
     private $_strFilePath_ = null;

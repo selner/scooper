@@ -42,7 +42,6 @@ require_once dirname(__FILE__) . '/plugins/plugin-quantcast.php';
 
 function __main__ ()
 {
-    ini_set('auto_detect_line_endings', true);
     try
     {
         date_default_timezone_set('America/Los_Angeles');

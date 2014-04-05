@@ -229,8 +229,10 @@ class SimpleScooterCSVFileClass {
 
         foreach ($arrRecordsToOutput as $record)
         {
-            fputcsv($this->_fp_, $record);
-            // throw new Exception("writeArrayToCSVFile. ");
+            if(!fputcsv($this->_fp_, $record))
+            {
+                throw new Exception("Error: writeArrayToCSVFile " . count(@$records) . " records with keys=" . var_export($keys, true));
+            }
         }
     }
 

@@ -141,49 +141,62 @@ class SimpleScooterCSVFileClass {
 
     function readAllRecords($fHasHeaderRow, $arrKeysToUse = null)
     {
+
+
         __debug__printLine("Reading CSV records from: ".$this->_strFilePath_, C__DISPLAY_ITEM_DETAIL__);
 
         $arrDataLoaded = array();
         $nInputRow = 0;
-        $keys = (!$arrKeysToUse ? $arrKeysToUse : null);
 
-
+        $arrDataLoaded['data_type'] = "NOT SET";
         while (($data = fgetcsv($this->_fp_, 0, ',', '"')) !== FALSE)
         {
-            if(!$keys && !$arrKeysToUse && !$fHasHeaderRow)
+            if($fHasHeaderRow == true && $nInputRow == 0)
             {
-                __debug__printLine("No idea where we should get the keys for the array: ".$this->_strFilePath_, C__DISPLAY_NORMAL__);
-            }
-            else if(!$keys && $fHasHeaderRow == true && $nInputRow == 0)
-            {
-                $keys = array_values($data);
-//                __debug__printLine("Using keys from the first row:  ". var_export($keys, true), C__DISPLAY_NORMAL__);
+                if(count($arrKeysToUse) <= 0)
+                {
+                    $arrDataLoaded['header_keys'] = $data;
+                }
+                else
+                {
+                    $arrDataLoaded['header_keys'] = $arrKeysToUse;
+                }
+/* FOR DEBUGGING
+                if($this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_inactive.csv' ||
+                    $this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_active.csv')
+                {
+                    var_dump('$arrData header keys = ', $arrDataLoaded['header_keys']);
+                    var_dump('$data = ', $data);
+                    var_dump('$keystouse= ', $arrKeysToUse);
+
+                }
+*/
             }
             else
             {
                 if(strlen($data[0])> 0)  // skip rows with blank values in the first field.
                 {
-                    $arrDataLoaded[] = array_combine($keys, $data);
+/* FOR DEBUGGING
+
+                    if($this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_inactive.csv' ||
+                        $this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_active.csv')
+                    {
+                        var_dump('$arrData header keys = ', $arrDataLoaded['header_keys']);
+                        var_dump('$data = ', $data);
+
+                    }
+*/
+                    $arrDataLoaded['data_rows'][] = array_combine($arrDataLoaded['header_keys'], $data);
                 }
 
             }
             $nInputRow++;
         }
 
-        if($keys)
-        {
-            $retArr = array();
-            $retArr = my_merge_add_new_keys($retArr , $arrDataLoaded);
-        }
-        else
-        {
-            $retArr = $arrDataLoaded;
-        }
-
-        return $retArr;
+        return $arrDataLoaded['data_rows'];
     }
 
-    function writeArrayToCSVFile($records, $keys=null)
+    function writeArrayToCSVFile($records, $keys=null, $arrKeysToUseToDedupe = null)
     {
 
         if($this->_strAccessMode_[0] == 'w' || $this->_strAccessMode_[0] == 'w')
@@ -191,10 +204,12 @@ class SimpleScooterCSVFileClass {
             $this->_resetFile();
         }
 
+
         // check if inputs are really arrays
         if(!is_array($records) && !is_array($records[0])) {
             throw new Exception("$records variable passed was not a 2-D array.");
         }
+
 
         if(!$keys)
         {
@@ -210,8 +225,9 @@ class SimpleScooterCSVFileClass {
             throw new Exception("$keys variable passed was not a valid array.");
         }
 
+        $arrRecordsToOutput = $this->getSortedDeDupedCSVArray($records, $arrKeysToUseToDedupe);
 
-        foreach ($records as $record)
+        foreach ($arrRecordsToOutput as $record)
         {
             fputcsv($this->_fp_, $record);
             // throw new Exception("writeArrayToCSVFile. ");
@@ -224,7 +240,7 @@ class SimpleScooterCSVFileClass {
 
         if(!$arrFieldsToUseInKey || !is_array($arrFieldsToUseInKey))
         {
-            __debug__printLine("Field keys to use for deduping were not set.  Skipping dedupe", C__DISPLAY_MOMENTARY_INTERUPPT__);
+            __debug__printLine("Field keys to use for deduping were not set.  Skipping dedupe.", C__DISPLAY_MOMENTARY_INTERUPPT__);
             return $arrCSVRows;
         }
 //        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
@@ -258,8 +274,10 @@ class SimpleScooterCSVFileClass {
     }
 
 
-    function readMultipleCSVsAndCombine($arrFullPaths, $keysToUse = null)
+    function readMultipleCSVsAndCombine($arrFullPaths, $keysToUse = null, $arrKeysToUseForDedupe = null)
     {
+        __debug__printLine("readMultipleCSVsAndCombine . " . $strOutFilePath, C__DISPLAY_ITEM_DETAIL__);
+
         __debug__printLine("Loading and combining CSV records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_START__);
 
         $arrRecordsCombined = null;
@@ -272,6 +290,7 @@ class SimpleScooterCSVFileClass {
                 $classCurrentInput = new SimpleScooterCSVFileClass($curFilePath, 'r');
 
                 $arrCSVInput = $classCurrentInput->readAllRecords(true, $keysToUse);
+                __debug__printLine("readAllRecords returned " . count($arrCSVInput) . " for ".$curFilePath, C__DISPLAY_ITEM_DETAIL__);
 
                 if(count($arrCSVInput) > 0)
                 {
@@ -296,23 +315,27 @@ class SimpleScooterCSVFileClass {
             }
         }
 
-        __debug__printLine("Loaded " . count($arrRecordsCombined). " records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_RESULT__);
+        __debug__printLine("Total records before de-dupe= ". count($arrRecordsCombined) . "...", C__DISPLAY_ITEM_DETAIL__);
 
-        return $arrRecordsCombined;
+        // sort the list and get to only the uniq records we haven't seen before
+        $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombined, $arrKeysToUseForDedupe );
+
+
+        __debug__printLine("Loaded " . count($arrUniq). " unique records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_RESULT__);
+
+        return $arrUniq;
 
     }
 
     function combineMultipleCSVs($arrFullFilePaths, $keysToUseForOutputCSV = null, $arrKeysToUseForDedupe = null)
     {
 
-        $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUse);
-
-        print 'Total records before de-dupe= '. count($arrRecordsCombinedOutput).'...'.PHP_EOL;
+        $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUseForOutputCSV);
 
         // sort the list and get to only the uniq records we haven't seen before
         $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, $arrKeysToUseForDedupe );
 
-        print 'Total final records = '. count($arrUniq).'...'.PHP_EOL;
+        __debug__printLine("Total of " . count($arrUniq) ." unique records out of " . count($arrRecordsCombinedOutput)." records will be written to  ".$this->_strFilePath_.".", C__DISPLAY_ITEM_DETAIL__);
 
         // write the uniq values out to the results file
         $this->writeArrayToCSVFile($arrUniq, $keysToUseForOutputCSV );

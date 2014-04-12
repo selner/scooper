@@ -16,9 +16,10 @@
  */
 
 require_once dirname(__FILE__) . '/config.php';
+require_once dirname(__FILE__) . '/include/options.php';
 require_once dirname(__FILE__) . '/lib/pharse.php';
-require_once dirname(__FILE__) . '/include/SimpleScooterCSVFileClass.php';
-require_once dirname(__FILE__) . '/include/common.php';
+require_once dirname(__FILE__) . '/scooper_common/SimpleScooterCSVFileClass.php';
+require_once dirname(__FILE__) . '/scooper_common/common.php';
 require_once dirname(__FILE__) . '/include/fields_functions.php';
 require_once dirname(__FILE__) . '/include/plugin-base.php';
 require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';

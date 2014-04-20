@@ -221,12 +221,30 @@ function __main__ ()
 }
 
 
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****   Helper:  File Output                                                                                 ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
 
+function dumpVCsAndInvestments($strInputFile = null)
+{
 
+    $strArgErrs = __check_args__();
+    if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
+
+        $fileDetails = parseFilePath($strInputFile);
+
+        $classCB = new CrunchbasePluginClass(false);
+
+        $classFileVCs= new SimpleScooterCSVFileClass($fileDetails['full_file_path'], "r");
+        $arrVCs = $classFileVCs->readAllRecords(true, array('permalink'));
+
+        $arrVCPermalinks = array();
+        foreach($arrVCs as $vcrecord)
+        {
+            $arrVCPermalinks[] = $vcrecord['permalink'];
+
+        }
+
+        $classCB->writeFinancialOrganizations($arrVCPermalinks, "");
+
+        exit;
+}
 
 ?>

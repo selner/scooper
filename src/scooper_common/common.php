@@ -28,21 +28,8 @@ require_once dirname(__FILE__) . '/debug_functions.php';
 ini_set('auto_detect_line_endings', true);
 
 $GLOBALS['VERBOSE'] = false;
-$GLOBALS['OPTS'] = null;
-const C__APPNAME__ = "Scooper";
-const C__APP_VERSION_MAJOR___ = "0";
-const C__APP_VERSION_MINOR___ = ".11";
 const C__RECORD_CHUNK_SIZE__ = 5;
 const C__FSHOWVERBOSE_APICALL__ = 0;
-
-const C_LOOKUP_MODE_UNKNOWN = -1;
-const C_LOOKUP_MODE_SINGLE = 1;
-const C_LOOKUP_MODE_FILE = 2;
-$GLOBALS['lookup_mode'] = C_LOOKUP_MODE_UNKNOWN;
-
-const C__LOOKUP_DATATYPE_NAME__ = 1;
-const C__LOOKUP_DATATYPE_URL__ = 2;
-const C__LOOKUP_DATATYPE_BASICFACTS__ = 3;
 
 function getDefaultFileName($strFilePrefix, $strBase, $strExt)
 {
@@ -90,89 +77,7 @@ const C__API_RETURN_TYPE_OBJECT__ = 33;
 const C__API_RETURN_TYPE_ARRAY__ = 44;
 
 
-$GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'] =  array(
-    'company_name' => '<not set>',
-    'result_accuracy_warnings' => '<not set>',
-    'company_name_linked' => '<not set>',
-    'actual_site_url' => '<not set>',
-    'crunchbase_match_accuracy' => '<not set>',
-    'cb.category_code' => '<not set>',
-    'cb.description' => '<not set>',
-    'cb.overview' => '<not set>',
-    'Specialization' => '<not set>',
-    'Where Did Company Get Added to the List From?' => '<not set>',
-    'Company Description' => '<not set>',
-    'Contact Info' => '<not set>',
-    'Notes' => '<not set>',
-    'Status' => '<not set>',
-    'Last Status Update Date' => '<not set>',
-    'Open Roles List (if any)' => '<not set>',
-    'cb.crunchbase_url' => '<not set>',
-    'cb.offices' => '<not set>',
-    'cb.number_of_employees' => '<not set>',
-    'cb.total_money_raised' => '<not set>',
-    'cb.funding_rounds' => '<not set>',
-    'cb.acquisition' => '<not set>',
-    'cb.acquisitions' => '<not set>',
-    'cb.ipo' => '<not set>',
-    'cb.founded_year' => '<not set>',
-    'cb.founded_month' => '<not set>',
-    'cb.founded_day' => '<not set>',
-    'cb.funds' => '<not set>',
-    'cb.products' => '<not set>',
-    'cb.competitions' => '<not set>',
-    'cb.phone_number' => '<not set>',
-    'cb.email_address' => '<not set>',
-    'cb.screenshots' => '<not set>',
-    'cb.partners' => '<not set>',
-    'person.first_name' => '<not set>',
-    'person.last_name' => '<not set>',
-    'cb.homepage_url' => '<not set>',
-    'cb.twitter_username' => '<not set>',
-    'cb.computed_domain' => '<not set>',
-    'cb.image' => '<not set>',
-    'cb.blog_url' => '<not set>',
-    'cb.blog_feed_url' => '<not set>',
-    'effective_domain' => '<not set>',
-    'input_source_url' => '<not set>',
-    'quantcast.monthly_uniques' => '<not set>',
-    'cb.video_embeds' => '<not set>',
-    'cb.external_links' => '<not set>',
-    'cb.deadpooled_year' => '<not set>',
-    'cb.deadpooled_month' => '<not set>',
-    'cb.deadpooled_day' => '<not set>',
-    'cb.deadpooled_url' => '<not set>',
-    'cb.name' => '<not set>',
-    'cb.namespace' => '<not set>',
-    'cb.permalink' => '<not set>',
-    'cb.tag_list' => '<not set>',
-    'cb.alias_list' => '<not set>',
-    'cb.created_at' => '<not set>',
-    'cb.updated_at' => '<not set>',
-    'cb.relationships' => '<not set>',
-    'cb.investments' => '<not set>',
-    'cb.milestones' => '<not set>',
-    'cb.providerships' => '<not set>',
-    'feid' => '<not set>',
-    'fid' => '<not set>',
-    'fmrp' => '<not set>',
-    'fmrr' => '<not set>',
-    'pda' => '<not set>',
-    'peid' => '<not set>',
-    'pid' => '<not set>',
-    'ueid' => '<not set>',
-    'ufq' => '<not set>',
-    'uid' => '<not set>',
-    'uifq' => '<not set>',
-    'uipl' => '<not set>',
-    'ujid' => '<not set>',
-    'umrp' => '<not set>',
-    'umrr' => '<not set>',
-    'upl' => '<not set>',
-    'ut' => '<not set>',
-    'uu' => '<not set>',
-    'kind' => '<not set>'
-);
+
 
 
 /****************************************************************************************************************/
@@ -527,20 +432,61 @@ function array_flatten_n($array, $n) {
 
 function strTrimAndLower($str)
 {
-    if($str != null && is_string($str)) { return strtolower(trim($str)); }
-
-    return $str;
+    return strScrub($str, LOWERCASE | REMOVE_EXTRA_WHITESPACE );
 }
 
-function strScrub($str)
+define('REMOVE_PUNCT', 0x1);
+define('LOWERCASE', 0x2);
+define('HTML_DECODE', 0x4);
+define('REPLACES_SPACES_WITH_HYPHENS', 0x8);
+define('URL_ENCODE', 0x8);
+define('REMOVE_EXTRA_WHITESPACE', 0x10);
+define('DEFAULT_SCRUB', REMOVE_PUNCT | HTML_DECODE | LOWERCASE | REMOVE_EXTRA_WHITESPACE );
+
+//And so on, 0x8, 0x10, 0x20, 0x40, 0x80, 0x100, 0x200, 0x400, 0x800 etc..
+
+
+function strScrub($str, $flags = null)
 {
-    $ret = strTrimAndLower($str);
-    if($ret != null)
+    if($flags == null)  $flags = REMOVE_EXTRA_WHITESPACE;
+    $ret = $str;
+
+    if ($flags & REMOVE_EXTRA_WHITESPACE)
     {
-        $ret  = str_replace(array(".", ",", "–", "/", "-", ":", ";"), " ", $ret);
-        $ret  = str_replace("  ", " ", $ret);
-        $ret  = str_replace("  ", " ", $ret); // do it twice to catch the multiples
+        $ret = trim($ret);
+        if($ret != null)
+        {
+            $ret  = str_replace(array(".", ",", "–", "/", "-", ":", ";"), " ", $ret);
+            $ret  = str_replace("  ", " ", $ret);
+            $ret  = str_replace("  ", " ", $ret); // do it twice to catch the multiples
+        }
+        $ret = trim($ret);
     }
+
+    if ($flags & REMOVE_PUNCT)
+    {
+        $ret = strip_punctuation($ret);
+    }
+
+    if ($flags & HTML_DECODE)
+    {
+        $ret = html_entity_decode($ret);
+    }
+
+    if ($flags & LOWERCASE)
+    {
+        $ret = strtolower($ret);
+    }
+
+    if ($flags & REPLACES_SPACES_WITH_HYPHENS)
+    {
+        $ret  = str_replace(" ", "-", $ret); // do it twice to catch the multiples
+    }
+    if ($flags & URL_ENCODE)
+    {
+        $ret  = urlencode($ret); // do it twice to catch the multiples
+    }
+
     return $ret;
 }
 
@@ -555,5 +501,58 @@ function intceil($number)
 
     return $ret;
 }
+
+
+
+
+/**
+ * Strip punctuation from text.
+ * http://nadeausoftware.com/articles/2007/9/php_tip_how_strip_punctuation_characters_web_page
+ */
+function strip_punctuation( $text )
+{
+    $urlbrackets    = '\[\]\(\)';
+    $urlspacebefore = ':;\'_\*%@&?!' . $urlbrackets;
+    $urlspaceafter  = '\.,:;\'\-_\*@&\/\\\\\?!#' . $urlbrackets;
+    $urlall         = '\.,:;\'\-_\*%@&\/\\\\\?!#' . $urlbrackets;
+
+    $specialquotes  = '\'"\*<>';
+
+    $fullstop       = '\x{002E}\x{FE52}\x{FF0E}';
+    $comma          = '\x{002C}\x{FE50}\x{FF0C}';
+    $arabsep        = '\x{066B}\x{066C}';
+    $numseparators  = $fullstop . $comma . $arabsep;
+
+    $numbersign     = '\x{0023}\x{FE5F}\x{FF03}';
+    $percent        = '\x{066A}\x{0025}\x{066A}\x{FE6A}\x{FF05}\x{2030}\x{2031}';
+    $prime          = '\x{2032}\x{2033}\x{2034}\x{2057}';
+    $nummodifiers   = $numbersign . $percent . $prime;
+
+    return preg_replace(
+        array(
+            // Remove separator, control, formatting, surrogate,
+            // open/close quotes.
+            '/[\p{Z}\p{Cc}\p{Cf}\p{Cs}\p{Pi}\p{Pf}]/u',
+            // Remove other punctuation except special cases
+            '/\p{Po}(?<![' . $specialquotes .
+            $numseparators . $urlall . $nummodifiers . '])/u',
+            // Remove non-URL open/close brackets, except URL brackets.
+            '/[\p{Ps}\p{Pe}](?<![' . $urlbrackets . '])/u',
+            // Remove special quotes, dashes, connectors, number
+            // separators, and URL characters followed by a space
+            '/[' . $specialquotes . $numseparators . $urlspaceafter .
+            '\p{Pd}\p{Pc}]+((?= )|$)/u',
+            // Remove special quotes, connectors, and URL characters
+            // preceded by a space
+            '/((?<= )|^)[' . $specialquotes . $urlspacebefore . '\p{Pc}]+/u',
+            // Remove dashes preceded by a space, but not followed by a number
+            '/((?<= )|^)\p{Pd}+(?![\p{N}\p{Sc}])/u',
+            // Remove consecutive spaces
+            '/ +/',
+        ),
+        ' ',
+        $text );
+}
+
 
 ?>

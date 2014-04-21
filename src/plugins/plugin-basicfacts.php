@@ -43,7 +43,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         $this->_data_type = $data_type;
     }
 
-    function addDataToMultipleRecords($arrDataLoaded)
+    function addDataToMultipleRecords($arrDataLoaded, $strOutputFile = null)
     {
         if(!$this->_data_type)
         {
@@ -82,9 +82,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
             if(!strlen($arrRecordsToProcess[$nRow]['company_name']) > 0 && !strlen(($arrRecordsToProcess[$nRow]['input_source_url'])>0))
             {
-
                 exit ("Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL);
-
 
             }
 
@@ -94,6 +92,13 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             __debug__printLine("Getting basic facts for ".$valFirstField, C__DISPLAY_ITEM_START__);
 
             $this->addDataToRecord($arrRecordsToProcess[$nRow]);
+
+            if($strOutputFile != null && $nRow % C__RECORD_CHUNK_SIZE__ == 0)
+            {
+                $classFileOut = new SimpleScooterCSVFileClass($strOutputFile, "w");
+                $classFileOut->writeArrayToCSVFile($arrRecordsToProcess );
+
+            }
 
             $nRow++;
         }

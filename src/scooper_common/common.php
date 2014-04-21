@@ -28,8 +28,6 @@ require_once dirname(__FILE__) . '/debug_functions.php';
 ini_set('auto_detect_line_endings', true);
 
 $GLOBALS['VERBOSE'] = false;
-const C__RECORD_CHUNK_SIZE__ = 5;
-const C__FSHOWVERBOSE_APICALL__ = 0;
 
 function getDefaultFileName($strFilePrefix, $strBase, $strExt)
 {

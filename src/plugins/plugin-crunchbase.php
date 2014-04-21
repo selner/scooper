@@ -422,6 +422,60 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
+    public function getDataFromPermalinks($arrPermalinks, $strFileOutPath)
+    {
+        if($GLOBALS['OPTS']['crunchbase_api_id'] == null || $GLOBALS['OPTS']['crunchbase_api_id']=="")
+        {
+            throw new ErrorException("Crunchbase API ID is required to call this function.");
+        }
+
+        $strOutVCDetails = parseFilePath($strFileOutPath);
+        $classOutputVCData= new SimpleScooterCSVFileClass($strFileOutPath, "w");
+
+        $arrCompanyRecords = Array();
+
+        $retCompanies = Array();
+        foreach ($arrPermalinks as $vcRecord)
+        {
+            $arrCompanyRecords   = getEmptyFullRecordArray();
+            $arrCompanyRecords  ['cb.permalink'] = $vcRecord;
+            $arrCompanyRecords  ['cb.namespace'] = "company";
+
+            $this->addDataToRecord($arrCompanyRecords, true);
+            $arrCompanyRecords['company_name'] = $arrCompanyRecords['cb.name'];
+            $arrCompanyRecords['actual_site_url'] = $arrCompanyRecords['cb.homepage_url'];
+
+            $retCompanies[] = $arrCompanyRecords;
+            $classOutputVCData->writeArrayToCSVFile($retCompanies);
+        }
+
+    }
+
+
+    function dumpCompanyInfoFromListOfPermalinks($strInputFile, $strOutputFile)
+    {
+
+        $strArgErrs = __check_args__();
+        if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
+
+        $fileDetails = parseFilePath($strInputFile);
+
+        $classCB = new CrunchbasePluginClass(false);
+
+        $classFileIn= new SimpleScooterCSVFileClass($fileDetails['full_file_path'], "r");
+        $arrPermaLinkRows= $classFileIn->readAllRecords(true, array('permalink'));
+
+        $arrLinks = array();
+        foreach($arrPermaLinkRows as $vcrecord)
+        {
+            $arrLinks[] = $vcrecord['permalink'];
+
+        }
+
+        $classCB->getDataFromPermalinks($arrLinks , $strOutputFile);
+    }
+
+
 
 }
 

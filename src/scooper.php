@@ -135,12 +135,6 @@ function __main__ ()
 
 
 
-        $classFileOut = new SimpleScooterCSVFileClass($GLOBALS['output_file_details']['full_file_path'], 'w+');
-
-
-
-
-
         /****************************************************************************************************************/
         /****                                                                                                        ****/
         /****    Get the basic facts for the loaded CSV input data                                                   ****/
@@ -148,8 +142,8 @@ function __main__ ()
         /****************************************************************************************************************/
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
-        $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type']);
-        $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows']);
+        $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $GLOBALS['output_file_details']['full_file_path']);
+        $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $GLOBALS['output_file_details']['full_file_path']);
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
@@ -158,6 +152,7 @@ function __main__ ()
         /****   Initialize the data plugin classes                                                                   ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
+        $classFileOut = new SimpleScooterCSVFileClass($GLOBALS['output_file_details']['full_file_path'], 'w+');
 
         $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
         $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);

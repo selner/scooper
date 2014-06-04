@@ -37,6 +37,7 @@ function getDataTypeFromString($strType)
         case 'urls':
         case 'input_source_url':
             $ret = C__LOOKUP_DATATYPE_URL__;
+
             break;
     }
 
@@ -186,6 +187,7 @@ class SimpleScooterCSVFileClass {
                     }
 */
                     $arrDataLoaded['data_rows'][] = array_combine($arrDataLoaded['header_keys'], $data);
+
                 }
 
             }
@@ -226,13 +228,16 @@ class SimpleScooterCSVFileClass {
 
         $arrRecordsToOutput = $this->getSortedDeDupedCSVArray($records, $arrKeysToUseToDedupe);
 
-        foreach ($arrRecordsToOutput as $record)
+        if(count($arrRecordsToOutput) > 0)
         {
-            if(!fputcsv($this->_fp_, $record))
+            foreach ($arrRecordsToOutput as $record)
             {
-                $err = error_get_last();
+                if(!fputcsv($this->_fp_, $record))
+                {
+                    $err = error_get_last();
 
-                throw new Exception("Error: writeArrayToCSVFile failed because ".$err['message'] ." for file ".$err['file']. " writing " . count(@$records) . " records with keys=" . var_export($keys, true));
+                    throw new Exception("Error: writeArrayToCSVFile failed because ".$err['message'] ." for file ".$err['file']. " writing " . count(@$records) . " records with keys=" . var_export($keys, true));
+                }
             }
         }
     }
@@ -246,7 +251,6 @@ class SimpleScooterCSVFileClass {
 //            __debug__printLine("Not deduping output data; primary keys to use were not set.", C__DISPLAY_MOMENTARY_INTERUPPT__);
             return $arrCSVRows;
         }
-
 //        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
         $arrKeyedCSV = array();
         $inputKeys = array_keys($arrCSVRows);

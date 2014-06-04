@@ -139,7 +139,7 @@ function getObjectsFromAPICall( $baseURL, $objName = "", $fReturnType = C__API_R
         curl_setopt($ch, CURLOPT_URL, $full_url);
         curl_setopt($ch, CURLOPT_USERAGENT, C__STR_USER_AGENT__);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
         curl_setopt($ch, CURLOPT_VERBOSE, C__FSHOWVERBOSE_APICALL__);
         curl_setopt($ch, CURLOPT_FAILONERROR, false);
 

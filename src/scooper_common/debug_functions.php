@@ -21,8 +21,8 @@
 /****         Helper Functions:  Debug Functions                                                             ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
+require_once dirname(__FILE__) . '/common.php';
 
-require_once 'common.php';
 const C__DEBUG_MODE__ = false;
 
 
@@ -32,6 +32,7 @@ const C__NAPPSECONDLEVEL__ = 2;
 const C__SECTION_BEGIN__ = 1;
 const C__SECTION_END__ = 2;
 const C__DISPLAY_NORMAL__ = 100;
+const C__DISPLAY_SECTION_START__ = 250;
 const C__DISPLAY_ITEM_START__ = 200;
 const C__DISPLAY_ITEM_DETAIL__ = 300;
 const C__DISPLAY_ITEM_RESULT__ = 350;
@@ -92,6 +93,13 @@ function __debug__printLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = fal
                 $strLineEnd = PHP_EOL.PHP_EOL."************************************************************************************".PHP_EOL;
                 $logLevel = C__LOGLEVEL_INFO__;
                 break;
+
+            case C__DISPLAY_SECTION_START__:
+                $strLineBeginning = PHP_EOL."####################################################################################".PHP_EOL. PHP_EOL;
+                $strLineEnd = PHP_EOL.PHP_EOL."####################################################################################".PHP_EOL;
+                $logLevel = C__LOGLEVEL_INFO__;
+                break;
+
 
             case C__DISPLAY_RESULT__:
 					$strLineBeginning = '==> ';

@@ -81,59 +81,62 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
             if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
             {
-                throw new Exception("Error: company_name value was not set on the records correctly.  Cannot search Crunchbase.");
+                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Could not search Crunchbase: no company name.";
+                // throw new Exception("Error: company_name value was not set on the records correctly.  Cannot search Crunchbase.");
             }
+            else
+            {
 
-            //
-            //  Encode the company name for use in the API call.  Change any space characters to = characters.
-            //
-            $company_name_urlenc = urlencode($arrRecordToUpdate['company_name']);
-            $company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc);
-            $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
+                //
+                //  Encode the company name for use in the API call.  Change any space characters to = characters.
+                //
+                $company_name_urlenc = urlencode($arrRecordToUpdate['company_name']);
+                $company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc);
+                $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
 
-           try
-           {
-                if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
-                $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
+               try
+               {
+                    if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
+                    $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
 
-                if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                    if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
 
-                if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
-                {
-                    foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
+                    if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
                     {
-                        if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
+                        foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
                         {
-                            $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
-                            if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
+                            if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
                             {
-                                // Match found
-                                $nMatchCrunchResult = $nCurResult;
-                                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
-                                merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
-                                break;
+                                $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
+                                if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
+                                {
+                                    // Match found
+                                    $nMatchCrunchResult = $nCurResult;
+                                    $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
+                                    merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
+                                    break;
 
+                                }
                             }
                         }
+                        if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
+                        {
+                            __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
+                            $nMatchCrunchResult = 0;
+                            $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
+                        }
                     }
-                    if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
-                    {
-                        __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
-                        $nMatchCrunchResult = 0;
-                        $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
-                    }
-                }
 
 
-           }
-           catch ( ErrorException $e )
-           {
-               print ("Error: ". $e->getMessage()."\r\n" );
-               addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
-               $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
-           }
+               }
+               catch ( ErrorException $e )
+               {
+                   print ("Error: ". $e->getMessage()."\r\n" );
+                   addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
+                   $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
+               }
 
-
+            }
         }
         //
         // If we didn't get a match, note it in the record

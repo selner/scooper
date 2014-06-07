@@ -203,7 +203,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		//
 		//  Encode the company name for use in the API call.  Change any space characters to = characters.
 		// 
-		$strAPIURL = "http://api.crunchbase.com/v/1/".$entity_type."/".$strPermanlink.".js?api_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+		$strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermanlink."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
 		if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
 		//
@@ -401,7 +401,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         {
             __log__("Fetching full list of financial organizations...", C__LOGLEVEL_INFO__);
 
-            $strURL = "http://api.crunchbase.com/v/1/financial-organizations.js?";
+            $strURL = "http://api.crunchbase.com/v/2/financial-organizations?";
             $arrVCs = $this->getArbitraryAPICallData($strURL, $strOutOrgList  );
             foreach($arrVCs as $vcrecord)
             {

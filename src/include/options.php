@@ -289,20 +289,21 @@ function __check_args__()
     /****    get the settings for the plugins                                                                    ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-
+    $CONFIG = parse_ini_file( dirname(__FILE__) . "/../config.ini" );
 
     if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
-    if(!$GLOBALS['OPTS']['moz_access_id_given'] )
-    {
-        $GLOBALS['OPTS']['moz_access_id'] = C__MOZ_API_ACCESS_ID__;
-        __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".C__MOZ_API_ACCESS_ID__.")." , C__DISPLAY_ERROR__);
-    }
     if( $GLOBALS['OPTS']['exclude_moz'] != 1)
     {
+        if(!$GLOBALS['OPTS']['moz_access_id_given'] )
+        {
+            $GLOBALS['OPTS']['moz_access_id'] = $CONFIG["MOZ_API_ACCESS_ID"];
+            __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_ID"].")." , C__DISPLAY_ERROR__);
+        }
+
         if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
         {
-            $GLOBALS['OPTS']['moz_secret_key'] = C__MOZ_API_ACCESS_ID__;
-            __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".C__MOZ_API_ACCESS_SECRETKEY__.")." , C__DISPLAY_ERROR__);
+            $GLOBALS['OPTS']['moz_secret_key'] = $CONFIG["MOZ_API_ACCESS_SECRETKEY"];
+            __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_SECRETKEY"].")." , C__DISPLAY_ERROR__);
         }
 
         if(!$GLOBALS['OPTS']['exclude_moz_given'] && (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
@@ -316,28 +317,33 @@ function __check_args__()
         }
     }
 
-    if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
+    if(!$GLOBALS['OPTS']['exclude_crunchbase'])
     {
-        $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-    }
-    else
-    {
-        $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
-        if(!$GLOBALS['OPTS']['crunchbase_api_id_given']  || (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
+        if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
         {
-            $GLOBALS['OPTS']['crunchbase_api_id'] = C__CRUNCHBASE_API_KEY__;
-            if(strlen(C__CRUNCHBASE_API_KEY__) > 0)
-                __debug__printLine("No Crunchbase API Key given by the the user.  Defaulting to config value: (".C__CRUNCHBASE_API_KEY__.")." , C__DISPLAY_ERROR__);
-            else
+            $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
+        }
+        else
+        {
+            $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
+            if(!$GLOBALS['OPTS']['crunchbase_api_id_given']  || (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
             {
-                $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-                __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
+                $GLOBALS['OPTS']['crunchbase_api_id'] = $CONFIG["CRUNCHBASE_V2_API_KEY"];
+                $GLOBALS['OPTS']['crunchbase_v1_api_id'] = $CONFIG["CRUNCHBASE_V1_API_KEY"];
+                define( 'API_KEY', $CONFIG["CRUNCHBASE_V2_API_KEY"] );
+                define( 'USER_KEY', "?user_key=" . API_KEY );
+                if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) > 0)
+                    __debug__printLine("No Crunchbase API Key given by the the user.  Defaulting to config value: (".$GLOBALS['OPTS']['crunchbase_api_id'].")." , C__DISPLAY_ERROR__);
+                else
+                {
+                    $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
+                    __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
+                }
             }
+
         }
 
     }
-
-
 
 
 

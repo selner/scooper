@@ -15,7 +15,6 @@
  * under the License.
  */
 
-require_once dirname(__FILE__) . '/config.php';
 require_once dirname(__FILE__) . '/include/options.php';
 require_once dirname(__FILE__) . '/lib/pharse.php';
 require_once dirname(__FILE__) . '/scooper_common/SimpleScooterCSVFileClass.php';

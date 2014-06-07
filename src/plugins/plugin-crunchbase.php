@@ -89,7 +89,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             //
             $company_name_urlenc = urlencode($arrRecordToUpdate['company_name']);
             $company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc);
-            $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_api_id']."&entity=company&query=" . $company_name_urlenc;
+            $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
 
            try
            {
@@ -197,14 +197,17 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		{
 			if($GLOBALS['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
 			return null;
-		}
-		
-		
-		//
+        }
+
+        //
 		//  Encode the company name for use in the API call.  Change any space characters to = characters.
 		// 
-		$strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermanlink."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
-		if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+
+        $strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermanlink."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+        if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+
+//        $getJsonContents = new getJsonContents($strAPIURL);
+//        $getJsonContents -> run();
 
 		//
 		// Call the Crunchbase Search API 

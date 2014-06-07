@@ -6,7 +6,7 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-require_once dirname(__FILE__) . '/../config.php';
+require_once dirname(__FILE__) . '/../include/options.php';
 
 
 $GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'] =  array(

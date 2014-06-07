@@ -158,10 +158,16 @@
 				$ch = curl_init($requestUrl);
 				curl_setopt_array($ch, $options);
 				$content = curl_exec($ch);
-				curl_close( $ch );
+                if (curl_errno($ch)) {
+                    $strErr = 'Error #' . curl_errno($ch) . ': ' . curl_error($ch);
+                    $curl_object['error_number'] = curl_errno($ch);
+                    $curl_object['output'] = curl_error($ch);
+                    curl_close( $ch );
+                    throw new ErrorException($strErr,curl_errno($ch),E_RECOVERABLE_ERROR );
+                }
 
+                            var_dump($content);
 				$contents = json_decode($content);
-						
 				foreach ($arrDomainsToQuery as $domain)
 				{
 					// print $contents[$counter].PHP_EOL;

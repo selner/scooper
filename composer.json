@@ -1,0 +1,12 @@
+{
+    "name": "selner/scooper",
+    "description": "Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.",
+    "minimum-stability": "dev",
+    "license": "GNUV2",
+    "authors": [
+        {
+            "name": "Bryan Selner",
+            "email": "bry.int@bryanselner.com"
+        }
+    ]
+}

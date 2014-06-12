@@ -20,9 +20,11 @@
 /****         Base Class:  Scooter Site Data Plugin                                                          ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-require_once dirname(__FILE__) . '/../scooper_common/common.php';
-require_once dirname(__FILE__) . '/../scooper_common/SimpleScooterCSVFileClass.php';
-require_once dirname(__FILE__) . '/../scooper_common/APICallWrapperClass.php';
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/scooper_common/common.php');
+require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
+require_once(__ROOT__.'/scooper_common/APICallWrapperClass.php');
+
 
 
 

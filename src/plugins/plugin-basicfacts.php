@@ -15,7 +15,8 @@
  * under the License.
  */
 
-require_once dirname(__FILE__) . '/../include/plugin-base.php';
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/include/plugin-base.php');
 
 
 
@@ -145,7 +146,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         //
         if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && !isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']))
         {
-            $arrRecordToUpdate['company_name'] = getPrimaryDomain($arrRecordToUpdate['actual_site_url'], false);
+            $arrRecordToUpdate['company_name'] = getPrimaryDomainFromUrl($arrRecordToUpdate['actual_site_url'], false);
             // capitalize the every word in the name we got back
             if(strlen($arrRecordToUpdate['company_name']) > 0) { $arrRecordToUpdate['company_name'] = ucfirst($arrRecordToUpdate['company_name']); }
         }
@@ -182,7 +183,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             else
             {
                 $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
-                $curRecord['effective_domain']  = getPrimaryDomain($curRecord['actual_site_url']);
+                $curRecord['effective_domain']  = getPrimaryDomainFromUrl($curRecord['actual_site_url']);
             }
 
         }

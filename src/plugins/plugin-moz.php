@@ -21,7 +21,8 @@
 	/****         Moz Plugin Class                                                                               ****/
 	/****                                                                                                        ****/
 	/****************************************************************************************************************/
-    require_once dirname(__FILE__) . '/../include/plugin-base.php';
+    define('__ROOT__', dirname(dirname(__FILE__)));
+    require_once(__ROOT__.'/include/plugin-base.php');
 
 
     class MozPluginClass extends ScooterPluginBaseClass
@@ -123,14 +124,14 @@
 				}
 				else 
 				{
-					$curDomain = getPrimaryDomain($curRecord['input_source_url']);			}
+					$curDomain = getPrimaryDomainFromUrl($curRecord['input_source_url']);			}
 				$arrDomainsToQuery[] = $curDomain;
 			}
 			
 			// Put it all together and you get your request URL.
 			$requestUrl = "http://lsapi.seomoz.com/linkscape/url-metrics/?Cols=".$cols."&AccessID=".$accessID."&Expires=".$expires."&Signature=".$urlSafeSignature;
 
-			if($GLOBALS['VERBOSE'])
+			if($GLOBALS['OPTS']['VERBOSE'])
 			{
 				$strDomainList = implode(';  ', $arrDomainsToQuery);
                 __debug__printLine("'Moz API call: ".$requestUrl.data, C__DISPLAY_ITEM_DETAIL__);

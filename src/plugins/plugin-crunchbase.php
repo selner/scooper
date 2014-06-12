@@ -16,6 +16,8 @@
  */
 require_once dirname(__FILE__) . '/../include/plugin-base.php';
 
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/include/plugin-base.php');
 
 
 /****************************************************************************************************************/
@@ -64,9 +66,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         $nMatchCrunchResult = -1;
         $nCurResult = 0;
 
-        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['cb.permalink']) == false)
+        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']) == false)
         {
-            __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['cb.permalink'], C__DISPLAY_ITEM_START__);
+            __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['permalink'], C__DISPLAY_ITEM_START__);
             // We've got the direct link to the right record in Crunchbase, so we
             // can skip over this next section
             $nMatchCrunchResult = 1;
@@ -96,19 +98,20 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
                try
                {
-                    if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
-                    $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
+                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
+//                   $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
+                   $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
 
                     if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
                     {
                         foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
                         {
-                            if($curCrunchResult['cb.homepage_url'] && strlen($curCrunchResult['cb.homepage_url']) > 0)
+                            if($curCrunchResult['homepage_url'] && strlen($curCrunchResult['homepage_url']) > 0)
                             {
-                                $curCrunchResult['cb.computed_domain'] = getPrimaryDomain($curCrunchResult['cb.homepage_url']);
-                                if(strcasecmp($curCrunchResult['cb.computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
+                                $curCrunchResult['computed_domain'] = getPrimaryDomainFromUrl($curCrunchResult['homepage_url']);
+                                if(strcasecmp($curCrunchResult['computed_domain'], $arrRecordToUpdate['effective_domain']) == 0)
                                 {
                                     // Match found
                                     $nMatchCrunchResult = $nCurResult;
@@ -170,12 +173,12 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
-        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['cb.namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['cb.name'])? $arrRecordToUpdate['cb.permalink'] : $arrRecordToUpdate['cb.name']) , C__DISPLAY_ITEM_DETAIL__);
+        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , C__DISPLAY_ITEM_DETAIL__);
 
-        if(($arrRecordToUpdate['cb.permalink'] && strlen($arrRecordToUpdate['cb.permalink']) > 0) &&
-            ($arrRecordToUpdate['cb.namespace'] && strlen($arrRecordToUpdate['cb.namespace']) > 0))
+        if(($arrRecordToUpdate['permalink'] && strlen($arrRecordToUpdate['permalink']) > 0) &&
+            ($arrRecordToUpdate['namespace'] && strlen($arrRecordToUpdate['namespace']) > 0))
         {
-            $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($arrRecordToUpdate['cb.namespace'], $arrRecordToUpdate['cb.permalink']);
+            $arrCrunchEntityData = $this->_getCrunchbaseEntityFacts_($arrRecordToUpdate['namespace'], $arrRecordToUpdate['permalink']);
 
             if(is_array($arrCrunchEntityData))
             {
@@ -184,21 +187,107 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         }
         else
         {
-            $strErr = "Could not lookup entity-specific facts for ".$arrRecordToUpdate['cb.name']. ".  Invalid cb.permalink or cb.namespace value was given.";
+            $strErr = "Could not lookup entity-specific facts for ".$arrRecordToUpdate['name']. ".  Invalid permalink or namespace value was given.";
             __debug__printLine($strErr , C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr);
         }
 
     }
 
+    private function __getCBDataForItems__($dataItems)
+    {
+        $ret = null;
+        foreach($dataItems as $record)
+        {
+            $dataExp = array();
+            foreach(array_keys($record) as $recordKey)
+            {
+                if($recordKey == 'path')
+                {
+                    $strAPIURL = "http://api.crunchbase.com/v/2/".$record[$recordKey]."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+                    $dataFacts = $this->_getCrunchbaseAPIData__($strAPIURL, true);
+                    foreach(array_keys($dataFacts) as $factKey)
+                    {
+                        $dataExp[$factKey] = $dataFacts[$factKey];
+                    }
+                }
+                else
+                {
+                    $dataExp[$recordKey] = $record[$recordKey];
+                }
+            }
+            $ret[] = $dataExp;
+        }
+        return $ret;
+    }
 
 
-    private function _getCrunchbaseEntityFacts_($entity_type, $strPermanlink)
+    private function _flattenCrunchbaseData_($arrData)
+    {
+        $arrRet = array();
+
+        foreach($arrData as  $dataSection)
+        {
+            if(is_array($dataSection))
+            {
+                foreach(array_keys($dataSection) as $item)
+                {
+                    $itemValue = $dataSection[$item];
+                    if(is_array($itemValue))
+                    {
+                        $fCallCBDataAPI = false;
+                        switch($item)
+                        {
+                            case "funding_rounds":
+                                $itemValue = $this->__getCBDataForItems__($dataSection[$item]['items']);
+                                break;
+                        }
+                        if(is_array($itemValue['items']))
+                            $itemValue = $itemValue['items'];
+
+                        $itemValue = array_flatten($itemValue, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    }
+
+                    $arrRet[$item] = $itemValue;
+                }
+            }
+        }
+        return $arrRet;
+    }
+
+    private function _getCrunchbaseAPIData__($strAPIURL, $fFlatten = false)
+    {
+        $retItems = array();
+
+
+        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+
+        //
+        // Call the Crunchbase Search API
+        //
+
+        $classAPICall = new APICallWrapperClass();
+        $dataCB = $classAPICall->getObjectsFromAPICall($strAPIURL, 'data', C__API_RETURN_TYPE_ARRAY__, null);
+        if($fFlatten)
+        {
+            $retItems = $this->_flattenCrunchbaseData_($dataCB);
+        }
+        else
+        {
+            $retItems = $dataCB;
+        }
+        return $retItems;
+
+    }
+
+
+
+    private function _getCrunchbaseEntityFacts_($entity_type, $strPermalink)
 	{
 
-		if(!$strPermanlink || strlen($strPermanlink) == 0)
+		if(!$strPermalink || strlen($strPermalink) == 0)
 		{
-			if($GLOBALS['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
+			if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
 			return null;
         }
 
@@ -206,28 +295,48 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		//  Encode the company name for use in the API call.  Change any space characters to = characters.
 		// 
 
-        $strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermanlink."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
-        if($GLOBALS['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+        $strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermalink."?user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
-//        $getJsonContents = new getJsonContents($strAPIURL);
-//        $getJsonContents -> run();
+        //
+        // Call the Crunchbase Search API
+        //
 
-		//
-		// Call the Crunchbase Search API 
-		// 
+//        $arrFinalCrunchArray = $this->_getCrunchbaseAPIData__($strAPIURL, true);
 
         $classAPICall = new APICallWrapperClass();
+        $GLOBALS['OPTS']['VERBOSE'] = true;
+        $arrCrunchEntityData = $classAPICall->getObjectsFromAPICall($strAPIURL, 'data', C__API_RETURN_TYPE_ARRAY__, null);
+        $arrFinalCrunchArray = $this->_flattenCrunchbaseData_($arrCrunchEntityData);
+//        $arrFinalCrunchArray = array();
+//        foreach($arrCrunchEntityData as $dataSection)
+//        {
+//            if(is_array($dataSection))
+//            {
+//                foreach(array_keys($dataSection) as $item)
+//                {
+//                    $itemValue = $dataSection[$item];
+//                    if(is_array($itemValue))
+//                    {
+//                        if(is_array($itemValue['items']))
+//                            $itemValue = $itemValue['items'];
+//
+//                        $itemValue = array_flatten($itemValue);
+//                    }
+//                    $arrFinalCrunchArray[$item] = $itemValue;
+//                }
+//            }
+//        }
 
-        $arrCrunchEntityData = $classAPICall->getObjectsFromAPICall($strAPIURL, '', C__API_RETURN_TYPE_ARRAY__, array($this, 'updateCBDataWithCommonPrefixes'));
 
         //
         // There are a couple fields that tend to problematic
         // due to their encoding and length.  For now, just blank those
         // columns out from the record and mark them accordingly.
         //
-        $arrCrunchEntityData['cb.relationships'] = '<filtered>';
+//        $arrCrunchEntityData['relationships'] = '<filtered>';
 
-        return $arrCrunchEntityData;
+        return $arrFinalCrunchArray;
 		
 	}
 
@@ -238,7 +347,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 
             $entityType = $arrRecord['namespace'];
-            if(!$entityType || strlen($entityType) == 0) { $entityType = $arrRecord['cb.namespace']; };
+            if(!$entityType || strlen($entityType) == 0) { $entityType = $arrRecord['namespace']; };
 
              $arrCBCommonEntityFieldPrefixes = array(
                 'category_code' => '<not set>',
@@ -295,7 +404,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             {
                 if($arrCBCommonEntityFieldPrefixes[$key])
                 {
-                    $key = 'cb.'.$key;
+                    $key = ''.$key;
                 }
                 else if(strlen($entityType) > 0)
                 {
@@ -353,14 +462,14 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         foreach ($arrVCSlugs as $vcRecord)
         {
             $arrVCRecord = getEmptyFullRecordArray();
-            $arrVCRecord['cb.permalink'] = $vcRecord;
-            $arrVCRecord['cb.namespace'] = "financial-organization";
+            $arrVCRecord['permalink'] = $vcRecord;
+            $arrVCRecord['namespace'] = "financial-organization";
 
             $this->addDataToRecord($arrVCRecord, false);
-            $arrVCRecord['company_name'] = $arrVCRecord['cb.name'];
-            $arrVCRecord['actual_site_url'] = $arrVCRecord['cb.homepage_url'];
+            $arrVCRecord['company_name'] = $arrVCRecord['name'];
+            $arrVCRecord['actual_site_url'] = $arrVCRecord['homepage_url'];
 
-            $arrVCFundingData = $arrVCRecord['cb.investments'];
+            $arrVCFundingData = $arrVCRecord['investments'];
             if(!isRecordFieldNullOrNotSet($arrVCFundingData) && $arrVCFundingData != null && count($arrVCFundingData) > 0)
             {
                 __log__($vcRecord . " has " . count($arrVCFundingData) . " funding rounds for companies.", C__LOGLEVEL_INFO__);
@@ -376,9 +485,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                 $classOutputInvestments->writeArrayToCSVFile($retArrayInvestments);
            }
 
-            $arrVCRecord['cb.investments'] = '[see other file]';
-            $arrVCRecord['cb.video_embeds'] = '[see other file]';
-            $arrVCRecord['cb.relationships'] = '[see other file]';
+            $arrVCRecord['investments'] = '[see other file]';
+            $arrVCRecord['video_embeds'] = '[see other file]';
+            $arrVCRecord['relationships'] = '[see other file]';
 
 
             $this->_expandArrays_($arrVCRecord);
@@ -444,12 +553,12 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         foreach ($arrPermalinks as $vcRecord)
         {
             $arrCompanyRecords   = getEmptyFullRecordArray();
-            $arrCompanyRecords  ['cb.permalink'] = $vcRecord;
-            $arrCompanyRecords  ['cb.namespace'] = "company";
+            $arrCompanyRecords  ['permalink'] = $vcRecord;
+            $arrCompanyRecords  ['namespace'] = "company";
 
             $this->addDataToRecord($arrCompanyRecords, true);
-            $arrCompanyRecords['company_name'] = $arrCompanyRecords['cb.name'];
-            $arrCompanyRecords['actual_site_url'] = $arrCompanyRecords['cb.homepage_url'];
+            $arrCompanyRecords['company_name'] = $arrCompanyRecords['name'];
+            $arrCompanyRecords['actual_site_url'] = $arrCompanyRecords['homepage_url'];
 
             $retCompanies[] = $arrCompanyRecords;
             $classOutputVCData->writeArrayToCSVFile($retCompanies);

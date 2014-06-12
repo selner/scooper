@@ -20,20 +20,22 @@
 /****         Common Includes                                                                                ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/scooper_common/debug_functions.php');
+require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
 
-
-require_once dirname(__FILE__) .'/SimpleScooterCSVFileClass.php';
-require_once dirname(__FILE__) . '/debug_functions.php';
 
 ini_set('auto_detect_line_endings', true);
 
-$GLOBALS['VERBOSE'] = false;
 const C__RECORD_CHUNK_SIZE__ = 5;
 const C__FSHOWVERBOSE_APICALL__ = 0;
 
+
 function getDefaultFileName($strFilePrefix, $strBase, $strExt)
 {
-    return sprintf(C__APPNAME__."_". date("Ymd-Hms")."%s_%s.%s", ($strFilePrefix != null ? "_".$strFilePrefix : ""), ($strBase != null  ? "_".$strBase : ""), $strExt);
+    $strApp = "";
+    if(C__APPNAME__) { $strApp = C__APPNAME__ . "_"; }
+    return sprintf($strApp . date("Ymd-Hms")."%s_%s.%s", ($strFilePrefix != null ? "_".$strFilePrefix : ""), ($strBase != null  ? "_".$strBase : ""), $strExt);
 }
 
 /****************************************************************************************************************/
@@ -163,8 +165,13 @@ function addToErrs(&$strErr, $strNew)
 
 function getFullPathFromFileDetails($arrFileDetails, $strPrependToFileBase = "", $strAppendToFileBase = "")
 {
-    return $arrFileDetails['directory'] . $strPrependToFileBase . $arrFileDetails['file_name_base'] . $strAppendToFileBase . "." . $arrFileDetails['file_extension'];
+    return $arrFileDetails['directory'] . getFileNameFromFileDetails($arrFileDetails, $strPrependToFileBase, $strAppendToFileBase);
 
+}
+
+function getFileNameFromFileDetails($arrFileDetails, $strPrependToFileBase = "", $strAppendToFileBase = "")
+{
+    return $strPrependToFileBase . $arrFileDetails['file_name_base'] . $strAppendToFileBase . "." . $arrFileDetails['file_extension'];
 }
 
 function parseFilePath($strFilePath, $fFileMustExist = false)
@@ -285,7 +292,6 @@ function my_merge_add_new_keys( $arr1, $arr2 )
 {
     // check if inputs are really arrays
     if (!is_array($arr1) || !is_array($arr2)) {
-        throw new Exception("Input is not an Array");
     }
     $strFunc = "my_merge_add_new_keys(arr1(size=".count($arr1)."),arr2(size=".count($arr2)."))";
     __debug__printLine($strFunc, C__DISPLAY_FUNCTION__, true);
@@ -456,6 +462,7 @@ define('REPLACE_SPACES_WITH_HYPHENS', 0x010);
 define('REMOVE_EXTRA_WHITESPACE', 0x020);
 define('REMOVE_ALL_SPACES', 0x040);
 define('SIMPLE_TEXT_CLEANUP', HTML_DECODE | REMOVE_EXTRA_WHITESPACE );
+define('ADVANCED_TEXT_CLEANUP', HTML_DECODE | REMOVE_EXTRA_WHITESPACE | REMOVE_PUNCT | REMOVE_EXTRA_WHITESPACE | HTML_DECODE );
 define('FOR_LOOKUP_VALUE_MATCHING', REMOVE_PUNCT | LOWERCASE | HTML_DECODE | LOWERCASE | REMOVE_EXTRA_WHITESPACE | REMOVE_ALL_SPACES );
 define('DEFAULT_SCRUB', REMOVE_PUNCT | HTML_DECODE | LOWERCASE | REMOVE_EXTRA_WHITESPACE );
 
@@ -530,8 +537,50 @@ function intceil($number)
     return $ret;
 }
 
+function readarray($from_array, $addr = array()) {
+//    var_dump('readarray start:' .var_export($from_array, true));
+    global $output;
+        foreach ($from_array as $key => $value)
+        {
+            if (is_Array($value) && count($value) > 0) {
+                $addr[] = $key;
+                $output[] = readarray($value, $addr);
+            } else {
+                $output[] = implode('||', $addr) . $value;
+            }
+        }
+    return $output;
+}
 
+const C_ARRFLAT_SUBITEM_NONE__ = 0;
+const C_ARRFLAT_SUBITEM_SEPARATOR__ = 1;
+const C_ARRFLAT_SUBITEM_LINEBREAK__ = 2;
 
+function array_flatten($arr, $strDelim = '|', $flagsSubItems=C_ARRFLAT_SUBITEM_NONE__)
+{
+    $fSkipLevel = false;
+    $keys = array_keys($arr);
+    $values= array_values($arr);
+    $output = array();
+    foreach ($keys as $key => $item)
+    {
+        $newVal = $values[$key];
+        if(is_array($newVal))
+        {
+            $outputVal = array_flatten($newVal, $strDelim, $flagsSubItems );
+        }
+        else
+        {
+            $outputVal = $newVal;
+        }
+        $fIncludeLineBreaks = (substr_count($outputVal, "|") > 1 && ($flagsSubItems & C_ARRFLAT_SUBITEM_LINEBREAK__));
+        $fIncludeSeparators = (substr_count($outputVal, "|") > 1 && ($flagsSubItems & C_ARRFLAT_SUBITEM_SEPARATOR__));
+        $output[$key] = ($fIncludeLineBreaks ? "\n" : "") . ($fIncludeSeparators ? "(" : "") . $outputVal . ($fIncludeSeparators ? ")" : "");
+    }
+    $ret = implode($strDelim, $output);
+
+    return $ret;
+}
 
 /**
  * Strip punctuation from text.
@@ -581,6 +630,26 @@ function strip_punctuation( $text )
         ' ',
         $text );
 }
+
+/**
+ * copied from <a href="http://php.net/manual/en/function.system.php">http://php.net/manual/en/function.system.php</a>
+ * returns an array of stdout, stderr, and return value from the systemcall
+ */
+function my_exec($cmd, $input='') {
+    $proc=proc_open($cmd, array(0=>array('pipe', 'r'), 1=>array('pipe', 'w'), 2=>array('pipe', 'w')), $pipes);
+    fwrite($pipes[0], $input);fclose($pipes[0]);
+    $stdout=stream_get_contents($pipes[1]);fclose($pipes[1]);
+    $stderr=stream_get_contents($pipes[2]);fclose($pipes[2]);
+    $rtn=proc_close($proc);
+    return array(
+        'stdout'=>$stdout,
+        'stderr'=>$stderr,
+        'return'=>$rtn
+    );
+}
+
+
+
 
 
 ?>

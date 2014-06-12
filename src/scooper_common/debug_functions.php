@@ -21,7 +21,8 @@
 /****         Helper Functions:  Debug Functions                                                             ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-require_once dirname(__FILE__) . '/common.php';
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/scooper_common/common.php');
 
 const C__DEBUG_MODE__ = false;
 

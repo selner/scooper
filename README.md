@@ -44,7 +44,7 @@ With the -i switch, you can specify a list of names or URLs to look up in batch.
 
 *Input CSV FIle Example:*
 ```
-"Company Name", "Company URL"
+     "Company Name", "Company URL"
      "Apple", "http://www.apple.com"
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"

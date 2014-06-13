@@ -39,15 +39,23 @@ You can specify those values via an INI file with the -ini flag or directly on t
 With the -i switch, you can specify a list of names or URLs to look up in batch.
 
 *Input CSV File Format:*
-* Line 1:  "Company Name" or "Company URL" 
-* Line 2+:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
+* Line 1:  "Name" or "URL" 
+* Line 2+:  1st record (e.g. "Microsoft" or "http://www.microsoft.com")
 
-*Input CSV FIle Example:*
+*Input CSV FIle Example: Names*
 ```
      "Company Name", "Company URL"
      "Apple", "http://www.apple.com"
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
+```
+
+*Input CSV FIle Example: URLs*
+```
+     "URL"
+     "http://www.apple.com"
+     "www.microsoft.com"
+     "google.com"
 ```
 
 Example files are available in the /example directory.

@@ -15,7 +15,8 @@
  * under the License.
  */
 
-require_once dirname(__FILE__) . '/src/scooper.php';
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__ . '/main/scooper.php');
 
 $classcb = new CrunchbasePluginClass(false);
 

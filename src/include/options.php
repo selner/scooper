@@ -24,6 +24,14 @@
 
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/scooper_common/common.php');
+require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
+require_once(__ROOT__.'/include/fields_functions.php');
+require_once(__ROOT__.'/include/plugin-base.php');
+require_once(__ROOT__.'/plugins/plugin-basicfacts.php');
+require_once(__ROOT__.'/plugins/plugin-crunchbase.php');
+require_once(__ROOT__.'/plugins/plugin-quantcast.php');
+require_once(__ROOT__.'/plugins/plugin-moz.php');
+require_once(__ROOT__.'/lib/pharse.php');
 
 
 ini_set('auto_detect_line_endings', true);
@@ -206,7 +214,12 @@ function __check_args__()
     /****    get the settings for the plugins                                                                    ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-    $CONFIG = parse_ini_file( dirname(__FILE__) . "/../config.ini" );
+    set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
+
+    __debug__printLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", C__DISPLAY_ITEM_START__);
+    $CONFIG = parse_ini_file( $GLOBALS['OPTS']['config_file_details']['full_file_path'] );
+
+
 
     if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
     if( $GLOBALS['OPTS']['exclude_moz'] != 1)
@@ -295,6 +308,13 @@ function __get_args__()
             'required'      => false,
             'short'      => 'lu',
         ),
+        'crunchbase_url' => array(
+            'description'   => 'Export a Crunchbase API call to a CSV file.',
+            'default'       => 0,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'cb',
+        ),
         'inputfile' => array(
             'description'   => 'Full file path of the CSV file to use as the input data.',
             'default'       => '',
@@ -330,7 +350,6 @@ function __get_args__()
             'required'      => false,
             'short'      => 'ec',
         ),
-
         'moz_access_id' => array(
             'description'   => 'Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more about Moz.com access IDs at http://moz.com/products/api.',
             'default'       => 0,
@@ -345,7 +364,13 @@ function __get_args__()
             'required'      => false,
             'short'      => 'mozkey',
         ),
-
+        'use_config_ini_for_ids' => array(
+            'description'   => 'Use this INI config file for the service ID settings',
+            'default'       => 1,
+            'type'          => Pharse::PHARSE_STRING,
+            'required'      => false,
+            'short'      => 'ini',
+        ),
         'crunchbase_api_id' => array(
             'description'   => 'Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more about Moz.com access IDs at http://developer.crunchbase.com.',
             'default'       => 0,

@@ -22,7 +22,16 @@
 /****************************************************************************************************************/
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/scooper_common/debug_functions.php');
-require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
+require_once(__ROOT__.'/scooper_common/debug_functions.php');
+if ( file_exists ( __ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php' ) )
+{
+    require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
+}
+else
+{
+    require_once(__ROOT__.'/scooper_common/SimpleScooperCSVClass.php');
+
+}
 
 
 ini_set('auto_detect_line_endings', true);
@@ -255,6 +264,59 @@ function getEmptyUserInputRecord()
 {
     return array('header_keys'=>null, 'data_type' => null, 'data_rows'=>array());
 }
+function get_PharseOptionValue($strOptName)
+{
+    $retvalue = null;
+    $strOptGiven = $strOptName."_given";
+    if($GLOBALS['OPTS'][$strOptGiven] == true)
+    {
+        __debug__printLine("'".$strOptName ."'"."=[".$GLOBALS['OPTS'][$strOptName] ."]", C__DISPLAY_ITEM_DETAIL__);
+        $retvalue = $GLOBALS['OPTS'][$strOptName];
+    }
+    else
+    {
+        $retvalue = null;
+    }
+
+    return $retvalue;
+}
+
+function setGlobalFileDetails($key, $fRequireFile = false, $fullpath = null)
+{
+    $ret = null;
+    if($fileDetails != null)
+    {
+        $ret= $fileDetails;
+    }
+    else
+    {
+        $ret = parseFilePath($fullpath, $fRequireFile);
+    }
+
+    __debug__printLine("". $key ." set to [" . var_export($ret, true) . "]", C__DISPLAY_ITEM_DETAIL__);
+
+    $GLOBALS['OPTS'][$key] = $ret;
+
+    return $ret;
+}
+
+function set_FileDetails_fromPharseSetting($optUserKeyName, $optDetailsKeyName, $fFileRequired)
+{
+    $valOpt = get_PharseOptionValue($optUserKeyName);
+    return setGlobalFileDetails($optDetailsKeyName, $fFileRequired, $valOpt);
+}
+
+
+function get_FileDetails_fromPharseOption($optUserKeyName, $fFileRequired)
+{
+    $ret = null;
+    $valOpt = get_PharseOptionValue($optUserKeyName);
+    if($valOpt) $ret = parseFilePath($valOpt, $fFileRequired);
+
+    return $ret;
+
+}
+
 
 
 /****************************************************************************************************************/
@@ -368,7 +430,19 @@ function array_copy ($aSource) {
 
     return $aRetAr;
 }
+function addSeqKey($m)
+{
+    return(array($m => $m));
+}
 
+
+
+
+function array_addseq_key($arr)
+{
+    $arrStringKeys = array_map(function($n) { return sprintf('key%03d', $n); }, range(1, count($arr)) );
+    return array_combine(array_values($arrStringKeys), array_values($arr));
+}
 /*
  * Flattening a multi-dimensional array into a
  * single-dimensional one. The resulting keys are a

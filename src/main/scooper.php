@@ -14,17 +14,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-
-require_once dirname(__FILE__) . '/include/options.php';
-require_once dirname(__FILE__) . '/lib/pharse.php';
-require_once dirname(__FILE__) . '/scooper_common/SimpleScooterCSVFileClass.php';
-require_once dirname(__FILE__) . '/scooper_common/common.php';
-require_once dirname(__FILE__) . '/include/fields_functions.php';
-require_once dirname(__FILE__) . '/include/plugin-base.php';
-require_once dirname(__FILE__) . '/plugins/plugin-basicfacts.php';
-require_once dirname(__FILE__) . '/plugins/plugin-crunchbase.php';
-require_once dirname(__FILE__) . '/plugins/plugin-moz.php';
-require_once dirname(__FILE__) . '/plugins/plugin-quantcast.php';
+define('__ROOT__', dirname(dirname(__FILE__)));
+require_once(__ROOT__.'/include/options.php');
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
@@ -42,8 +33,6 @@ require_once dirname(__FILE__) . '/plugins/plugin-quantcast.php';
 
 function __main__ ()
 {
-    try
-    {
         date_default_timezone_set('America/Los_Angeles');
 
         __initLogger__();
@@ -94,8 +83,26 @@ function __main__ ()
 
         $arrInputCSVData = array();
 
+        if($GLOBALS['OPTS']['crunchbase_url_given'])
+        {
+            $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
+            $strURL = $GLOBALS['OPTS']['crunchbase_url'];
 
-        if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
+            $pluginCrunchbase->exportCrunchbaseAPICalltoFile($strURL, $GLOBALS['output_file_details']);
+        }
+        else
+        {
+            __runCompanyLookups__();
+        }
+}
+
+ function __runCompanyLookups__()
+ {
+
+     try
+     {
+
+         if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
         {
 
             if($GLOBALS['OPTS']['lookup_url_given'])
@@ -215,30 +222,5 @@ function __main__ ()
 }
 
 
-
-function dumpVCsAndInvestments($strInputFile = null)
-{
-
-    $strArgErrs = __check_args__();
-    if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
-
-        $fileDetails = parseFilePath($strInputFile);
-
-        $classCB = new CrunchbasePluginClass(false);
-
-        $classFileVCs= new SimpleScooterCSVFileClass($fileDetails['full_file_path'], "r");
-        $arrVCs = $classFileVCs->readAllRecords(true, array('permalink'));
-
-        $arrVCPermalinks = array();
-        foreach($arrVCs as $vcrecord)
-        {
-            $arrVCPermalinks[] = $vcrecord['permalink'];
-
-        }
-
-        $classCB->writeFinancialOrganizations($arrVCPermalinks, "");
-
-        exit;
-}
 
 ?>

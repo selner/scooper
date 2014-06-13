@@ -83,10 +83,10 @@ function __main__ ()
 
         $arrInputCSVData = array();
 
-        if($GLOBALS['OPTS']['crunchbase_url_given'])
+        if($GLOBALS['OPTS']['crunchbase_api_url_given'])
         {
             $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-            $strURL = $GLOBALS['OPTS']['crunchbase_url'];
+            $strURL = $GLOBALS['OPTS']['crunchbase_api_url'];
 
             $pluginCrunchbase->exportCrunchbaseAPICalltoFile($strURL, $GLOBALS['output_file_details']);
         }

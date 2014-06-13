@@ -57,36 +57,6 @@ const C__LOOKUP_DATATYPE_BASICFACTS__ = 3;
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
-/****         Logging                                                                                        ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-const C__LOGLEVEL_DEBUG__	= 1;	// Most Verbose
-const C__LOGLEVEL_INFO__	= 2;	// ...
-const C__LOGLEVEL_WARN__	= 3;	// ...
-const C__LOGLEVEL_ERROR__	= 4;	// ...
-const C__LOGLEVEL_FATAL__	= 5;	// Least Verbose
-const C__LOGLEVEL_OFF__		= 6;	// Nothing at all.
-
-//
-// If installed as part of the package, uses Klogger v0.1 version (http://codefury.net/projects/klogger/)
-//
-if ( file_exists ( dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php') )
-{
-    define(C_USE_KLOGGER, 1);
-    require_once(__ROOT__.'/lib/KLogger.php');
-
-}
-else
-{
-    print "Could not find KLogger file: ". __ROOT__.'/lib/KLogger.php'.PHP_EOL;
-    define(C_USE_KLOGGER, 0);
-}
-
-
-
-/****************************************************************************************************************/
-/****                                                                                                        ****/
 /****         Common Declarations                                                                            ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
@@ -142,7 +112,7 @@ function __check_args__()
     if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
 
 
-    if($GLOBALS['OPTS']['VERBOSE'] == true) { __log__ ('Options set: '.var_export($GLOBALS['OPTS'], true), C__LOGLEVEL_INFO__); }
+    if($GLOBALS['OPTS']['VERBOSE'] == true) { __log__ ('Options set: '.var_export($GLOBALS['OPTS'], true), LOG_INFO); }
 
 
     /****************************************************************************************************************/
@@ -295,7 +265,7 @@ function __check_args__()
 
     if($fHadFatalError == true)
     {
-        __log__($strErrOptions, C__LOGLEVEL_FATAL__);
+        __log__($strErrOptions, LOG_CRIT);
 
         exit(PHP_EOL."Unable to run with the settings specified: ".PHP_EOL.var_export($GLOBALS['OPTS'], true).PHP_EOL."Run --help option to view the required settings.".PHP_EOL);
     }

@@ -189,7 +189,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         }
         catch ( ErrorException $e )
         {
-            __log__("Error: ". $e->getMessage()."\r\n", C__LOGLEVEL_ERROR__);
+            __log__("Error: ". $e->getMessage()."\r\n", LOG_ERR);
             addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
         }
         return $curRecord;

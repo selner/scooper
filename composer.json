@@ -8,5 +8,8 @@
             "name": "Bryan Selner",
             "email": "dev@recoilvelocity.com"
         }
-    ]
+    ],
+    "require": {
+        "katzgrau/klogger": "1.0.0"
+    }
 }

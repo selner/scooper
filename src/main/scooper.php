@@ -56,8 +56,8 @@ function __doRun__()
 
 
 
-        __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), C__LOGLEVEL_INFO__);
-        __log__('Output File Details = '.var_export($GLOBALS['output_file_details'], true), C__LOGLEVEL_INFO__);
+        __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), LOG_INFO);
+        __log__('Output File Details = '.var_export($GLOBALS['output_file_details'], true), LOG_INFO);
 
         __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
@@ -135,7 +135,7 @@ function __runCompanyLookups__()
         }
         else
         {
-            __log__("Unable to determine single or input file mode.  Cannot continue.", C__LOGLEVEL_FATAL__);
+            __log__("Unable to determine single or input file mode.  Cannot continue.", LOG_CRIT);
 
         }
 

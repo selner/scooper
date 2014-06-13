@@ -27,6 +27,13 @@ require_once(__ROOT__.'/scooper_common/common.php');
 const C__DEBUG_MODE__ = false;
 
 
+
+/****************************************************************************************************************/
+/****                                                                                                        ****/
+/****         Logging                                                                                        ****/
+/****                                                                                                        ****/
+/****************************************************************************************************************/
+
 const C__NAPPTOPLEVEL__ = 0;
 const C__NAPPFIRSTLEVEL__ = 1;
 const C__NAPPSECONDLEVEL__ = 2;
@@ -46,51 +53,8 @@ const C__DISPLAY_FUNCTION__= 700;
 const C__DISPLAY_SUMMARY__ = 750;
 
 
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Logging                                                                                        ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-const C__LOGLEVEL_DEBUG__	= 1;	// Most Verbose
-const C__LOGLEVEL_INFO__	= 2;	// ...
-const C__LOGLEVEL_WARN__	= 3;	// ...
-const C__LOGLEVEL_ERROR__	= 4;	// ...
-const C__LOGLEVEL_FATAL__	= 5;	// Least Verbose
-const C__LOGLEVEL_OFF__		= 6;	// Nothing at all.
-
-//
-// If installed as part of the package, uses Klogger v0.1 version (http://codefury.net/projects/klogger/)
-//
-if ( file_exists ( dirname(__FILE__) . '/../lib/KLogger.php') )
-{
-    define(C_USE_KLOGGER, 1);
-    require_once dirname(__FILE__) . '/../lib/KLogger.php';
-
-}
-else
-{
-    print "Could not find KLogger file: ". dirname(__FILE__) . '/../lib/KLogger.php'.PHP_EOL;
-    define(C_USE_KLOGGER, 0);
-}
 
 
-
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Common Declarations                                                                            ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-
-const C__API_RETURN_TYPE_OBJECT__ = 33;
-const C__API_RETURN_TYPE_ARRAY__ = 44;
-
-
-function getTodayAsString()
-{
-    return date("Y-m-d");
-}
 
 
 /****************************************************************************************************************/
@@ -107,12 +71,11 @@ function __initLogger__($strBaseFileName = null, $strOutputDirPath = null)
 
     if(C_USE_KLOGGER == 1)
     {
-
-        $log = new KLogger ( $fileLogFullPath , KLogger::DEBUG );
+        $log = new Katzgrau\KLogger\Logger($fileLogFullPath, LogLevel::DEBUG);
 
         $GLOBALS['logger'] = $log;
 
-        __log__("Initialized output log:  ".$fileLogFullPath, C__LOGLEVEL_INFO__);
+        __log__("Initialized output log:  ".$fileLogFullPath, LOG_INFO);
 
     }
     else
@@ -134,25 +97,25 @@ function __log__($strToLog, $LOG_LEVEL)
     {
         switch ($LOG_LEVEL)
         {
-            case C__LOGLEVEL_DEBUG__:
-                $GLOBALS['logger']->LogDebug($strLogLine);
+            case LOG_DEBUG:
+                $GLOBALS['logger']->debug($strLogLine);
                 break;
 
-            case C__LOGLEVEL_WARN__:
-                $GLOBALS['logger']->LogWarn($strLogLine);
+            case LOG_WARN:
+                $GLOBALS['logger']->warning($strLogLine);
                 break;
 
-            case C__LOGLEVEL_ERROR__:
-                $GLOBALS['logger']->LogError($strLogLine);
+            case LOG_ERR:
+                $GLOBALS['logger']->error($strLogLine);
                 break;
 
-            case C__LOGLEVEL_FATAL__:
-                $GLOBALS['logger']->LogFatal($strLogLine);
+            case LOG_CRIT:
+                $GLOBALS['logger']->critical($strLogLine);
                 break;
 
             default:
-            case C__LOGLEVEL_INFO__:
-                $GLOBALS['logger']->LogInfo($strLogLine);
+            case LOG_INFO:
+                $GLOBALS['logger']->info($strLogLine);
                 break;
         }
     }
@@ -191,62 +154,62 @@ function __debug__printLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = fal
             case  C__DISPLAY_FUNCTION__:
                 $strLineBeginning = '<<<<<<<< function "';
                 $strLineEnd = '" called >>>>>>> ';
-                $logLevel = C__LOGLEVEL_DEBUG__;
+                $logLevel = LOG_DEBUG;
                 break;
 
             case C__DISPLAY_WARNING__:
                 $strLineBeginning = PHP_EOL.PHP_EOL.'^^^^^^^^^^ "';
                 $strLineEnd = '" ^^^^^^^^^^ '.PHP_EOL;
-                $logLevel = C__LOGLEVEL_WARN__;
+                $logLevel = LOG_WARN;
                 break;
 
             case C__DISPLAY_SUMMARY__:
 
                 $strLineBeginning = PHP_EOL."************************************************************************************".PHP_EOL. PHP_EOL;
                 $strLineEnd = PHP_EOL.PHP_EOL."************************************************************************************".PHP_EOL;
-                $logLevel = C__LOGLEVEL_INFO__;
+                $logLevel = LOG_INFO;
                 break;
 
             case C__DISPLAY_SECTION_START__:
                 $strLineBeginning = PHP_EOL."####################################################################################".PHP_EOL. PHP_EOL;
                 $strLineEnd = PHP_EOL.PHP_EOL."####################################################################################".PHP_EOL;
-                $logLevel = C__LOGLEVEL_INFO__;
+                $logLevel = LOG_INFO;
                 break;
 
 
             case C__DISPLAY_RESULT__:
 					$strLineBeginning = '==> ';
-					$logLevel = C__LOGLEVEL_INFO__;
+					$logLevel = LOG_INFO;
 					break;
 
 			case C__DISPLAY_ERROR__: 
 				$strLineBeginning = '!!!!! ';
-				$logLevel = C__LOGLEVEL_ERROR__;
+				$logLevel = LOG_ERR;
 				break;
 				
 			case C__DISPLAY_ITEM_START__: 
 				$strLineBeginning = '---> ';
-				$logLevel = C__LOGLEVEL_INFO__;
+				$logLevel = LOG_INFO;
 				break;
 				
 			case C__DISPLAY_ITEM_DETAIL__: 
 				$strLineBeginning = '     ';
-				$logLevel = C__LOGLEVEL_INFO__;
+				$logLevel = LOG_INFO;
 				break;
 				
 			case C__DISPLAY_ITEM_RESULT__: 
 				$strLineBeginning = '======> ';
-				$logLevel = C__LOGLEVEL_INFO__;
+				$logLevel = LOG_INFO;
 				break;
 					
 			case C__DISPLAY_MOMENTARY_INTERUPPT__: 
 				$strLineBeginning = '......';
-				$logLevel = C__LOGLEVEL_WARN__;
+				$logLevel = LOG_WARN;
 				break;
 						
 			case C__DISPLAY_NORMAL__: 
 				$strLineBeginning = '';
-				$logLevel = C__LOGLEVEL_INFO__;
+				$logLevel = LOG_INFO;
 				break;
 		
 			default:
@@ -332,4 +295,21 @@ function __debug__printSectionHeader($headerText, $nSectionLevel, $nType)
     {
         echo PHP_EOL . ' '.$strSectionType.' ' .PHP_EOL. $strSectionIntroSeparatorLine . PHP_EOL;
     }
+}
+
+
+/****************************************************************************************************************/
+/****                                                                                                        ****/
+/****         Common Declarations                                                                            ****/
+/****                                                                                                        ****/
+/****************************************************************************************************************/
+
+
+const C__API_RETURN_TYPE_OBJECT__ = 33;
+const C__API_RETURN_TYPE_ARRAY__ = 44;
+
+
+function getTodayAsString()
+{
+    return date("Y-m-d");
 }

@@ -36,7 +36,8 @@
             if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
             __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
-			$this->_batchQueryMozAPI_($arrAllRecords);
+
+                $this->_batchQueryMozAPI_($arrAllRecords);
         }
 		
 	    public function addDataToRecord(&$arrRecordToUpdate)

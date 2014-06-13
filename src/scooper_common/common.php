@@ -108,7 +108,7 @@ function parseFilePath($strFilePath, $fFileMustExist = false)
             }
             if(!file_exists($arrReturnFileDetails['directory']))
             {
-                __log__('Specfied path '.$strFilePath.' does not exist.', C__LOGLEVEL_WARN__);
+                __log__('Specfied path '.$strFilePath.' does not exist.', LOG_WARN);
             }
             else
             {
@@ -117,7 +117,7 @@ function parseFilePath($strFilePath, $fFileMustExist = false)
 
                 if($fFileMustExist == true && !is_file($arrReturnFileDetails['full_file_path']))
                 {
-                    __log__('Required file '.$arrReturnFileDetails['full_file_path'].' does not exist.', C__LOGLEVEL_WARN__);
+                    __log__('Required file '.$arrReturnFileDetails['full_file_path'].' does not exist.', LOG_WARN);
                 }
                 else
                 {

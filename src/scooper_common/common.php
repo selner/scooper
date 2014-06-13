@@ -222,6 +222,42 @@ function addPrefixToArrayKeys( $arr, $strPrefix = "", $strSep = "" )
     return $arrNewKeyValues;
 }
 
+function array_to_object($d) {
+    if (is_array($d)) {
+        /*
+        * Return array converted to object
+        * Using __FUNCTION__ (Magic constant)
+        * for recursive call
+        */
+        return (object) array_map(__FUNCTION__, $d);
+    }
+    else {
+        // Return object
+        return $d;
+    }
+}
+	function object_to_array($d) {
+    if (is_object($d)) {
+        // Gets the properties of the given object
+        // with get_object_vars function
+        $d = get_object_vars($d);
+    }
+
+    if (is_array($d)) {
+        /*
+        * Return array converted to object
+        * Using __FUNCTION__ (Magic constant)
+        * for recursive call
+        */
+        return array_map(__FUNCTION__, $d);
+    }
+    else {
+        // Return array
+        return $d;
+    }
+}
+
+
 function merge_into_array_and_add_new_keys( &$arr1, $arr2 )
 {
 
@@ -510,6 +546,21 @@ const C_ARRFLAT_SUBITEM_NONE__ = 0;
 const C_ARRFLAT_SUBITEM_SEPARATOR__ = 1;
 const C_ARRFLAT_SUBITEM_LINEBREAK__ = 2;
 
+function substr_count_array( $haystack, $needle ) {
+    $count = 0;
+    foreach ($needle as $substring) {
+        $count += substr_count( $haystack, $substring);
+    }
+    return $count;
+}
+
+function is_array_multidimensional($a)
+{
+    if(!is_array($a)) return false;
+    foreach($a as $v) if(is_array($v)) return TRUE;
+    return FALSE;
+}
+
 function array_flatten($arr, $strDelim = '|', $flagsSubItems=C_ARRFLAT_SUBITEM_NONE__)
 {
     $fSkipLevel = false;
@@ -518,15 +569,22 @@ function array_flatten($arr, $strDelim = '|', $flagsSubItems=C_ARRFLAT_SUBITEM_N
     $output = array();
     foreach ($keys as $key => $item)
     {
-        $newVal = $values[$key];
+       $newVal = $values[$key];
         if(is_array($newVal))
         {
-            $outputVal = array_flatten($newVal, $strDelim, $flagsSubItems );
+            if(is_array_multidimensional($newVal))
+            {
+               $outputVal = array_flatten($newVal, $strDelim, $flagsSubItems );
+            }
+            else
+            {
+               $outputVal = implode($strDelim, $newVal);
+           }
         }
         else
-        {
+       {
             $outputVal = $newVal;
-        }
+       }
         $fIncludeLineBreaks = (substr_count($outputVal, "|") > 1 && ($flagsSubItems & C_ARRFLAT_SUBITEM_LINEBREAK__));
         $fIncludeSeparators = (substr_count($outputVal, "|") > 1 && ($flagsSubItems & C_ARRFLAT_SUBITEM_SEPARATOR__));
         $output[$key] = ($fIncludeLineBreaks ? "\n" : "") . ($fIncludeSeparators ? "(" : "") . $outputVal . ($fIncludeSeparators ? ")" : "");

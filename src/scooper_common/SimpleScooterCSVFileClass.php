@@ -15,35 +15,6 @@
  * under the License.
  */
 
-function getDataTypeFromString($strType)
-{
-    $ret = 'UNKNOWN';
-
-    switch (strtolower($strType))
-    {
-        case 'company_name';
-            $ret  = C__LOOKUP_DATATYPE_BASICFACTS__;
-            break;
-
-        case 'company name':
-        case 'company names':
-        case 'names':
-        case 'company':
-            $ret  = C__LOOKUP_DATATYPE_NAME__;
-            break;
-
-        case 'company url':
-        case 'url':
-        case 'urls':
-        case 'input_source_url':
-            $ret = C__LOOKUP_DATATYPE_URL__;
-
-            break;
-    }
-
-    return $ret;
-
-}
 
 class SimpleScooterCSVFileClass {
 
@@ -254,6 +225,7 @@ class SimpleScooterCSVFileClass {
 //        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
         $arrKeyedCSV = array();
         $inputKeys = array_keys($arrCSVRows);
+        $retArray = null;
 
         foreach($arrCSVRows as $rec)
         {
@@ -284,7 +256,6 @@ class SimpleScooterCSVFileClass {
 
     function readMultipleCSVsAndCombine($arrFullPaths, $keysToUse = null, $arrKeysToUseForDedupe = null)
     {
-        __debug__printLine("readMultipleCSVsAndCombine . " . $strOutFilePath, C__DISPLAY_ITEM_DETAIL__);
 
         __debug__printLine("Loading and combining CSV records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_START__);
 
@@ -363,4 +334,4 @@ class SimpleScooterCSVFileClass {
 
 }
 
-?>
+

@@ -24,5 +24,3 @@ $classcb = new CrunchbasePluginClass(false);
 
 __main__();
 
-
-?>

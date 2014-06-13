@@ -87,6 +87,32 @@ class ScooterPluginBaseClass
     private $_strPluginDataProviderName_ = "UNKNOWN";
 }
 
+function getDataTypeFromString($strType)
+{
+    $ret = 'UNKNOWN';
 
+    switch (strtolower($strType))
+    {
+        case 'company_name';
+            $ret  = C__LOOKUP_DATATYPE_BASICFACTS__;
+            break;
 
-?>
+        case 'company name':
+        case 'company names':
+        case 'names':
+        case 'company':
+            $ret  = C__LOOKUP_DATATYPE_NAME__;
+            break;
+
+        case 'company url':
+        case 'url':
+        case 'urls':
+        case 'input_source_url':
+            $ret = C__LOOKUP_DATATYPE_URL__;
+
+            break;
+    }
+
+    return $ret;
+
+}

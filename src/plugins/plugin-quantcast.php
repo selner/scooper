@@ -47,7 +47,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 
    private function _getData_($var) 
 	{
-        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
+        if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return null;
 
         $classAPIWrap = new APICallWrapperClass();
         $domain = $var;
@@ -117,4 +117,3 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 	}
 
 }
-?>

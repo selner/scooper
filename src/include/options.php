@@ -72,12 +72,12 @@ const C__LOGLEVEL_OFF__		= 6;	// Nothing at all.
 if ( file_exists ( dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php') )
 {
     define(C_USE_KLOGGER, 1);
-    require_once dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php';
+    require_once(__ROOT__.'/lib/KLogger.php');
 
 }
 else
 {
-    print "Could not find KLogger file: ". dirname(__FILE__) . '/../lib/KLogger/src/KLogger.php'.PHP_EOL;
+    print "Could not find KLogger file: ". __ROOT__.'/lib/KLogger.php'.PHP_EOL;
     define(C_USE_KLOGGER, 0);
 }
 
@@ -408,4 +408,4 @@ function __get_args__()
 }
 
 
-?>
+

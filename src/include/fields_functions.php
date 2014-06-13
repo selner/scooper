@@ -144,4 +144,4 @@ function addToAccuracyField(&$arrRecord, $strValueToAdd)
 
 
 
-?>
+

@@ -101,7 +101,7 @@ function __main__ ()
 
      try
      {
-
+         $arrInputCSVData = array();
          if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
         {
 
@@ -223,4 +223,3 @@ function __main__ ()
 
 
 
-?>

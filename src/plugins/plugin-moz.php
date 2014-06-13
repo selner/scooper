@@ -45,7 +45,7 @@
 
             if($this->_arrMozBulkAPIResults_ == null)
             {
-                throw new Exception("MozPlugin was not initialized correctly.  You must use the MozPluginClass($arrAllRecords) constructor.");
+                throw new Exception("MozPlugin was not initialized correctly.");
             }
 
             __debug__printLine("Looking for a match in Moz data for ".$arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
@@ -134,7 +134,7 @@
 			if($GLOBALS['OPTS']['VERBOSE'])
 			{
 				$strDomainList = implode(';  ', $arrDomainsToQuery);
-                __debug__printLine("'Moz API call: ".$requestUrl.data, C__DISPLAY_ITEM_DETAIL__);
+                __debug__printLine("'Moz API call: ".$requestUrl, C__DISPLAY_ITEM_DETAIL__);
                 __debug__printLine("Domains:".$strDomainList, C__DISPLAY_ITEM_DETAIL__);
 
 			}
@@ -178,4 +178,3 @@
 			}
 		}
 	}
-?>

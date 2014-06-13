@@ -21,8 +21,6 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 define('__ROOT__', dirname(dirname(__FILE__)));
-require_once(__ROOT__.'/scooper_common/debug_functions.php');
-require_once(__ROOT__.'/scooper_common/debug_functions.php');
 if ( file_exists ( __ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php' ) )
 {
     require_once(__ROOT__.'/scooper_common/SimpleScooterCSVFileClass.php');
@@ -32,6 +30,7 @@ else
     require_once(__ROOT__.'/scooper_common/SimpleScooperCSVClass.php');
 
 }
+require_once(__ROOT__.'/scooper_common/debug_functions.php');
 
 
 ini_set('auto_detect_line_endings', true);
@@ -47,118 +46,6 @@ function getDefaultFileName($strFilePrefix, $strBase, $strExt)
     return sprintf($strApp . date("Ymd-Hms")."%s_%s.%s", ($strFilePrefix != null ? "_".$strFilePrefix : ""), ($strBase != null  ? "_".$strBase : ""), $strExt);
 }
 
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Logging                                                                                        ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-const C__LOGLEVEL_DEBUG__	= 1;	// Most Verbose
-const C__LOGLEVEL_INFO__	= 2;	// ...
-const C__LOGLEVEL_WARN__	= 3;	// ...
-const C__LOGLEVEL_ERROR__	= 4;	// ...
-const C__LOGLEVEL_FATAL__	= 5;	// Least Verbose
-const C__LOGLEVEL_OFF__		= 6;	// Nothing at all.
-
-//
-// If installed as part of the package, uses Klogger v0.1 version (http://codefury.net/projects/klogger/)
-//
-if ( file_exists ( dirname(__FILE__) . '/../lib/KLogger.php') )
-{
-    define(C_USE_KLOGGER, 1);
-    require_once dirname(__FILE__) . '/../lib/KLogger.php';
-
-}
-else
-{
-    print "Could not find KLogger file: ". dirname(__FILE__) . '/../lib/KLogger.php'.PHP_EOL;
-    define(C_USE_KLOGGER, 0);
-}
-
-
-
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Common Declarations                                                                            ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-
-const C__API_RETURN_TYPE_OBJECT__ = 33;
-const C__API_RETURN_TYPE_ARRAY__ = 44;
-
-
-function getTodayAsString()
-{
-    return date("Y-m-d");
-}
-
-
-/****************************************************************************************************************/
-/****                                                                                                        ****/
-/****         Helper Functions:  Information and Error Logging                                               ****/
-/****                                                                                                        ****/
-/****************************************************************************************************************/
-
-function __initLogger__($strBaseFileName = null, $strOutputDirPath = null)
-{
-    $fileLogFullPath = getDefaultFileName(null,$strBaseFileName,"log");
-
-    $GLOBALS['logger'] = null;
-
-    if(C_USE_KLOGGER == 1)
-    {
-
-        $log = new KLogger ( $fileLogFullPath , KLogger::DEBUG );
-
-        $GLOBALS['logger'] = $log;
-
-        __log__("Initialized output log:  ".$fileLogFullPath, C__LOGLEVEL_INFO__);
-
-    }
-    else
-    {
-        __debug__printLine("Output log will not be enabled.  KLogger is not installed. ".$fileLogFullPath, C__DISPLAY_NORMAL__);
-    }
-}
-
-
-function __log__($strToLog, $LOG_LEVEL)
-{
-    $arrLevelNames = array( 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'OFF' );
-
-    $strLogLine =  $strToLog;
-
-
-
-    if($GLOBALS['logger'] != null)
-    {
-        switch ($LOG_LEVEL)
-        {
-            case C__LOGLEVEL_DEBUG__:
-                $GLOBALS['logger']->LogDebug($strLogLine);
-                break;
-
-            case C__LOGLEVEL_WARN__:
-                $GLOBALS['logger']->LogWarn($strLogLine);
-                break;
-
-            case C__LOGLEVEL_ERROR__:
-                $GLOBALS['logger']->LogError($strLogLine);
-                break;
-
-            case C__LOGLEVEL_FATAL__:
-                $GLOBALS['logger']->LogFatal($strLogLine);
-                break;
-
-            default:
-            case C__LOGLEVEL_INFO__:
-            $GLOBALS['logger']->LogInfo($strLogLine);
-                break;
-        }
-    }
-    print '['.$arrLevelNames[$LOG_LEVEL-1]."] ".$strLogLine .PHP_EOL;
-}
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
@@ -284,14 +171,7 @@ function get_PharseOptionValue($strOptName)
 function setGlobalFileDetails($key, $fRequireFile = false, $fullpath = null)
 {
     $ret = null;
-    if($fileDetails != null)
-    {
-        $ret= $fileDetails;
-    }
-    else
-    {
-        $ret = parseFilePath($fullpath, $fRequireFile);
-    }
+    $ret = parseFilePath($fullpath, $fRequireFile);
 
     __debug__printLine("". $key ." set to [" . var_export($ret, true) . "]", C__DISPLAY_ITEM_DETAIL__);
 
@@ -494,7 +374,7 @@ function array_flatten_n($array, $n) {
             if (is_array($value)) {
                 $new_prefix = array_values($prefix);
                 array_push($new_prefix, $key);
-                if (count($new_prefix) >= n)
+                if (count($new_prefix) >= $n)
                     array_shift($new_prefix);
 
                 array_push($stack, array($new_prefix, $value));
@@ -726,4 +606,4 @@ function my_exec($cmd, $input='') {
 
 
 
-?>
+

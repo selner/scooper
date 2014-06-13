@@ -453,4 +453,4 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 }
 
-?>
+

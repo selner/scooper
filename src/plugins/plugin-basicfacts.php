@@ -256,4 +256,3 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
 
 }
-?>

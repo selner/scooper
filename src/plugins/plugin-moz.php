@@ -52,30 +52,37 @@
 
 				
 			$fMatchFound = false;
-            if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['effective_domain']))
+            if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['root_domain']))
             {
-                $recordStringToMatch =  $arrRecordToUpdate['effective_domain'].'/';
+                $recordStringToMatch =  $arrRecordToUpdate['root_domain'];
 
                 foreach($this->_arrMozBulkAPIResults_ as $mozresult)
                 {
                     $arrMozRecord = json_decode($mozresult, true);
-                    if(strcasecmp($arrMozRecord['upl'], $recordStringToMatch) == 0 )
+                    $tempDomain = $arrMozRecord['upl'];
+                    if($tempDomain == "" && strlen($arrMozRecord['uu'])>0)
                     {
-                        $arrRecordToUpdate = array_merge($arrRecordToUpdate, $arrMozRecord);
+                        $tempDomain = $arrMozRecord['uu'];
+                    }
+                    $tempDomain = getPrimaryDomainFromUrl($tempDomain);
+//                    if($tempDomain[strlen($tempDomain)-1] = "/") { $tlempDomain = substr($tempDomain, 1, strlen($tempDomain)); }
+                    if(strcasecmp($tempDomain, $recordStringToMatch) == 0 )
+                    {
+                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrMozRecord);
                         return;
                     }
 
                 }
                 if(!$fMatchFound)
                 {
-                    addToAccuracyField($arrRecordToUpdate, 'No Moz match found for effective_domain value.');
+                    addToAccuracyField($arrRecordToUpdate, 'No Moz match found for root_domain value.');
                     __debug__printLine("Moz: Match not found for ".$recordStringToMatch, C__DISPLAY_ERROR__);
                 }
             }
             else
             {
-                addToAccuracyField($arrRecordToUpdate, 'Unable to search Moz data; no effective_domain found for company.');
-                if(!$fMatchFound) { __debug__printLine("'Unable to search Moz data; no effective_domain found for company = ".$arrRecordToUpdate['company_name'], C__DISPLAY_ERROR__);  }
+                addToAccuracyField($arrRecordToUpdate, 'Unable to search Moz data; no root_domain found for company.');
+                if(!$fMatchFound) { __debug__printLine("'Unable to search Moz data; no root_domain found for company = ".$arrRecordToUpdate['company_name'], C__DISPLAY_ERROR__);  }
             }
 
 			return;
@@ -118,13 +125,14 @@
 			
 			foreach ($arrRecordsToQuery as $curRecord) 
 			{
-				if($curRecord['effective_domain'] && strcasecmp($curRecord['effective_domain'], "<not set>") != 0)
+				if($curRecord['root_domain'] && strcasecmp($curRecord['root_domain'], "<not set>") != 0)
 				{
-					$curDomain = $curRecord['effective_domain'];
+					$curDomain = $curRecord['root_domain'];
 				}
 				else 
 				{
-					$curDomain = getPrimaryDomainFromUrl($curRecord['input_source_url']);			}
+					$curDomain = getPrimaryDomainFromUrl($curRecord['input_source_url']);
+                }
 				$arrDomainsToQuery[] = $curDomain;
 			}
 			

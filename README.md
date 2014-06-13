@@ -58,6 +58,7 @@ If your Input CSV file has additional columns, those values will be copied into 
 If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Copy the "KLogger.php" to your scooter/src/lib directory.  The script should pick it up automatically the next time you run.
 
 #Other Stuff
+* Version:  v2.0.1
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
 * Platforms:  I've only really tested it on Mac OS/X 10.9.2 with PHP 5.4.24.  Your mileage could definitely vary on any other platform or version.  
 * Issues/Bugs:  See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)

@@ -33,9 +33,13 @@ require_once(__ROOT__.'/include/options.php');
 
 function __main__ ()
 {
-        date_default_timezone_set('America/Los_Angeles');
+    __startApp__();
+    __doRun__();
 
-        __initLogger__();
+}
+function __doRun__()
+{
+
 
         /****************************************************************************************************************/
         /****                                                                                                        ****/
@@ -47,17 +51,7 @@ function __main__ ()
         /****                                                                                                        ****/
         /****************************************************************************************************************/
 
-        //
-        // Gather and check that the command line arguments are valid
-        //
-        __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
         __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-
-        $strArgErrs = __check_args__();
-        if(strlen($strArgErrs) > 0) __log__($strArgErrs, C__LOGLEVEL_WARN__);
-
-
-
 
 
 
@@ -81,44 +75,50 @@ function __main__ ()
         /****************************************************************************************************************/
 
 
-        $arrInputCSVData = array();
 
         if($GLOBALS['OPTS']['crunchbase_api_url_given'])
         {
-            $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-            $strURL = $GLOBALS['OPTS']['crunchbase_api_url'];
-
-            $pluginCrunchbase->exportCrunchbaseAPICalltoFile($strURL, $GLOBALS['output_file_details']);
+            __runCrunchbaseAPICall__();
         }
         else
         {
             __runCompanyLookups__();
         }
+
+    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
 }
 
- function __runCompanyLookups__()
- {
+function __runCrunchbaseAPICall__()
+{
+    $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
+    $strURL = $GLOBALS['OPTS']['crunchbase_api_url'];
+
+    $pluginCrunchbase->writeCrunchbaseAPICallResultstoFile($strURL, $GLOBALS['output_file_details']);
+
+}
+
+function __runCompanyLookups__()
+{
 
      try
      {
          $arrInputCSVData = array();
-         if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_SINGLE)
+        if($GLOBALS['OPTS']['lookup_url_given'])
         {
-
-            if($GLOBALS['OPTS']['lookup_url_given'])
-            {
-                $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_URL__;
-                $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_url']);
-
-            }
-            else
-            {
-                $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_NAME__;
-                $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_name']);
-            }
+            $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_URL__;
+            $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_url']);
+            $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_SINGLE;
         }
-        else if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE)
+        else if($GLOBALS['OPTS']['lookup_name_given'])
         {
+            $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_NAME__;
+            $arrInputCSVData['data_rows'][] = array($GLOBALS['OPTS']['lookup_name']);
+            $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_SINGLE;
+        }
+        else if($GLOBALS['OPTS']['inputfile_given'])
+        {
+            $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE;
+
             /****************************************************************************************************************/
             /****                                                                                                        ****/
             /****    Read the Input CSV File into an array                                                               ****/
@@ -211,7 +211,6 @@ function __main__ ()
 
 
 
-        __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
     }
     catch ( ErrorException $e )
     {

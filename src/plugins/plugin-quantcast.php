@@ -38,9 +38,9 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
     function addDataToRecord(&$arrRecordToUpdate) 
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
-        if($arrRecordToUpdate['effective_domain'] && strlen($arrRecordToUpdate['effective_domain']) > 0 && strcasecmp($arrRecordToUpdate['effective_domain'], "<not set>") != 0)
+        if($arrRecordToUpdate['root_domain'] && strlen($arrRecordToUpdate['root_domain']) > 0 && strcasecmp($arrRecordToUpdate['root_domain'], "<not set>") != 0)
         {
-            $arrQuant = $this->_getData_($arrRecordToUpdate['effective_domain']);
+            $arrQuant = $this->_getData_($arrRecordToUpdate['root_domain']);
             $arrRecordToUpdate = my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
         }
     }

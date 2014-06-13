@@ -183,7 +183,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             else
             {
                 $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
-                $curRecord['effective_domain']  = getPrimaryDomainFromUrl($curRecord['actual_site_url']);
+                $curRecord['root_domain']  = getPrimaryDomainFromUrl($curRecord['actual_site_url']);
             }
 
         }

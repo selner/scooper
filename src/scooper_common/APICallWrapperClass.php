@@ -227,6 +227,8 @@ if (!function_exists('getPrimaryDomainFromUrl'))
 
     function getPrimaryDomainFromUrl($url, $fIncludeTLD = true)
     {
+        if(strlen($url) <= 5) return null;
+        if(substr_count_array($url, array("http://", "https://")) < 1) { $url = "http://".$url;}
         $tld = parse_url($url, PHP_URL_HOST);
         $tldArray = explode(".",$tld);
 
@@ -234,9 +236,12 @@ if (!function_exists('getPrimaryDomainFromUrl'))
         $l1 = '0';
         $l2 = null;
 
-        foreach($tldArray as $s) {
+        foreach($tldArray as $s)
+        {
+            $s = str_replace("/", "", $s);
             // CHECKS THE POSITION IN THE ARRAY TO SEE IF IT MATCHES ANY OF THE KNOWN TOP LEVEL DOMAINS (YOU CAN ADD TO THIS LIST)
-            if($s == 'com' || $s == 'net' || $s == 'info' || $s == 'biz' || $s == 'us' || $s == 'co' || $s == 'org' || $s == 'me') {
+            if($s == 'com' || $s == 'net' || $s == 'info' || $s == 'biz' || $s == 'us' || $s == 'co' || $s == 'org' || $s == 'me')
+            {
 
                 // CALCULATES THE SECOND LEVEL DOMAIN POSITION IN THE ARRAY ONCE THE POSITION OF THE TOP LEVEL DOMAIN IS IDENTIFIED
                 $l2 = $l1 - 1;

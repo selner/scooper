@@ -33,6 +33,8 @@ require_once(__ROOT__.'/plugins/plugin-quantcast.php');
 require_once(__ROOT__.'/plugins/plugin-moz.php');
 require_once(__ROOT__.'/lib/pharse.php');
 
+date_default_timezone_set('America/Los_Angeles');
+
 
 ini_set('auto_detect_line_endings', true);
 
@@ -108,13 +110,26 @@ const C__API_RETURN_TYPE_ARRAY__ = 44;
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
+function __startApp__()
+{
+    //
+    // Gather and check that the command line arguments are valid
+    //
+    __initLogger__();
+    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
+
+    $strArgErrs = __check_args__();
+    __debug__printLine("Options set:" . var_export($GLOBALS['OPTS'], true) , C__DISPLAY_NORMAL__);
+
+}
+
 
 function __check_args__()
 {
     $strErrOptions = "";
     $fHadFatalError = false;
 
-    if(!$GLOBALS['OPTS']) {  __get_args__(); }
+    if(!$GLOBALS['OPTS']) {  __reset_args__(); }
 
 
     /****************************************************************************************************************/
@@ -227,18 +242,18 @@ function __check_args__()
         if(!$GLOBALS['OPTS']['moz_access_id_given'] )
         {
             $GLOBALS['OPTS']['moz_access_id'] = $CONFIG["MOZ_API_ACCESS_ID"];
-            __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_ID"].")." , C__DISPLAY_ERROR__);
+            __debug__printLine("No Moz.com access ID given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_ID"].")." , C__DISPLAY_ITEM_DETAIL__);
         }
 
         if(!$GLOBALS['OPTS']['moz_secret_key_given'] )
         {
             $GLOBALS['OPTS']['moz_secret_key'] = $CONFIG["MOZ_API_ACCESS_SECRETKEY"];
-            __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_SECRETKEY"].")." , C__DISPLAY_ERROR__);
+            __debug__printLine("No Moz.com secret key given by the the user.  Defaulting to config value: (".$CONFIG["MOZ_API_ACCESS_SECRETKEY"].")." , C__DISPLAY_ITEM_DETAIL__);
         }
 
         if(!$GLOBALS['OPTS']['exclude_moz_given'] && (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
         {
-            if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", C__DISPLAY_ERROR__); }
+            if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", C__DISPLAY_ITEM_DETAIL__); }
             $GLOBALS['OPTS']['exclude_moz'] = 1;
         }
         else
@@ -285,11 +300,12 @@ function __check_args__()
         exit(PHP_EOL."Unable to run with the settings specified: ".PHP_EOL.var_export($GLOBALS['OPTS'], true).PHP_EOL."Run --help option to view the required settings.".PHP_EOL);
     }
 
+
     return $strErrOptions;
 
 }
 
-function __get_args__()
+function __reset_args__()
 {
 
     # specify some options

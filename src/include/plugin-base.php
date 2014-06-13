@@ -41,7 +41,7 @@ class ScooterPluginBaseClass
          throw new Exception("addDataToRecord must be defined for any class extending ScooterPluginBaseClass. ");
     }
 
-   private function _getData_($var) 
+    private function _getData_($var)
 	{
         throw new Exception("_getData_ must be defined for any class extending ScooterPluginBaseClass. ");
     }

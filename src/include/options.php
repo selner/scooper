@@ -308,7 +308,7 @@ function __get_args__()
             'required'      => false,
             'short'      => 'lu',
         ),
-        'crunchbase_url' => array(
+        'crunchbase_api_url' => array(
             'description'   => 'Export a Crunchbase API call to a CSV file.',
             'default'       => 0,
             'type'          => Pharse::PHARSE_STRING,

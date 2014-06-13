@@ -1,31 +1,41 @@
 #Scooper
-Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.  
+Bulk export Crunchbase, Moz Quantcast data to comma-separated value (CSV) files using either the command-line or a list of records from an input file.  Very handy for doing research about competitors or potential partners.  
 
-Scooper can be run for just a single name or URL or you can pass it a CSV file with a whole list of them.  
+###With Scooper You Can Easily Export Compant Data to CSV by:
+*  a single company's information using their name
+* a single company's information using their website URL
+* many companies by name in bulk
+* many companies by website address in bulk
+
+You can even bulk export the data returned from [any Crunchbase API call](https://developer.crunchbase.com/docs).
+
 
 ##Requirements
-* Moz.com data:  [Moz.com API account](http://moz.com/products/api).
-* Crunchbase data:  [Crunchbase API account](http://developer.crunchbase.com).
+* If you want to export Crunchbase data, Scooper requires you to set the user_key from a  [Crunchbase API account](http://developer.crunchbase.com). 
+* If you want to export Moz.com data, Scooper requires a Moz API Access ID and secret key from a  [Moz.com API account](http://moz.com/products/api).
 
-Simply set -mozid, -mozkey and -cbid switches to match your account's specific values.  Alternatively, you can edit the /config.php file to set those values directly for all script.
+You can specify those values via an INI file with the -ini flag or directly on the command line wtih the -mozid, -mozkey and -cbid switches.
 
-###Options:
+###Parameters:
 * --lookup-name, -ln : The name of the company to lookup. 
 * --lookup-url, -lu : The website URL for the company to lookup.
-* --inputfile, -i : Full file path of the CSV file to use as the input data.
-* --outputfile, -o : (optional) Output path or full file path and name for writing the results.
-* --exclude-moz, -em : Include Moz.com data in the final result set.
-* --exclude-quantcast, -eq : Include Quantcast.com uniq visitors data in the final result set.
-* --exclude-crunchbase, -ec : Include TechCrunch's Crunchbase data in the final result set.
+* --crunchbase_api_url, -cb : The Crunchbase API call to export to CSV
+* --inputfile, -i : Full file path of the CSV file to use as the input data for batch company name or company website lookups
+
+* --exclude-moz, -em : Exclude Moz.com data from the final result set.
+* --exclude-quantcast, -eq : Exclude Quantcast.com uniq visitors data in the final result set.
+* --exclude-crunchbase, -ec : Exclude TechCrunch's Crunchbase data in the final result set.
+
 * --moz-access-id, -mozid : Your Moz.com API access ID value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
 * --moz-secret-key, -mozkey : Your Moz.com API secret key value.  If you do not have one, Moz data will be excluded.  Learn more at [http://moz.com/products/api].
 * --crunchbase-api-id, -cbid : Your Crunchbase API key value.  If you do not have one, Crunchbase data will be excluded.  Learn more at [http://developer.crunchbase.com].
+
 * --verbose, -v : Show debug statements and other information.
 * --verbose-api-calls, -va : Show API calls in verbose mode.
 * --help, -h: Display this help banner
 
 
-###Bulk Company Searches 
+###Input File Format for Batch Lookups 
 With the -i switch, you can specify a list of names or URLs to look up in batch.
 
 *Input CSV File Format:*

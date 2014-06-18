@@ -36,7 +36,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 
     function getAllColumns()
     {
-        return array('monthly_uniques' => null);
+        return array('monthly_uniques' => '<not set>');
     }
 
     // Redefine the parent method
@@ -60,9 +60,9 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         __debug__printLine("Querying Quantcast data for ".$domain, C__DISPLAY_ITEM_START__);
     	$curl_obj = $classAPIWrap->cURL($url);
 		  $uniqs = $this->_getUniqsFromHTML_($curl_obj);
-			
-		$arrNew = array("monthly_uniques" => $uniqs);
-		$arrReturn = addPrefixToArrayKeys($arrNew, "quantcast", ".");
+
+        $arrReturn = array("monthly_uniques" => $uniqs);
+		// $arrReturn = addPrefixToArrayKeys($arrNew, "quantcast", ".");
 		return $arrReturn;
     }
 

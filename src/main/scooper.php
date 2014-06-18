@@ -163,11 +163,12 @@ function __runCompanyLookups__()
 
         $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
         $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginQuantcast->getAllColumns());
-        $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-         $arrAllPluginColumnsForRecords  = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
 
-         $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
-         $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginMoz->getAllColumns());
+        $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
+        $arrAllPluginColumnsForRecords  = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
+
+        $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
+        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginMoz->getAllColumns());
 
         /****************************************************************************************************************/
         /****                                                                                                        ****/

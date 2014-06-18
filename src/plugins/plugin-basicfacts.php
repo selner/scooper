@@ -42,12 +42,12 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
     function getAllColumns()
     {
         return array(
-            'company_name'=>null,
-            'result_accuracy_warnings'=>null,
-            'actual_site_url'=>null,
-            'crunchbase_match_accuracy'=>null,
-            'input_source_url'=>null,
-            'root_domain'=>null,
+            'company_name'=>'<not set>',
+            'result_accuracy_warnings'=>'<not set>',
+            'actual_site_url'=>'<not set>',
+            'crunchbase_match_accuracy'=>'<not set>',
+            'input_source_url'=>'<not set>',
+            'root_domain'=>'<not set>',
         );
     }
 

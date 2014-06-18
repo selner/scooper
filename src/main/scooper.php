@@ -149,7 +149,8 @@ function __runCompanyLookups__()
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
         $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $GLOBALS['output_file_details']['full_file_path']);
-        $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $GLOBALS['output_file_details']['full_file_path']);
+         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
+         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $GLOBALS['output_file_details']['full_file_path']);
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
@@ -161,9 +162,12 @@ function __runCompanyLookups__()
         $classFileOut = new SimpleScooterCSVFileClass($GLOBALS['output_file_details']['full_file_path'], 'w+');
 
         $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
-        $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
+        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginQuantcast->getAllColumns());
         $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
+         $arrAllPluginColumnsForRecords  = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
 
+         $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
+         $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginMoz->getAllColumns());
 
         /****************************************************************************************************************/
         /****                                                                                                        ****/
@@ -180,6 +184,9 @@ function __runCompanyLookups__()
         $ncurRecordIndex = 0;
         while($ncurRecordIndex < count($arrAllRecordsProcessed))
         {
+            $arrRecordToUpdate = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
+
+            $arrAllRecordsProcessed[$ncurRecordIndex] = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
 
             $company = $arrAllRecordsProcessed[$ncurRecordIndex]['company_name'];
             $pluginQuantcast->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);

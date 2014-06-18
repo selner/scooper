@@ -49,8 +49,55 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 	}
 
 
+    function getAllColumns()
+    {
+        return array(
+            'uuid ' => null,
+            'type ' => null,
+            'properties' => null,
+            'role_company ' => null,
+            'description ' => null,
+            'short_description ' => null,
+            'permalink ' => null,
+            'primary_role ' => null,
+            'is_closed ' => null,
+            'name ' => null,
+            'founded_on_day ' => null,
+            'founded_on_month ' => null,
+            'founded_on_year ' => null,
+            'role_investor ' => null,
+            'closed_on_day ' => null,
+            'closed_on_month ' => null,
+            'closed_on_year ' => null,
+            'closed_on ' => null,
+            'stock_exchange_id ' => null,
+            'created_at ' => null,
+            'updated_at' => null,
+            'closed_on_trust_code ' => null,
+            'homepage_url ' => null,
+            'founded_on ' => null,
+            'founded_on_trust_code ' => null,
+            'sub_organizations ' => null,
+            'current_team ' => null,
+            'acquisitions ' => null,
+            'competitors ' => null,
+            'offices ' => null,
+            'headquarters ' => null,
+            'funding_rounds ' => null,
+            'categories ' => null,
+            'investments ' => null,
+            'invested_in' => null,
+            'founders ' => null,
+            'ipo ' => null,
+            'products ' => null,
+            'primary_image ' => null,
+            'images ' => null,
+            'websites ' => null,
+            'url ' => null,
+            'news ' => null,
+        );
 
-
+    }
 
 
     public function writeCrunchbaseOrganizationToFile($strPermalink, $detailsCSVFile)

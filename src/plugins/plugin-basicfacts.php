@@ -39,6 +39,19 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         // if($fVarExclude == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
     }
 
+    function getAllColumns()
+    {
+        return array(
+            'company_name'=>null,
+            'result_accuracy_warnings'=>null,
+            'actual_site_url'=>null,
+            'crunchbase_match_accuracy'=>null,
+            'input_source_url'=>null,
+            'root_domain'=>null,
+        );
+    }
+
+
     function setDataType($data_type)
     {
         $this->_data_type = $data_type;

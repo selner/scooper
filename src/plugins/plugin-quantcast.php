@@ -34,6 +34,11 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
     }
 
+    function getAllColumns()
+    {
+        return array('monthly_uniques' => null);
+    }
+
     // Redefine the parent method
     function addDataToRecord(&$arrRecordToUpdate) 
     {

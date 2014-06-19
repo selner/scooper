@@ -185,7 +185,7 @@ function __construct($fileFullPath, $strAccessMode)
             $nInputRow++;
         }
 
-        return $arrDataLoaded['data_rows'];
+        return $arrDataLoaded;
     }
 
     function writeArrayToHTMLFile($records, $keys=null, $arrKeysToUseToDedupe = null, $strCSSToInclude = null)
@@ -357,6 +357,8 @@ function __construct($fileFullPath, $strAccessMode)
                 $classCurrentInput = new ClassScooperSimpleCSVFile($curFilePath, 'r');
 
                 $arrCSVInput = $classCurrentInput->__readAllRecords_CSV__(true, $keysToUse);
+                $arrCSVInput = $arrCSVInput ['data_rows'];
+
                 __debug__printLine("readAllRecords returned " . count($arrCSVInput) . " for ".$curFilePath, C__DISPLAY_ITEM_DETAIL__);
 
                 if(count($arrCSVInput) > 0)

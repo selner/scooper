@@ -90,6 +90,8 @@ function __runCrunchbaseAPICall__($strURL)
 
 }
 
+
+
 function __runCompanyLookups__()
 {
 
@@ -114,18 +116,6 @@ function __runCompanyLookups__()
         {
             $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE;
 
-            /****************************************************************************************************************/
-            /****                                                                                                        ****/
-            /****    Read the Input CSV File into an array                                                               ****/
-            /****                                                                                                        ****/
-            /****************************************************************************************************************/
-            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-            $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
-
-            $arrInputCSVData = $classFileIn->readAllRecords(true);
-
-            __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
-            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
         }
         else
@@ -142,6 +132,18 @@ function __runCompanyLookups__()
         /****                                                                                                        ****/
         /****************************************************************************************************************/
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+         /****************************************************************************************************************/
+         /****                                                                                                        ****/
+         /****    Read the Input CSV File into an array                                                               ****/
+         /****                                                                                                        ****/
+         /****************************************************************************************************************/
+         __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+         $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
+
+         $arrInputCSVData = $classFileIn->readAllRecords(true);
+
+         __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
+         __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
         $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $detailsOut['full_file_path']);
         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();

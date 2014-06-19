@@ -66,10 +66,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
     function addDataToMultipleRecords($arrDataLoaded, $strOutputFile = null)
     {
-        if(!$this->_data_type)
-        {
-            throw new Exception("Source data type was not set when BasicFactsPluginClass was initialized.");
-        }
+
 
         $arrRecordsToProcess =  array();
 
@@ -99,6 +96,11 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
                         $arrRecordsToProcess[$nRow]['input_source_url'] =  array_shift($strCurInputDataRecord);
                     }
                     break;
+            }
+
+            if(!$this->_data_type)
+            {
+                throw new Exception("Source data type was not set when BasicFactsPluginClass was initialized.");
             }
 
             if(!strlen($arrRecordsToProcess[$nRow]['company_name']) > 0 && !strlen(($arrRecordsToProcess[$nRow]['input_source_url'])>0))

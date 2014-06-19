@@ -16,7 +16,11 @@
  */
 
 
-class SimpleScooterCSVFileClass {
+define('__SCROOT__', dirname(dirname(__FILE__)));
+require_once(__SCROOT__ . '/scooper_common.php');
+
+
+class ClassScooperSimpleCSVFile {
 
     /***
     From:  http://www.php.net/manual/en/function/fopen.php
@@ -35,16 +39,61 @@ class SimpleScooterCSVFileClass {
     'c+'	 Open the file for reading and writing; otherwise it has the same behavior as 'c'.
      ****/
 
+    private function __getFileType__()
+    {
+        $extensionType = null;
 
-    function __construct($fileFullPath, $strAccessMode)
+        $strExt = strtolower($this->detailsFile['file_extension']);
+        switch ($strExt )
+        {
+            case 'xlsx':			//	Excel (OfficeOpenXML) Spreadsheet
+            case 'xlsm':			//	Excel (OfficeOpenXML) Macro Spreadsheet (macros will be discarded)
+            case 'xltx':			//	Excel (OfficeOpenXML) Template
+            case 'xltm':			//	Excel (OfficeOpenXML) Macro Template (macros will be discarded)
+            $extensionType = 'Excel2007';
+            break;
+            case 'xls':				//	Excel (BIFF) Spreadsheet
+            case 'xlt':				//	Excel (BIFF) Template
+            $extensionType = 'Excel5';
+            break;
+            case 'ods':				//	Open/Libre Offic Calc
+            case 'ots':				//	Open/Libre Offic Calc Template
+            $extensionType = 'OOCalc';
+            break;
+            case 'slk':
+            $extensionType = 'SYLK';
+            break;
+            case 'xml':				//	Excel 2003 SpreadSheetML
+            $extensionType = 'Excel2003XML';
+            break;
+            case 'gnumeric':
+            $extensionType = 'Gnumeric';
+            break;
+            case 'htm':
+            case 'html':
+            $extensionType = 'HTML';
+            break;
+            case 'csv':
+                $extensionType = 'CSV';
+            break;
+            default:
+            break;
+          }
+
+        return $extensionType;
+    }
+
+
+function __construct($fileFullPath, $strAccessMode)
     {
         if(!$fileFullPath || strlen($fileFullPath) == 0 )
         {
-            throw new Exception("File path including the file name is required to instantiate a SimpleScooterCSVFileClass. ");
+            throw new Exception("File path including the file name is required to instantiate a SimpleScooperCSVClass. ");
         }
 
+        $this->detailsFile = parseFilePath($fileFullPath, false);
 
-        $this->_openFile_($fileFullPath, $strAccessMode);
+        $this->_openFile_($strAccessMode);
 
     }
 
@@ -57,16 +106,15 @@ class SimpleScooterCSVFileClass {
     {
         if($this->_fp_ && get_resource_type($this->_fp_) === 'file')
         {
-            fclose($this->_fp_) or die("can't close file ".$this->_strFilePath_);
+            fclose($this->_fp_) or die("can't close file ".$this->detailsFile['full_file_path']);
         }
     }
 
-    private function _openFile_($filepath, $strAccessMode)
+    private function _openFile_($strAccessMode)
     {
-        $this->_strFilePath_ = $filepath;
         $this->_strAccessMode_ = $strAccessMode;
 
-        $fp = fopen($this->_strFilePath_,$strAccessMode);
+        $fp = fopen($this->detailsFile['full_file_path'], $strAccessMode);
         if($fp)
             $this->_fp_ = $fp;
         else
@@ -76,45 +124,37 @@ class SimpleScooterCSVFileClass {
     private function _resetFile()
     {
         $this->_closeFile_();
-        $this->_openFile_($this->_strFilePath_, $this->_strAccessMode_);
+        $this->_openFile_($this->_strAccessMode_);
     }
 
-    function readAllRowsFromCSV(&$arrCSVRecords, $fHasHeaderRow = false)
+
+    function readAllRecords($fHasHeaderRow, $arrKeysToUse = null, $sheetName = null)
     {
-        __debug__printLine("File: ".$this->_strFilePath_, C__DISPLAY_NORMAL__);
+        __debug__printLine("Reading all records for file type =".$this->__getFileType__()."; File=".$this->detailsFile['full_file_path'], C__DISPLAY_ITEM_DETAIL__);
 
+        $ret = null;
 
-        $arrDataLoaded = getEmptyUserInputRecord();
-        $nInputRow = 0;
-
-        while (($data = fgetcsv($this->_fp_, 0, ',', '"')) !== FALSE)
+        switch($this->__getFileType__())
         {
-            if($fHasHeaderRow == true && $nInputRow == 0)
-            {
-                $arrDataLoaded['header_keys'] = $data;
-                $arrDataLoaded['data_type'] = getDataTypeFromString($data[0]);
-            }
-            else
-            {
-                if(strlen($data[0])> 0)  // skip rows with blank values in the first field.
-                {
-                    $arrDataLoaded['data_rows'][] = array_combine($arrDataLoaded['header_keys'], $data);
-                }
+            case 'CSV':
+                $ret = $this->__readAllRecords_CSV__($fHasHeaderRow, $arrKeysToUse);
+                break;
 
-            }
-            $nInputRow++;
+//            case 'Excel2007':
+ //             $ret =   $this->__readAllRecords_Excel__($fHasHeaderRow, $arrKeysToUse, $sheetName);
+ //               break;
+            default:
+                __debug__printLine("Unsupported file type.  Extension=".$this->detailsFile['file_extension']."; File=".$this->detailsFile['full_file_path'], C__DISPLAY_ERROR__);
+                break;
         }
 
-        $arrCSVRecords = $arrDataLoaded;
-        return $arrCSVRecords;
+        return $ret;
+
     }
 
-
-    function readAllRecords($fHasHeaderRow, $arrKeysToUse = null)
+    private function __readAllRecords_CSV__($fHasHeaderRow, $arrKeysToUse = null)
     {
-
-
-        __debug__printLine("Reading CSV records from: ".$this->_strFilePath_, C__DISPLAY_ITEM_DETAIL__);
+        __debug__printLine("Reading CSV records from: ".$this->detailsFile['full_file_path'], C__DISPLAY_ITEM_DETAIL__);
 
         $arrDataLoaded = array();
         $nInputRow = 0;
@@ -132,31 +172,11 @@ class SimpleScooterCSVFileClass {
                 {
                     $arrDataLoaded['header_keys'] = $arrKeysToUse;
                 }
-/* FOR DEBUGGING
-                if($this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_inactive.csv' ||
-                    $this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_active.csv')
-                {
-                    var_dump('$arrData header keys = ', $arrDataLoaded['header_keys']);
-                    var_dump('$data = ', $data);
-                    var_dump('$keystouse= ', $arrKeysToUse);
-
-                }
-*/
             }
             else
             {
                 if(strlen($data[0])> 0)  // skip rows with blank values in the first field.
                 {
-/* FOR DEBUGGING
-
-                    if($this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_inactive.csv' ||
-                        $this->_strFilePath_ == '/Users/bryan/Code/data/jobs/bryans_list_active.csv')
-                    {
-                        var_dump('$arrData header keys = ', $arrDataLoaded['header_keys']);
-                        var_dump('$data = ', $data);
-
-                    }
-*/
                     $arrDataLoaded['data_rows'][] = array_combine($arrDataLoaded['header_keys'], $data);
 
                 }
@@ -168,6 +188,21 @@ class SimpleScooterCSVFileClass {
         return $arrDataLoaded['data_rows'];
     }
 
+    function writeArrayToHTMLFile($records, $keys=null, $arrKeysToUseToDedupe = null, $strCSSToInclude = null)
+    {
+        if($this->_strAccessMode_[0] == 'w' || $this->_strAccessMode_[0] == 'w')
+        {
+            $this->_resetFile();
+        }
+
+        $htmlOut = $this->getHTMLTableForCSV($records, $keys, $strCSSToInclude);
+
+        if(!fputs($this->_fp_, $htmlOut))
+        {
+            throw new Exception("Unable to write file.");
+        }
+    }
+
     function writeArrayToCSVFile($records, $keys=null, $arrKeysToUseToDedupe = null)
     {
 
@@ -175,13 +210,6 @@ class SimpleScooterCSVFileClass {
         {
             $this->_resetFile();
         }
-
-
-        // check if inputs are really arrays
-        if(!is_array($records) && !is_array($records[0])) {
-            throw new Exception("$records variable passed was not a 2-D array.");
-        }
-
 
         if(!$keys)
         {
@@ -197,10 +225,11 @@ class SimpleScooterCSVFileClass {
             throw new Exception("$keys variable passed was not a valid array.");
         }
 
+        if(count($records) > 0)
+        {
+
         $arrRecordsToOutput = $this->getSortedDeDupedCSVArray($records, $arrKeysToUseToDedupe);
 
-        if(count($arrRecordsToOutput) > 0)
-        {
             foreach ($arrRecordsToOutput as $record)
             {
                 if(!fputcsv($this->_fp_, $record))
@@ -214,8 +243,67 @@ class SimpleScooterCSVFileClass {
     }
 
 
+    function getHTMLTableForCSV($arrCSVRows, $arrFieldsToUseInKey, $strCSSToInclude = null)
+    {
+
+        $strHTMLReturn = "";
+
+        if($strCSSToInclude != null)
+        {
+            $strHTMLReturn = PHP_EOL . PHP_EOL . "<style>" . $strCSSToInclude . "</style>". PHP_EOL . PHP_EOL;
+        }
+
+        $strHTMLReturn .= "<table class='CSVTable'>";
+
+        $strHTMLReturn .= "<tr>";
+        foreach($arrFieldsToUseInKey as $fieldName)
+        {
+            $strHTMLReturn .= "<td>";
+            $strHTMLReturn .= $fieldName;
+            $strHTMLReturn .= "</td>";
+        }
+        $strHTMLReturn .= "</tr>";
+
+
+        foreach($arrCSVRows as $rec)
+        {
+            $strHTMLReturn .= "<tr>";
+            foreach($arrFieldsToUseInKey as $fieldName)
+            {
+                $strHTMLReturn .= "<td>";
+                $linkCount = substr_count($rec[$fieldName], "http");
+                switch ($linkCount)
+                {
+                    case 0:
+                         $strHTMLReturn .= $rec[$fieldName];
+                        break;
+
+                    case 1:
+                        $strLink = substr($rec[$fieldName], 0, 50);
+                        $strHTMLReturn .= "<a href='" . $rec[$fieldName] . "'>" . $strLink . "</a>";
+                        break;
+
+                    default:
+                        $strHTMLReturn .= linkify($rec[$fieldName]);
+                        break;
+                }
+                $strHTMLReturn .= "</td>";
+            }
+            $strHTMLReturn .= "</tr>";
+        }
+        $strHTMLReturn .= "</table>";
+
+
+//        $strHTMLReturn = preg_replace("/^(.*)/", "<br/><br/>$1", $strHTMLReturn );
+
+        return $strHTMLReturn;
+
+    }
+
+
     function getSortedDeDupedCSVArray($arrCSVRows, $arrFieldsToUseInKey)
     {
+        $retArray = null;
 
         if(!$arrFieldsToUseInKey || !is_array($arrFieldsToUseInKey))
         {
@@ -225,7 +313,6 @@ class SimpleScooterCSVFileClass {
 //        print 'input array rows = ' . count($arrCSVRows).PHP_EOL;
         $arrKeyedCSV = array();
         $inputKeys = array_keys($arrCSVRows);
-        $retArray = null;
 
         foreach($arrCSVRows as $rec)
         {
@@ -256,6 +343,7 @@ class SimpleScooterCSVFileClass {
 
     function readMultipleCSVsAndCombine($arrFullPaths, $keysToUse = null, $arrKeysToUseForDedupe = null)
     {
+        __debug__printLine("readMultipleCSVsAndCombine . " . $strOutFilePath, C__DISPLAY_ITEM_DETAIL__);
 
         __debug__printLine("Loading and combining CSV records from " . count($arrFullPaths)." files.", C__DISPLAY_ITEM_START__);
 
@@ -266,9 +354,9 @@ class SimpleScooterCSVFileClass {
 
             if(is_file($curFilePath))
             {
-                $classCurrentInput = new SimpleScooterCSVFileClass($curFilePath, 'r');
+                $classCurrentInput = new ClassScooperSimpleCSVFile($curFilePath, 'r');
 
-                $arrCSVInput = $classCurrentInput->readAllRecords(true, $keysToUse);
+                $arrCSVInput = $classCurrentInput->__readAllRecords_CSV__(true, $keysToUse);
                 __debug__printLine("readAllRecords returned " . count($arrCSVInput) . " for ".$curFilePath, C__DISPLAY_ITEM_DETAIL__);
 
                 if(count($arrCSVInput) > 0)
@@ -309,12 +397,34 @@ class SimpleScooterCSVFileClass {
     function combineMultipleCSVs($arrFullFilePaths, $keysToUseForOutputCSV = null, $arrKeysToUseForDedupe = null)
     {
 
-        $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUseForOutputCSV);
+        switch($this->__getFileType__())
+        {
+            case 'CSV':
+                $this->__combineMultipleCSVsIntoCSV__($arrFullFilePaths, $keysToUseForOutputCSV, $arrKeysToUseForDedupe);
+                break;
+
+            case 'Excel2007':
+                if($keysToUseForOutputCSV != null || $arrKeysToUseForDedupe != null)
+                {
+                    __debug__printLine("Data is not deduped when writing to Excel. Keys also cannot be set. File=".$this->detailsFile['full_file_path'], C__DISPLAY_WARNING__);
+                }
+                $this->combineMultipleCSVsToExcel($arrFullFilePaths);
+                break;
+            default:
+                __debug__printLine("Unsupported file type.  Extension=".$this->detailsFile['file_extension']."; File=".$this->detailsFile['full_file_path'], C__DISPLAY_ITEM_DETAIL__);
+                break;
+        }
+    }
+
+    private function __combineMultipleCSVsIntoCSV__($arrFullFilePaths, $keysToUseForOutputCSV = null, $arrKeysToUseForDedupe = null)
+    {
+
+            $arrRecordsCombinedOutput = $this->readMultipleCSVsAndCombine($arrFullFilePaths, $keysToUseForOutputCSV);
 
         // sort the list and get to only the uniq records we haven't seen before
         $arrUniq = $this->getSortedDeDupedCSVArray($arrRecordsCombinedOutput, $arrKeysToUseForDedupe );
 
-        __debug__printLine("Total of " . count($arrUniq) ." unique records out of " . count($arrRecordsCombinedOutput)." records will be written to  ".$this->_strFilePath_.".", C__DISPLAY_ITEM_DETAIL__);
+        __debug__printLine("Total of " . count($arrUniq) ." unique records out of " . count($arrRecordsCombinedOutput)." records will be written to  ".$this->detailsFile['full_file_path'].".", C__DISPLAY_ITEM_DETAIL__);
 
         // write the uniq values out to the results file
         $this->writeArrayToCSVFile($arrUniq, $keysToUseForOutputCSV );
@@ -323,7 +433,6 @@ class SimpleScooterCSVFileClass {
         // And, finally, return the uniqure records
         //
         return $arrUniq;
-
     }
 
 
@@ -334,4 +443,9 @@ class SimpleScooterCSVFileClass {
 
 }
 
+function getEmptyUserInputRecord()
+{
+    return array('header_keys'=>null, 'data_type' => null, 'data_rows'=>array());
+}
 
+?>

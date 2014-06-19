@@ -28,8 +28,8 @@
     class MozPluginClass extends ScooterPluginBaseClass
 	{
 		private $_arrMozBulkAPIResults_ = null;
-        private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-        private $strDataProviderName  = 'Moz.com';
+        protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+        protected  $strDataProviderName  = 'Moz.com';
 
 		function __construct($fExcludeThisData, $arrAllRecords)
 		{
@@ -38,6 +38,13 @@
             __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
 
                 $this->_batchQueryMozAPI_($arrAllRecords);
+        }
+
+
+        function getCompanyData($id)
+        {
+            throw new Exception("getCompanyData not implemented for " . get_class($this));
+
         }
 
         function getAllColumns()
@@ -284,7 +291,6 @@
                     throw new ErrorException($strErr,curl_errno($ch),E_RECOVERABLE_ERROR );
                 }
 
-                            var_dump($content);
 				$contents = json_decode($content);
 				foreach ($arrDomainsToQuery as $domain)
 				{

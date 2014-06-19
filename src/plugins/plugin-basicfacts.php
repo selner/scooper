@@ -28,7 +28,7 @@ require_once(__ROOT__.'/include/plugin-base.php');
 class BasicFactsPluginClass extends ScooterPluginBaseClass
 {
     private $_data_type = null;
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
 
 
 
@@ -49,6 +49,13 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             'input_source_url'=>'<not set>',
             'root_domain'=>'<not set>',
         );
+    }
+
+
+    function getCompanyData($id)
+    {
+        throw new Exception("getCompanyData not implemented for " . get_class($this));
+
     }
 
 
@@ -109,7 +116,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
             if($strOutputFile != null && $nRow % C__RECORD_CHUNK_SIZE__ == 0)
             {
-                $classFileOut = new SimpleScooterCSVFileClass($strOutputFile, "w");
+                $classFileOut = new ClassScooperSimpleCSVFile($strOutputFile, "w");
                 $classFileOut->writeArrayToCSVFile($arrRecordsToProcess );
 
             }
@@ -171,7 +178,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
     private function _getData_($var)
     {
-        $classAPIWrap = new APICallWrapperClass();
+        $classAPIWrap = new ClassScooperAPIWrapper();
 
         $curRecord = array_copy($var);
 

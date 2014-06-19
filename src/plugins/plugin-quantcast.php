@@ -25,8 +25,8 @@ require_once(__ROOT__.'/include/plugin-base.php');
 /****************************************************************************************************************/
 class QuantcastPluginClass extends ScooterPluginBaseClass
 {
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-    private $strDataProviderName  = 'Quantcast';
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected  $strDataProviderName  = 'Quantcast';
 
     function __construct($fExcludeThisData)
     {
@@ -50,11 +50,18 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         }
     }
 
-   private function _getData_($var) 
+    function getCompanyData($id)
+    {
+        throw new Exception("getCompanyData not implemented for " . get_class($this));
+
+    }
+
+
+    private function _getData_($var)
 	{
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return null;
 
-        $classAPIWrap = new APICallWrapperClass();
+        $classAPIWrap = new ClassScooperAPIWrapper();
         $domain = $var;
         $url = 'https://www.quantcast.com/'.$domain;
         __debug__printLine("Querying Quantcast data for ".$domain, C__DISPLAY_ITEM_START__);

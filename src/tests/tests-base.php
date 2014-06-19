@@ -16,7 +16,7 @@ function initTests()
 }
 
 
-function getTestOutputFileDetailsDetails()
+function getTestOutputFileDetails()
 {
 
     $strDir = sys_get_temp_dir();

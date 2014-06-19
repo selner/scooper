@@ -34,6 +34,7 @@ require_once(__ROOT__.'/include/options.php');
 function __main__ ()
 {
     __startApp__();
+
     __doRun__();
 
 }
@@ -51,16 +52,9 @@ function __doRun__()
         /****                                                                                                        ****/
         /****************************************************************************************************************/
 
-        __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
-
-
-
-        __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), LOG_INFO);
-        __log__('Output File Details = '.var_export($GLOBALS['output_file_details'], true), LOG_INFO);
-
-        __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
-
+    __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), LOG_INFO);
+    __log__('Output File Details = '.var_export($GLOBALS['output_file_details'], true), LOG_INFO);
 
 
 
@@ -78,7 +72,7 @@ function __doRun__()
 
         if($GLOBALS['OPTS']['crunchbase_api_url_given'])
         {
-            __runCrunchbaseAPICall__();
+            __runCrunchbaseAPICall__($GLOBALS['OPTS']['crunchbase_api_url']);
         }
         else
         {
@@ -88,17 +82,18 @@ function __doRun__()
     __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
 }
 
-function __runCrunchbaseAPICall__()
+function __runCrunchbaseAPICall__($strURL)
 {
     $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-    $strURL = $GLOBALS['OPTS']['crunchbase_api_url'];
 
-    $pluginCrunchbase->writeCrunchbaseAPICallResultstoFile($strURL, $GLOBALS['output_file_details']);
+    $pluginCrunchbase->writeAPIResultsToFile($strURL, $GLOBALS['output_file_details']);
 
 }
 
 function __runCompanyLookups__()
 {
+
+    $detailsOut = $GLOBALS['output_file_details'];
 
      try
      {
@@ -125,9 +120,9 @@ function __runCompanyLookups__()
             /****                                                                                                        ****/
             /****************************************************************************************************************/
             __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-            $classFileIn = new SimpleScooterCSVFileClass($GLOBALS['input_file_details']['full_file_path'], 'r');
+            $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
 
-            $classFileIn->readAllRowsFromCSV($arrInputCSVData, true);
+            $arrInputCSVData = $classFileIn->readAllRecords(true);
 
             __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
             __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
@@ -148,9 +143,9 @@ function __runCompanyLookups__()
         /****************************************************************************************************************/
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
-        $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $GLOBALS['output_file_details']['full_file_path']);
-         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
-         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $GLOBALS['output_file_details']['full_file_path']);
+        $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $detailsOut['full_file_path']);
+        $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
+        $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $detailsOut['full_file_path']);
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
@@ -159,10 +154,13 @@ function __runCompanyLookups__()
         /****   Initialize the data plugin classes                                                                   ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        $classFileOut = new SimpleScooterCSVFileClass($GLOBALS['output_file_details']['full_file_path'], 'w+');
+        $classFileOut = new ClassScooperSimpleCSVFile($detailsOut['full_file_path'], 'w+');
 
         $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
         $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginQuantcast->getAllColumns());
+
+        $pluginAngel = new PluginAngelList($GLOBALS['OPTS']['exclude_angellist']);
+        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginAngel->getAllColumns());
 
         $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
         $arrAllPluginColumnsForRecords  = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
@@ -194,6 +192,8 @@ function __runCompanyLookups__()
 
             $pluginCrunchbase->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
 
+            $pluginAngel->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
+
             $pluginMoz->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
 
 
@@ -215,7 +215,9 @@ function __runCompanyLookups__()
         /****   Output the results to a new CSV file.                                                                ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        $classFileOut->writeArrayToCSVFile($arrAllRecordsProcessed );
+
+        __debug__printLine("Writing results to ".$detailsOut['full_file_path'], C__DISPLAY_NORMAL__);
+         $classFileOut->writeArrayToCSVFile( $arrAllRecordsProcessed );
 
 
 

@@ -14,8 +14,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-require_once dirname(__FILE__) . '/../include/plugin-base.php';
-
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
@@ -31,8 +29,8 @@ $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_ro
 class CrunchbasePluginClass extends ScooterPluginBaseClass
 {
 
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-    private $strDataProviderName  = 'Crunchbase';
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected $strDataProviderName  = 'Crunchbase';
 
 
     function __construct($fExcludeThisData)
@@ -102,11 +100,11 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     public function writeCrunchbaseOrganizationToFile($strPermalink, $detailsCSVFile)
     {
-        $data = $this->getCrunchbaseOrganization($strPermalink);
-        $this->writeCrunchbaseDataToFile($data, $detailsCSVFile);
+        $data = $this->getCompanyData($strPermalink);
+        $this->writeDataToFile($data, $detailsCSVFile);
     }
 
-    public function getCrunchbaseOrganization($strPermalink)
+    public function getCompanyData($strPermalink)
     {
 
         if(!$strPermalink || strlen($strPermalink) == 0)
@@ -136,92 +134,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 
 
-    public function writeCrunchbaseAPICallResultstoFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
-    {
-        if($GLOBALS['OPTS']['crunchbase_api_id'] == null || $GLOBALS['OPTS']['crunchbase_api_id']=="")
-        {
-            throw new ErrorException("Crunchbase API ID is required to call this function.");
-        }
-
-        __debug__printLine("Starting Crunchbase Data export for API call:" .$strAPICallURL, C__DISPLAY_SECTION_START__);
-
-        //
-        // Query the API for our data
-        //
-        __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
-        $arrCrunchAPIData = $this->getDataFromCrunchbaseAPI($strAPICallURL , true, $nMaxPages);
-
-        __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
-
-        $this->writeCrunchbaseDataToFile($arrCrunchAPIData, $detailsFile);
-
-        return $arrCrunchAPIData;
-
-    }
-
-
-    public function writeCrunchbaseDataToFile($arrCrunchAPIData, $detailsFile)
-    {
-        if($GLOBALS['OPTS']['crunchbase_api_id'] == null || $GLOBALS['OPTS']['crunchbase_api_id']=="")
-        {
-            throw new ErrorException("Crunchbase API ID is required to call this function.");
-        }
-
-        $classOutputFile = new SimpleScooterCSVFileClass($detailsFile['full_file_path'], "w");
-
-        //
-        // Make sure our data is an array so we can write it as expected
-        //
-        __debug__printLine("Bundling data for writing to file...", C__DISPLAY_NORMAL__);
-        if(!is_array_multidimensional($arrCrunchAPIData))
-        {
-            $outRecord[] = $arrCrunchAPIData;
-        }
-        else
-        {
-            $outRecord = $arrCrunchAPIData;
-        }
-
-        //
-        // Write the CSV out to file
-        //
-        __debug__printLine("Writing to file: " .$detailsFile['full_file_path'] , C__DISPLAY_NORMAL__);
-        $classOutputFile->writeArrayToCSVFile($outRecord);
-
-        __debug__printLine("Export complete." , C__DISPLAY_SUMMARY__);
-
-    }
-
-
-
-
-    public function exportMultipleOrganizationsToCSV($arrPermalinks, $strOutputFile)
-    {
-        $arrOrgData = Array();
-        foreach ($arrPermalinks as $strPermalink)
-        {
-            $arrOrgData[] = $this->getCrunchbaseOrganization($strPermalink);
-        }
-
-        $classOutputVCData = new SimpleScooterCSVFileClass($strOutputFile, "w");
-        $classOutputVCData->writeArrayToCSVFile($arrOrgData);
-
-    }
-
-
-    function readPermalinksFromCSVFile($strInputFile, $strOutputFile)
-    {
-
-        $fileDetails = parseFilePath($strInputFile);
-        $classFileIn = new SimpleScooterCSVFileClass($fileDetails['full_file_path'], "r");
-        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, array('permalink'));
-
-        $arrPermalinks = array_column($arrCSVLinkRecords, 'permalink');
-
-        $this->exportMultipleOrganizationsToCSV($arrPermalinks, $strOutputFile);
-    }
-
-
 
 
 
@@ -246,7 +158,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             //
             // Call the Crunchbase Search API
             //
-            $classAPICall = new APICallWrapperClass();
+            $classAPICall = new ClassScooperAPIWrapper();
             $nMatchCrunchResult = -1;
             $nCurResult = 0;
 
@@ -334,11 +246,11 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                $this->_expandArrays_($arrRecordToUpdate);
            }
         }
-    catch ( ErrorException $e )
-     {
-        print ("Error: ". $e->getMessage()."\r\n" );
-        addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
-        $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
+        catch ( ErrorException $e )
+        {
+         $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
+         __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+         addToAccuracyField($arrRecordToUpdate, $strErr );
         }
     }
 
@@ -351,10 +263,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , C__DISPLAY_ITEM_DETAIL__);
 
-        if($arrRecordToUpdate['permalink'] && strlen($arrRecordToUpdate['permalink']) > 0)
+        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']))
         {
 
-            $arrCrunchEntityData = $this->getCrunchbaseOrganization($arrRecordToUpdate['permalink']);
+            $arrCrunchEntityData = $this->getCompanyData($arrRecordToUpdate['permalink']);
             if(is_array($arrCrunchEntityData))
             {
                 $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
@@ -371,82 +283,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 
 
-    private function _getURLWithKey_($strURL)
-    {
-        $fFoundQuestion = (substr_count($strURL, "?") > 0);
-        return $strURL . ($fFoundQuestion ? "&" : "?") . "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
-    }
 
-
-    private function __getCrunchbaseAPIDataForSubItems__($dataItems)
-    {
-        if($dataItems == null) return null;
-
-        $ret = null;
-        foreach($dataItems as $record)
-        {
-            $dataExp = array();
-            foreach(array_keys($record) as $recordKey)
-            {
-                if($recordKey == 'path')
-                {
-                    $strAPIURL = "http://api.crunchbase.com/v/2/".$record[$recordKey];
-                    $dataFacts = $this->getDataFromCrunchbaseAPI($strAPIURL, true);
-                    foreach(array_keys($dataFacts) as $factKey)
-                    {
-                        $dataExp[$factKey] = $dataFacts[$factKey];
-                    }
-                }
-                else
-                {
-                    $dataExp[$recordKey] = $record[$recordKey];
-                }
-            }
-            $ret[] = $dataExp;
-        }
-        return $ret;
-    }
-
-
-
-
-    private function _flattenCrunchbaseData_($arrData)
-    {
-        $arrRet = array();
-
-        foreach(array_keys($arrData) as $dataSectionKey)
-        {
-            $dataSection = $arrData[$dataSectionKey];
-            $dataSection = object_to_array($dataSection);
-            if(is_array($dataSection))
-            {
-                if(in_array(strtolower($dataSectionKey), $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS']) == true)
-                {
-                    $subItems = $this->__getCrunchbaseAPIDataForSubItems__($arrData[$dataSectionKey]);
-                    $itemValue = array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
-                    $arrRet[$dataSectionKey] = $itemValue;
-                }
-                else
-                {
-                    if(is_array_multidimensional($dataSection))
-                    {
-                        $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
-                    }
-                    else
-                    {
-                        $itemValue = $dataSection;
-                    }
-                    $arrRet[$dataSectionKey] = $itemValue;
-                }
-            }
-            else
-            {
-                $arrRet[$dataSectionKey] = $arrData[$dataSectionKey];
-            }
-
-        }
-        return $arrRet;
-    }
 
     private function _addRelationshipsToResult_(&$arrData, $relationships)
     {
@@ -468,6 +305,13 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
+    private function _getURLWithKey_($strURL)
+    {
+        $fFoundQuestion = (substr_count($strURL, "?") > 0);
+        return $strURL . ($fFoundQuestion ? "&" : "?") . "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+    }
+
+
     private function getDataFromCrunchbaseAPI($strAPIURL, $fFlatten = false, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0)
     {
 
@@ -479,7 +323,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         $strKeyedAPIURL = $this->_getURLWithKey_($strAPIURL);
         if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strKeyedAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
-        $classAPICall = new APICallWrapperClass();
+        $classAPICall = new ClassScooperAPIWrapper();
 
         $dataAPI= $classAPICall->getObjectsFromAPICall($strKeyedAPIURL, 'data', C__API_RETURN_TYPE_OBJECT__, null);
         $retItems = array();
@@ -488,10 +332,17 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         if($nMaxPages == C__RETURNS_SINGLE_RECORD)
         {
-            array_shift($dataAPI);
-            array_shift($dataAPI);
-            $retItems = $dataAPI[0];  // add the first bucket of data into the return set.
-            $this->_addRelationshipsToResult_($retItems, $dataAPI[1]);
+            if($dataAPI != null)
+            {
+                array_shift($dataAPI);
+                array_shift($dataAPI);
+                $retItems = $dataAPI[0];  // add the first bucket of data into the return set.
+                $this->_addRelationshipsToResult_($retItems, $dataAPI[1]);
+            }
+            else
+            {
+                __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
+            }
         }
         else // mulitple item API call
         {
@@ -548,6 +399,73 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     }
 
+
+    private function __getCrunchbaseAPIDataForSubItems__($dataItems)
+    {
+        if($dataItems == null) return null;
+
+        $ret = null;
+        foreach($dataItems as $record)
+        {
+            $dataExp = array();
+            foreach(array_keys($record) as $recordKey)
+            {
+                if($recordKey == 'path')
+                {
+                    $strAPIURL = "http://api.crunchbase.com/v/2/".$record[$recordKey];
+                    $dataFacts = $this->getDataFromCrunchbaseAPI($strAPIURL, true);
+                    foreach(array_keys($dataFacts) as $factKey)
+                    {
+                        $dataExp[$factKey] = $dataFacts[$factKey];
+                    }
+                }
+                else
+                {
+                    $dataExp[$recordKey] = $record[$recordKey];
+                }
+            }
+            $ret[] = $dataExp;
+        }
+        return $ret;
+    }
+
+    private function _flattenCrunchbaseData_($arrData)
+    {
+        $arrRet = array();
+
+        foreach(array_keys($arrData) as $dataSectionKey)
+        {
+            $dataSection = $arrData[$dataSectionKey];
+            $dataSection = object_to_array($dataSection);
+            if(is_array($dataSection))
+            {
+                if(in_array(strtolower($dataSectionKey), $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS']) == true)
+                {
+                    $subItems = $this->__getCrunchbaseAPIDataForSubItems__($arrData[$dataSectionKey]);
+                    $itemValue = array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    $arrRet[$dataSectionKey] = $itemValue;
+                }
+                else
+                {
+                    if(is_array_multidimensional($dataSection))
+                    {
+                        $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    }
+                    else
+                    {
+                        $itemValue = $dataSection;
+                    }
+                    $arrRet[$dataSectionKey] = $itemValue;
+                }
+            }
+            else
+            {
+                $arrRet[$dataSectionKey] = $arrData[$dataSectionKey];
+            }
+
+        }
+        return $arrRet;
+    }
 
 
 

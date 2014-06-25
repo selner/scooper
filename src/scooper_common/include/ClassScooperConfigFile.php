@@ -109,6 +109,11 @@ class ClassScooperConfigFile
                 $this->detailsOutputFile = parseFilePath($this->config->output->folder, false);
             }
 
+            if($this->config->output->file)
+            {
+                $this->detailsOutputFile = parseFilePath($this->detailsOutputFile['directory'] . $this->config->output->file);
+            }
+
         }
 
         if($this->config->emails )

@@ -88,7 +88,7 @@ function __construct($fileFullPath, $strAccessMode)
     {
         if(!$fileFullPath || strlen($fileFullPath) == 0 )
         {
-            throw new Exception("File path including the file name is required to instantiate a SimpleScooperCSVClass. ");
+            throw new Exception("File path including the file name is required to instantiate a ClassScooperSimpleCSVFile. ");
         }
 
         $this->detailsFile = parseFilePath($fileFullPath, false);

@@ -17,7 +17,7 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
-const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 2;
+const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 40;
 const C__RETURNS_SINGLE_RECORD = -1;
 $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_rounds");
 
@@ -98,10 +98,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
-    public function writeCrunchbaseOrganizationToFile($strPermalink, $detailsCSVFile)
+    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
     {
-        $data = $this->getCompanyData($strPermalink);
-        $this->writeDataToFile($data, $detailsCSVFile);
+        $strKeyedAPIURL = $this->_getURLWithKey_($strAPICallURL);
+        parent::writeAPIResultsToFile($strKeyedAPIURL, $detailsFile, 'next_page_url', $nMaxPages, 'data');
     }
 
     public function getCompanyData($strPermalink)
@@ -128,12 +128,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = getPrimaryDomainFromUrl($data['homepage_url']); }
         if(isRecordFieldNullOrNotSet($data['actual_site_url'])) { $data['actual_site_url'] = $data['homepage_url']; }
         return $data;
-
-
     }
-
-
-
 
 
 
@@ -467,7 +462,12 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         return $arrRet;
     }
 
+    protected function getDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    {
+        $strKeyedURL = $this->_getURLWithKey_($strAPIURL);
 
+        return parent::getDataFromAPI($strKeyedURL, $fFlatten, $nextPageURLColumnKey, $nMaxPages, $nPageNumber, $jsonReturnDataKey);
+    }
 
 }
 

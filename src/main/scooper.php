@@ -35,6 +35,7 @@ function __main__ ()
 {
     __startApp__();
 
+
     __doRun__();
 
 }
@@ -86,7 +87,7 @@ function __runCrunchbaseAPICall__($strURL)
 {
     $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
 
-    $pluginCrunchbase->writeAPIResultsToFile($strURL, $GLOBALS['output_file_details']);
+    $pluginCrunchbase->writeAPIResultsToFile($strURL, $GLOBALS['output_file_details'], C__MAX_CRUNCHBASE_PAGE_DOWNLOADS);
 
 }
 
@@ -114,7 +115,20 @@ function __runCompanyLookups__()
         }
         else if($GLOBALS['OPTS']['inputfile_given'])
         {
+            /****************************************************************************************************************/
+            /****                                                                                                        ****/
+            /****    Read the Input CSV File into an array                                                               ****/
+            /****                                                                                                        ****/
+            /****************************************************************************************************************/
+
             $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE;
+            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+            $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
+
+            $arrInputCSVData = $classFileIn->readAllRecords(true);
+
+            __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
+            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
         }
@@ -128,24 +142,12 @@ function __runCompanyLookups__()
 
         /****************************************************************************************************************/
         /****                                                                                                        ****/
-        /****    Get the basic facts for the loaded CSV input data                                                   ****/
+        /****    Get the basic facts for the loaded input data                                                       ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-         /****************************************************************************************************************/
-         /****                                                                                                        ****/
-         /****    Read the Input CSV File into an array                                                               ****/
-         /****                                                                                                        ****/
-         /****************************************************************************************************************/
-         __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-         $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
 
-         $arrInputCSVData = $classFileIn->readAllRecords(true);
-
-         __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
-         __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
-
-        $pluginBasicFacts = new BasicFactsPluginClass( $arrInputCSVData['data_type'], $detailsOut['full_file_path']);
+        $pluginBasicFacts = new BasicFactsPluginClass($arrInputCSVData['data_rows'] , $detailsOut['full_file_path']);
         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $detailsOut['full_file_path']);
         __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );

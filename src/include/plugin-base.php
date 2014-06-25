@@ -219,8 +219,11 @@ abstract class ScooterPluginBaseClass
 
             $classAPICall = new ClassScooperAPIWrapper();
 
-            $dataAPI= $classAPICall->getObjectsFromAPICall($strAPIURL, $jsonReturnDataKey, C__API_RETURN_TYPE_OBJECT__, null);
-            $dataAPI = object_to_array($dataAPI);
+            $dataAPI= $classAPICall->getObjectsFromAPICall($strAPIURL, $jsonReturnDataKey, C__API_RETURN_TYPE_ARRAY__ , null);
+            if(is_object($dataAPI))
+            {
+                $dataAPI = object_to_array($dataAPI);
+            }
             $retItems = array();
 
             $fRootCall = ($nPageNumber == 0);
@@ -240,22 +243,27 @@ abstract class ScooterPluginBaseClass
                     __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
                 }
             }
-            else // mulitple item API call
+            else // multiple item API call
             {
-                if(is_array($dataAPI) && !is_array($dataAPI[1]) && !is_object($dataAPI[1]))
+                if(is_array($dataAPI) && !is_array($dataAPI[0]) && !is_object($dataAPI[1]))
                 {
                     $retItems = $dataAPI; // add the first bucket of data into the return set.
                 }
                 else
                 {
                     $retItems = $dataAPI[0];
-                    $dataAPINextPage = object_to_array($dataAPI[1]);
+                    $dataAPINextPage = $dataAPI[1];
+                    if(is_object($dataAPINextPage))
+                    {
+                        $dataAPINextPage = object_to_array($dataAPINextPage);
+                    }
+
                     if($nextPageURLColumnKey != null && $dataAPINextPage[$nextPageURLColumnKey] !=null)
                     {
                         if($dataAPINextPage != null && $nPageNumber < $nMaxPages &&
                             $dataAPINextPage[$nextPageURLColumnKey] !=null) // we're in paging mode
                         {
-                            $recursItems = $this->getDataFromAPI($dataAPINextPage[$nextPageURLColumnKey], $fFlatten, $nMaxPages, $nPageNumber+1);
+                            $recursItems = $this->getDataFromAPI($dataAPINextPage[$nextPageURLColumnKey], $fFlatten, $nextPageURLColumnKey, $nMaxPages, $nPageNumber+1, $jsonReturnDataKey);
 
                             if(is_array($recursItems))
                             {
@@ -297,7 +305,7 @@ abstract class ScooterPluginBaseClass
 
 
 
-    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
+    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $strNextPageURLKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $jsonKeyToReturn = null)
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES)
         {
@@ -310,7 +318,7 @@ abstract class ScooterPluginBaseClass
         // Query the API for our data
         //
         __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
-        $arrDataAPI = $this->getDataFromAPI($strAPICallURL , true, $nMaxPages);
+        $arrDataAPI = $this->getDataFromAPI($strAPICallURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
 
         __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
 

@@ -259,13 +259,8 @@ function __check_args__()
             $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
             if(!$GLOBALS['OPTS']['crunchbase_api_id_given']  || (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
             {
-                if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) > 0)
-                    __debug__printLine("No Crunchbase API Key given by the the user.  Defaulting to config value: (".$GLOBALS['OPTS']['crunchbase_api_id'].")." , C__DISPLAY_ERROR__);
-                else
-                {
-                    $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-                    __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
-                }
+                $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
+                __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
             }
 
         }

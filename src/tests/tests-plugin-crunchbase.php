@@ -21,7 +21,7 @@ require_once(__ROOT__.'/tests/tests-base.php');
 
 
 
-
+testCrunchbase_APIExport_MultiPage();
 
 
 
@@ -41,16 +41,19 @@ function runTests_CrunchbasePlugin()
 
 function testCrunchbase_APIExport_MultiPage()
 {
+    initTests();
+
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-    $arrData = $pluginCrunchbase->fetchDataFromAPI("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", true, 'data', 3);
+    $arrData = $pluginCrunchbase->fetchCrunchbaseDataFromAPI("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", true);
     $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 }
 
 
 function testCrunchbase_getCompanyByPermalink($str)
 {
+    initTests();
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);

@@ -97,13 +97,6 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     }
 
-
-    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
-    {
-        $strKeyedAPIURL = $this->_getURLWithKey_($strAPICallURL);
-        parent::writeAPIResultsToFile($strKeyedAPIURL, $detailsFile, 'next_page_url', $nMaxPages, 'data');
-    }
-
     public function getCompanyData($strPermalink)
     {
 
@@ -300,10 +293,30 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
-    private function _getURLWithKey_($strURL)
+    public function fetchCrunchbaseDataFromAPI($strAPIURL, $fFlatten = false)
     {
-        $fFoundQuestion = (substr_count($strURL, "?") > 0);
-        return $strURL . ($fFoundQuestion ? "&" : "?") . "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+        $arrObjectMatches = array();
+        $retItems = null;
+        $fSingleMatch = preg_match_all("/\/person[^s][\?\/]{0,1}|\/organization[^s][\?\/]{0,1}/", $strAPIURL, $arrObjectMatches);
+
+        if($fSingleMatch == true && count($arrObjectMatches) > 0)
+        {
+            $data = $this->fetchDataFromAPI($strAPIURL, $fFlatten, null,  C__RETURNS_SINGLE_RECORD, null, 'data');
+            array_shift($data);
+            array_shift($data);
+            $retItems = $data[0];  // add the first bucket of data into the return set.
+            $this->_addRelationshipsToResult_($retItems, $data[1]);
+
+        }
+        else
+        {
+            $data = $this->fetchDataFromAPI($strAPIURL, $fFlatten, 'next_page_url',  C__MAX_CRUNCHBASE_PAGE_DOWNLOADS, null, 'data');
+        }
+        return $data;
+    }
+    protected function getKeyURLString()
+    {
+        return "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
     }
 
 
@@ -315,7 +328,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         //
         // Add the user key to the API call
         //
-        $strKeyedAPIURL = $this->_getURLWithKey_($strAPIURL);
+        $strKeyedAPIURL = $this->addKeyToURL($strAPIURL);
         if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strKeyedAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
         $classAPICall = new ClassScooperAPIWrapper();
@@ -464,7 +477,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     protected function getDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
     {
-        $strKeyedURL = $this->_getURLWithKey_($strAPIURL);
+        $strKeyedURL = $this->addKeyToURL($strAPIURL);
 
         return parent::getDataFromAPI($strKeyedURL, $fFlatten, $nextPageURLColumnKey, $nMaxPages, $nPageNumber, $jsonReturnDataKey);
     }

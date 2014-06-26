@@ -36,6 +36,162 @@ abstract class ScooterPluginBaseClass
     protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
     abstract function getCompanyData($id);
 
+    //
+    //  END NEW UNTESTED CODE
+    //
+
+
+    public function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    {
+        $arrAPIData = $this->getEmptyDataAPISettings();
+        $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
+        $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => 0, 'subkey' => null);
+        $arrAPIData['urls_to_fetch'][] = $strAPIURL;
+        $arrAPIData['count_max_pages_to_fetch'] = $nMaxPages;
+        $arrAPIData['fetched_data'] = array();
+        $arrAPIData['flatten_final_results'] = $fFlatten;
+
+        $this->fetchAPIDataNonRecursive($arrAPIData);
+        return $arrAPIData['fetched_data'];
+
+    }
+
+    public  function fetchAPIDataNonRecursive(&$arrAPICallSettings)
+    {
+        if($this->_fDataIsExcluded_ ==  C__FEXCLUDE_DATA_YES)
+        {
+            throw new ErrorException($this->strDataProviderName . " data has been excluded. Cannot execute this function.");
+        }
+
+        while((count($arrAPICallSettings['urls_to_fetch']) > 0) && ($arrAPICallSettings['fetched_total_page_count']< $arrAPICallSettings['count_max_pages_to_fetch']))
+        {
+            $this->_fetchAPIDataSingleIteration_($arrAPICallSettings);
+        }
+    }
+
+    protected function getEmptyDataAPISettings() {
+        $ret = array(
+            'flatten_final_results' => false,
+            'result_keys_for_next_page' => null,
+            'multiple_object_result' => true,
+            'count_max_pages_to_fetch' => C__MAX_RESULT_PAGES_FETCHED,
+            'result_keys_for_data' => null,
+            'urls_to_fetch' => null,
+            'fetched_total_page_count' => 0,
+            'fetched_data' => null,
+        );
+        $ret['result_keys_for_next_page'] = array('key' => null, 'subkey' => null);
+        $ret['result_keys_for_data'] = array('json_object' => null, 'key' => null, 'subkey' => null);
+        $ret['fetched_data'] = array();
+        $ret['urls_to_fetch'] = array();
+        return $ret;
+    }
+
+
+
+    protected function _fetchAPIDataSingleIteration_(&$arrAPICallSettings)
+    {
+        if($arrAPICallSettings == null || $arrAPICallSettings['urls_to_fetch'] == null) return null;
+
+        try
+        {
+            $strURL = $arrAPICallSettings['urls_to_fetch'][0];
+            array_shift($arrAPICallSettings['urls_to_fetch']); // remove the URL we are processing from the list
+
+            $strURL = $this->addKeyToURL($strURL);
+            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . " API Call = ".$strURL, C__DISPLAY_ITEM_DETAIL__); }
+
+            $classAPICall = new ClassScooperAPIWrapper();
+
+            $dataAPI= $classAPICall->getObjectsFromAPICall($strURL, $arrAPICallSettings['result_keys_for_data']['json_object'], C__API_RETURN_TYPE_ARRAY__ , null);
+            $retItems = array();
+
+            if($dataAPI == null)
+            {
+                __debug__printLine("API call returned no data.", C__DISPLAY_WARNING__);
+                return;
+            }
+
+            if(is_object($dataAPI))
+            {
+                $dataAPI = object_to_array($dataAPI);
+            }
+
+            //
+            // Let's first get the data set returned with this API call,
+            // regardless of whether it's a single or multiple results set
+            //
+            if($arrAPICallSettings['result_keys_for_data'] != null && strlen($arrAPICallSettings['result_keys_for_data']['key']) > 0)
+            {
+                $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']];
+                if(strlen($arrAPICallSettings['result_keys_for_data']['subkey']) > 0)
+                {
+                    $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
+                }
+            }
+            else
+            {
+                __debug__printLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", C__DISPLAY_WARNING__);
+                $retItems = $dataAPI;
+            }
+
+            //
+            // Did the API caller expect multiple results to be returned?
+            // If so, let's go process the data to get the other results
+            //
+            if($arrAPICallSettings['multiple_object_result'] == true && is_array($dataAPI)) // CB  || strcasecmp($dataAPI[1], "Organization") == 0
+            {
+                if((strlen($arrAPICallSettings['result_keys_for_next_page']['key']) > 0) && $dataAPI[ $arrAPICallSettings['result_keys_for_next_page']['key']] !=null)
+                {
+                    $dataNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']];
+                    if(strlen($arrAPICallSettings['result_keys_for_next_page']['subkey']) > 0)
+                    {
+                        $dataNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
+                    }
+
+                    if($dataNextPage != null)
+                    {
+                        $arrAPICallSettings['urls_to_fetch'][] = $this->addKeyToURL($dataNextPage);
+                    }
+                    /*                    else // relationships mode, so add those
+                                        {
+                                            $retItems = $dataAPI[1];
+                                        }*/
+                }
+            }
+
+            $arrAPICallSettings['fetched_total_page_count']++;
+            $arrAPICallSettings['fetched_data'] = array_merge($arrAPICallSettings['fetched_data'], $retItems);
+
+            //
+            // If we have no more URLs to fetch OR we've hit the max number of pages to fetch,
+            // this is the last call we'll make.  Do any data cleanup, such as flattening, before returning
+            // this last time.
+            //
+            if(count($arrAPICallSettings['urls_to_fetch']) == 0 || $arrAPICallSettings['fetched_total_page_count'] >= $arrAPICallSettings['count_max_pages_to_fetch'])
+            {
+                if($arrAPICallSettings['flatten'] == true)
+                {
+                    __debug__printLine("Flattening results...", C__DISPLAY_ITEM_DETAIL__);
+                    $arrAPICallSettings['fetched_data'] = $this->_flattenData_($arrAPICallSettings['fetched_data']);
+                }
+            }
+
+        }
+        catch ( ErrorException $e )
+        {
+            $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
+            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+        }
+    }
+
+    //
+    //  END NEW UNTESTED CODE
+    //
+
+
+
+
 
     // method declaration
     function addDataToRecord(&$arrRecordToUpdate)
@@ -318,7 +474,8 @@ abstract class ScooterPluginBaseClass
         // Query the API for our data
         //
         __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
-        $arrDataAPI = $this->getDataFromAPI($strAPICallURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
+        $strKeyedURL = $this->addKeyToURL($strAPICallURL);
+        $arrDataAPI = $this->getDataFromAPI($strKeyedURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
 
         __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
 
@@ -377,6 +534,23 @@ abstract class ScooterPluginBaseClass
 
     }
 
+    protected function getKeyURLString()
+    {
+        return "";  // used by child classes
+    }
+
+    protected function addKeyToURL($strURL)
+    {
+        $retURL = $strURL;
+        $keyString =  $this->getKeyURLString();
+        if(strlen($keyString) > 0)
+        {
+            $fFoundQuestion = (substr_count($strURL, "?") > 0);
+            $retURL = $strURL . ($fFoundQuestion ? "&" : "?") . $keyString;
+        }
+
+        return $retURL;
+    }
 
     function _expandArrays_(&$arrToExpand)
     {

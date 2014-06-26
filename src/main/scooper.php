@@ -86,8 +86,8 @@ function __doRun__()
 function __runCrunchbaseAPICall__($strURL)
 {
     $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-
-    $pluginCrunchbase->writeAPIResultsToFile($strURL, $GLOBALS['output_file_details'], C__MAX_CRUNCHBASE_PAGE_DOWNLOADS);
+    $arrData = $pluginCrunchbase->fetchCrunchbaseDataFromAPI($strURL);
+    $pluginCrunchbase->writeDataToFile($arrData, $GLOBALS['output_file_details']);
 
 }
 

@@ -44,7 +44,8 @@ function testCrunchbase_APIExport_MultiPage()
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-    return $pluginCrunchbase->writeAPIResultsToFile("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", $detailsOutFile, 3 );
+    $arrData = $pluginCrunchbase->fetchDataFromAPI("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", true, 'data', 3);
+    $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 }
 
 
@@ -52,12 +53,9 @@ function testCrunchbase_getCompanyByPermalink($str)
 {
     $detailsOutFile = getTestOutputFileDetails();
 
-
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-//    $arrRecords = array('company_name' => $str);
-//    $pluginCrunchbase->addDataToRecord($arrRecords, true);
-    $pluginCrunchbase->writeCrunchbaseOrganizationToFile($str, $detailsOutFile);
-
+    $arrData = $pluginCrunchbase->getCompanyData($str);
+    $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 
 }
 

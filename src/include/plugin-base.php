@@ -151,7 +151,7 @@ abstract class ScooterPluginBaseClass
 
                     if($dataNextPage != null)
                     {
-                        $arrAPICallSettings['urls_to_fetch'][] = $this->addKeyToURL($dataNextPage);
+                        $arrAPICallSettings['urls_to_fetch'][] = $dataNextPage;
                     }
                     /*                    else // relationships mode, so add those
                                         {

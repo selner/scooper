@@ -46,12 +46,12 @@ function runTests_CommandLine()
 
 function testCommand_Lookup($strOption, $strValue)
 {
-    __reset_args__();
 
-    $detailsOutFile = getTestOutputFileDetailsDetails();
+    $detailsOutFile = getTestOutputFileDetails();
 
     testSetCommandLineOption($strOption, $strValue);
     testSetCommandLineOption('outputfile', $detailsOutFile['full_file_path']);
+    initTests();
 
     __doRun__();
 

@@ -14,12 +14,10 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-require_once dirname(__FILE__) . '/../include/plugin-base.php';
-
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
-const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 2;
+const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 40;
 const C__RETURNS_SINGLE_RECORD = -1;
 $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_rounds");
 
@@ -31,8 +29,8 @@ $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_ro
 class CrunchbasePluginClass extends ScooterPluginBaseClass
 {
 
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-    private $strDataProviderName  = 'Crunchbase';
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected $strDataProviderName  = 'Crunchbase';
 
 
     function __construct($fExcludeThisData)
@@ -41,7 +39,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0 || $GLOBALS['OPTS']['crunchbase_api_id'] == "")
         {
-            __log__("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", C__LOGLEVEL_ERROR__);
+            __log__("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", LOG_ERR);
             $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
         }
 
@@ -49,17 +47,64 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 	}
 
 
-
-
-
-
-    public function writeCrunchbaseOrganizationToFile($strPermalink, $detailsCSVFile)
+    function getAllColumns()
     {
-        $data = $this->getCrunchbaseOrganization($strPermalink);
-        $this->writeCrunchbaseDataToFile($data, $detailsCSVFile);
+        return array(
+            'uuid' => '<not set>',
+            'type' => '<not set>',
+            'properties' => '<not set>',
+            'role_company' => '<not set>',
+            'description' => '<not set>',
+            'short_description' => '<not set>',
+            'permalink' => '<not set>',
+            'primary_role' => '<not set>',
+            'is_closed' => '<not set>',
+            'name' => '<not set>',
+            'founded_on_day' => '<not set>',
+            'founded_on_month' => '<not set>',
+            'founded_on_year' => '<not set>',
+            'role_investor' => '<not set>',
+            'closed_on_day' => '<not set>',
+            'closed_on_month' => '<not set>',
+            'closed_on_year' => '<not set>',
+            'closed_on' => '<not set>',
+            'stock_exchange_id' => '<not set>',
+            'created_at' => '<not set>',
+            'updated_at' => '<not set>',
+            'closed_on_trust_code' => '<not set>',
+            'homepage_url' => '<not set>',
+            'founded_on' => '<not set>',
+            'founded_on_trust_code' => '<not set>',
+            'sub_organizations' => '<not set>',
+            'current_team' => '<not set>',
+            'acquisitions' => '<not set>',
+            'competitors' => '<not set>',
+            'offices' => '<not set>',
+            'headquarters' => '<not set>',
+            'funding_rounds' => '<not set>',
+            'categories' => '<not set>',
+            'investments' => '<not set>',
+            'invested_in' => '<not set>',
+            'founders' => '<not set>',
+            'ipo' => '<not set>',
+            'products' => '<not set>',
+            'primary_image' => '<not set>',
+            'images' => '<not set>',
+            'websites' => '<not set>',
+            'url' => '<not set>',
+            'news' => '<not set>',
+        );
+
     }
 
-    public function getCrunchbaseOrganization($strPermalink)
+
+    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
+    {
+        $strKeyedAPIURL = $this->_getURLWithKey_($strAPICallURL);
+        parent::writeAPIResultsToFile($strKeyedAPIURL, $detailsFile, 'next_page_url', $nMaxPages, 'data');
+    }
+
+    public function getCompanyData($strPermalink)
     {
 
         if(!$strPermalink || strlen($strPermalink) == 0)
@@ -83,98 +128,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = getPrimaryDomainFromUrl($data['homepage_url']); }
         if(isRecordFieldNullOrNotSet($data['actual_site_url'])) { $data['actual_site_url'] = $data['homepage_url']; }
         return $data;
-
-
     }
-
-
-
-    public function writeCrunchbaseAPICallResultstoFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
-    {
-        if($GLOBALS['OPTS']['crunchbase_api_id'] == null || $GLOBALS['OPTS']['crunchbase_api_id']=="")
-        {
-            throw new ErrorException("Crunchbase API ID is required to call this function.");
-        }
-
-        __debug__printLine("Starting Crunchbase Data export for API call:" .$strAPICallURL, C__DISPLAY_SECTION_START__);
-
-        //
-        // Query the API for our data
-        //
-        __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
-        $arrCrunchAPIData = $this->getDataFromCrunchbaseAPI($strAPICallURL , true, $nMaxPages);
-
-        __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
-
-        $this->writeCrunchbaseDataToFile($arrCrunchAPIData, $detailsFile);
-
-        return $arrCrunchAPIData;
-
-    }
-
-
-    public function writeCrunchbaseDataToFile($arrCrunchAPIData, $detailsFile)
-    {
-        if($GLOBALS['OPTS']['crunchbase_api_id'] == null || $GLOBALS['OPTS']['crunchbase_api_id']=="")
-        {
-            throw new ErrorException("Crunchbase API ID is required to call this function.");
-        }
-
-        $classOutputFile = new SimpleScooterCSVFileClass($detailsFile['full_file_path'], "w");
-
-        //
-        // Make sure our data is an array so we can write it as expected
-        //
-        __debug__printLine("Bundling data for writing to file...", C__DISPLAY_NORMAL__);
-        if(!is_array_multidimensional($arrCrunchAPIData))
-        {
-            $outRecord[] = $arrCrunchAPIData;
-        }
-        else
-        {
-            $outRecord = $arrCrunchAPIData;
-        }
-
-        //
-        // Write the CSV out to file
-        //
-        __debug__printLine("Writing to file: " .$detailsFile['full_file_path'] , C__DISPLAY_NORMAL__);
-        $classOutputFile->writeArrayToCSVFile($outRecord);
-
-        __debug__printLine("Export complete." , C__DISPLAY_SUMMARY__);
-
-    }
-
-
-
-
-    public function exportMultipleOrganizationsToCSV($arrPermalinks, $strOutputFile)
-    {
-        $arrOrgData = Array();
-        foreach ($arrPermalinks as $strPermalink)
-        {
-            $arrOrgData[] = $this->getCrunchbaseOrganization($strPermalink);
-        }
-
-        $classOutputVCData = new SimpleScooterCSVFileClass($strOutputFile, "w");
-        $classOutputVCData->writeArrayToCSVFile($arrOrgData);
-
-    }
-
-
-    function readPermalinksFromCSVFile($strInputFile, $strOutputFile)
-    {
-
-        $fileDetails = parseFilePath($strInputFile);
-        $classFileIn = new SimpleScooterCSVFileClass($fileDetails['full_file_path'], "r");
-        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, array('permalink'));
-
-        $arrPermalinks = array_column($arrCSVLinkRecords, 'permalink');
-
-        $this->exportMultipleOrganizationsToCSV($arrPermalinks, $strOutputFile);
-    }
-
-
 
 
 
@@ -192,109 +146,107 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 		/****                                                                                                        ****/
 		/****************************************************************************************************************/
 
-		$arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => '<not set>'));
-
-        //
-        // Call the Crunchbase Search API
-        //
-        $classAPICall = new APICallWrapperClass();
-        $nMatchCrunchResult = -1;
-        $nCurResult = 0;
-
-        $arrPermalinksToLookup = array('permalink' => array('index' => null, 'permalink' => null));
-
-        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']) == false)
+        try
         {
-            __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['permalink'], C__DISPLAY_ITEM_START__);
-            // We've got the direct link to the right record in Crunchbase, so we
-            // can skip over this next section
-            $nMatchCrunchResult = 1;
-        }
-        else
-        {
-            __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
-            if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
+            $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => '<not set>'));
+
+            //
+            // Call the Crunchbase Search API
+            //
+            $classAPICall = new ClassScooperAPIWrapper();
+            $nMatchCrunchResult = -1;
+            $nCurResult = 0;
+
+            $arrPermalinksToLookup = array('permalink' => array('index' => null, 'permalink' => null));
+
+            if(isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']) == false)
             {
-                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Could not search Crunchbase: no company name.";
-                // throw new Exception("Error: company_name value was not set on the records correctly.  Cannot search Crunchbase.");
+                __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['permalink'], C__DISPLAY_ITEM_START__);
+                // We've got the direct link to the right record in Crunchbase, so we
+                // can skip over this next section
+                $nMatchCrunchResult = 1;
             }
             else
             {
+                __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+                if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
+                {
+                    $arrRecordToUpdate['crunchbase_match_accuracy'] = "Could not search Crunchbase: no company name.";
+                    // throw new Exception("Error: company_name value was not set on the records correctly.  Cannot search Crunchbase.");
+                }
+                else
+                {
 
-                //
-                //  Encode the company name for use in the API call.  Change any space characters to = characters.
-                //
-                $company_name_urlenc = urlencode($arrRecordToUpdate['company_name']);
-                $company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc);
-                $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
+                    //
+                    //  Encode the company name for use in the API call.  Change any space characters to = characters.
+                    //
+                    $company_name_urlenc = urlencode($arrRecordToUpdate['company_name']);
+                    $company_name_urlenc = preg_replace('/%20/m', '+', $company_name_urlenc);
+                    $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
 
-               try
-               {
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
-                   $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
+                       $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
-                    {
-                        foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
+                        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+
+                        if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
                         {
-                            if($curCrunchResult['homepage_url'] && strlen($curCrunchResult['homepage_url']) > 0)
+                            foreach ($arrCrunchBaseSearchResultsRecords as $curCrunchResult)
                             {
-                                $curCrunchResult['computed_domain'] = getPrimaryDomainFromUrl($curCrunchResult['homepage_url']);
-                                if(strcasecmp($curCrunchResult['computed_domain'], $arrRecordToUpdate['root_domain']) == 0)
+                                if($curCrunchResult['homepage_url'] && strlen($curCrunchResult['homepage_url']) > 0)
                                 {
-                                    // Match found
-                                    $nMatchCrunchResult = $nCurResult;
-                                    $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
-                                    merge_into_array_and_add_new_keys($arrRecordToUpdate, $curCrunchResult);
-                                    break;
+                                    $curCrunchResult['computed_domain'] = getPrimaryDomainFromUrl($curCrunchResult['homepage_url']);
+                                    if(strcasecmp($curCrunchResult['computed_domain'], $arrRecordToUpdate['root_domain']) == 0)
+                                    {
+                                        // Match found
+                                        $nMatchCrunchResult = $nCurResult;
+                                        $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
+                                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $curCrunchResult);
+                                        break;
 
+                                    }
                                 }
                             }
+                            if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
+                            {
+                                __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
+                                $nMatchCrunchResult = 0;
+                                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
+                            }
                         }
-                        if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
-                        {
-                            __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
-                            $nMatchCrunchResult = 0;
-                            $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
-                        }
+
                     }
-
-
-               }
-               catch ( ErrorException $e )
-               {
-                   print ("Error: ". $e->getMessage()."\r\n" );
-                   addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
-                   $arrRecordToUpdate['crunchbase_match_accuracy'] = 'ERROR';
-               }
-
             }
-        }
-        //
-        // If we didn't get a match, note it in the record
-        //
-        if($nMatchCrunchResult == -1)
-        {
-            $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
-            __debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);
-        }
-        else
-        {
             //
-            // Otherwise, go get the full entity facts for that record
+            // If we didn't get a match, note it in the record
             //
-            $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
+            if($nMatchCrunchResult == -1)
+            {
+                $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
+                __debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);
+            }
+            else
+            {
+                //
+                // Otherwise, go get the full entity facts for that record
+                //
+                $this->_addCrunchbaseEntityFacts_($arrRecordToUpdate);
+            }
+
+           addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
+
+           if($fExpandArrays == true)
+           {
+               $this->_expandArrays_($arrRecordToUpdate);
+           }
         }
-
-       addToAccuracyField($arrRecordToUpdate, $arrRecordToUpdate['crunchbase_match_accuracy']);
-
-       if($fExpandArrays == true)
-       {
-           $this->_expandArrays_($arrRecordToUpdate);
-       }
-
+        catch ( ErrorException $e )
+        {
+         $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
+         __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+         addToAccuracyField($arrRecordToUpdate, $strErr );
+        }
     }
 
 
@@ -306,10 +258,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , C__DISPLAY_ITEM_DETAIL__);
 
-        if($arrRecordToUpdate['permalink'] && strlen($arrRecordToUpdate['permalink']) > 0)
+        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']))
         {
 
-            $arrCrunchEntityData = $this->getCrunchbaseOrganization($arrRecordToUpdate['permalink']);
+            $arrCrunchEntityData = $this->getCompanyData($arrRecordToUpdate['permalink']);
             if(is_array($arrCrunchEntityData))
             {
                 $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
@@ -326,82 +278,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 
 
-    private function _getURLWithKey_($strURL)
-    {
-        $fFoundQuestion = (substr_count($strURL, "?") > 0);
-        return $strURL . ($fFoundQuestion ? "&" : "?") . "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
-    }
 
-
-    private function __getCrunchbaseAPIDataForSubItems__($dataItems)
-    {
-        if($dataItems == null) return null;
-
-        $ret = null;
-        foreach($dataItems as $record)
-        {
-            $dataExp = array();
-            foreach(array_keys($record) as $recordKey)
-            {
-                if($recordKey == 'path')
-                {
-                    $strAPIURL = "http://api.crunchbase.com/v/2/".$record[$recordKey];
-                    $dataFacts = $this->getDataFromCrunchbaseAPI($strAPIURL, true);
-                    foreach(array_keys($dataFacts) as $factKey)
-                    {
-                        $dataExp[$factKey] = $dataFacts[$factKey];
-                    }
-                }
-                else
-                {
-                    $dataExp[$recordKey] = $record[$recordKey];
-                }
-            }
-            $ret[] = $dataExp;
-        }
-        return $ret;
-    }
-
-
-
-
-    private function _flattenCrunchbaseData_($arrData)
-    {
-        $arrRet = array();
-
-        foreach(array_keys($arrData) as $dataSectionKey)
-        {
-            $dataSection = $arrData[$dataSectionKey];
-            $dataSection = object_to_array($dataSection);
-            if(is_array($dataSection))
-            {
-                if(in_array(strtolower($dataSectionKey), $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS']) == true)
-                {
-                    $subItems = $this->__getCrunchbaseAPIDataForSubItems__($arrData[$dataSectionKey]);
-                    $itemValue = array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
-                    $arrRet[$dataSectionKey] = $itemValue;
-                }
-                else
-                {
-                    if(is_array_multidimensional($dataSection))
-                    {
-                        $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
-                    }
-                    else
-                    {
-                        $itemValue = $dataSection;
-                    }
-                    $arrRet[$dataSectionKey] = $itemValue;
-                }
-            }
-            else
-            {
-                $arrRet[$dataSectionKey] = $arrData[$dataSectionKey];
-            }
-
-        }
-        return $arrRet;
-    }
 
     private function _addRelationshipsToResult_(&$arrData, $relationships)
     {
@@ -423,17 +300,25 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
+    private function _getURLWithKey_($strURL)
+    {
+        $fFoundQuestion = (substr_count($strURL, "?") > 0);
+        return $strURL . ($fFoundQuestion ? "&" : "?") . "user_key=".$GLOBALS['OPTS']['crunchbase_api_id'];
+    }
+
+
     private function getDataFromCrunchbaseAPI($strAPIURL, $fFlatten = false, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0)
     {
-        $retItems = array();
 
+        try
+        {
         //
         // Add the user key to the API call
         //
         $strKeyedAPIURL = $this->_getURLWithKey_($strAPIURL);
         if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strKeyedAPIURL, C__DISPLAY_ITEM_DETAIL__); }
 
-        $classAPICall = new APICallWrapperClass();
+        $classAPICall = new ClassScooperAPIWrapper();
 
         $dataAPI= $classAPICall->getObjectsFromAPICall($strKeyedAPIURL, 'data', C__API_RETURN_TYPE_OBJECT__, null);
         $retItems = array();
@@ -442,10 +327,17 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         if($nMaxPages == C__RETURNS_SINGLE_RECORD)
         {
-            array_shift($dataAPI);
-            array_shift($dataAPI);
-            $retItems = $dataAPI[0];  // add the first bucket of data into the return set.
-            $this->_addRelationshipsToResult_($retItems, $dataAPI[1]);
+            if($dataAPI != null)
+            {
+                array_shift($dataAPI);
+                array_shift($dataAPI);
+                $retItems = $dataAPI[0];  // add the first bucket of data into the return set.
+                $this->_addRelationshipsToResult_($retItems, $dataAPI[1]);
+            }
+            else
+            {
+                __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
+            }
         }
         else // mulitple item API call
         {
@@ -491,11 +383,91 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         }
 
         return $retItems;
+        }
+        catch ( ErrorException $e )
+        {
+            print ("Error: ". $e->getMessage()."\r\n" );
+            addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
+            $retItems['crunchbase_match_accuracy'] = 'ERROR';
+        }
+
 
     }
 
 
+    private function __getCrunchbaseAPIDataForSubItems__($dataItems)
+    {
+        if($dataItems == null) return null;
 
+        $ret = null;
+        foreach($dataItems as $record)
+        {
+            $dataExp = array();
+            foreach(array_keys($record) as $recordKey)
+            {
+                if($recordKey == 'path')
+                {
+                    $strAPIURL = "http://api.crunchbase.com/v/2/".$record[$recordKey];
+                    $dataFacts = $this->getDataFromCrunchbaseAPI($strAPIURL, true);
+                    foreach(array_keys($dataFacts) as $factKey)
+                    {
+                        $dataExp[$factKey] = $dataFacts[$factKey];
+                    }
+                }
+                else
+                {
+                    $dataExp[$recordKey] = $record[$recordKey];
+                }
+            }
+            $ret[] = $dataExp;
+        }
+        return $ret;
+    }
+
+    private function _flattenCrunchbaseData_($arrData)
+    {
+        $arrRet = array();
+
+        foreach(array_keys($arrData) as $dataSectionKey)
+        {
+            $dataSection = $arrData[$dataSectionKey];
+            $dataSection = object_to_array($dataSection);
+            if(is_array($dataSection))
+            {
+                if(in_array(strtolower($dataSectionKey), $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS']) == true)
+                {
+                    $subItems = $this->__getCrunchbaseAPIDataForSubItems__($arrData[$dataSectionKey]);
+                    $itemValue = array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    $arrRet[$dataSectionKey] = $itemValue;
+                }
+                else
+                {
+                    if(is_array_multidimensional($dataSection))
+                    {
+                        $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    }
+                    else
+                    {
+                        $itemValue = $dataSection;
+                    }
+                    $arrRet[$dataSectionKey] = $itemValue;
+                }
+            }
+            else
+            {
+                $arrRet[$dataSectionKey] = $arrData[$dataSectionKey];
+            }
+
+        }
+        return $arrRet;
+    }
+
+    protected function getDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    {
+        $strKeyedURL = $this->_getURLWithKey_($strAPIURL);
+
+        return parent::getDataFromAPI($strKeyedURL, $fFlatten, $nextPageURLColumnKey, $nMaxPages, $nPageNumber, $jsonReturnDataKey);
+    }
 
 }
 

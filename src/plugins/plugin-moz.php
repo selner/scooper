@@ -28,17 +28,127 @@
     class MozPluginClass extends ScooterPluginBaseClass
 	{
 		private $_arrMozBulkAPIResults_ = null;
-        private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-        private $strDataProviderName  = 'Moz.com';
+        protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+        protected  $strDataProviderName  = 'Moz.com';
 
 		function __construct($fExcludeThisData, $arrAllRecords)
 		{
             if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
             __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
-			$this->_batchQueryMozAPI_($arrAllRecords);
+
+                $this->_batchQueryMozAPI_($arrAllRecords);
         }
-		
+
+
+        function getCompanyData($id)
+        {
+            throw new Exception("getCompanyData not implemented for " . get_class($this));
+
+        }
+
+        function getAllColumns()
+        {
+            return array(
+                'ut' => '<not set>',
+                'uu' => '<not set>',
+                'ufq' => '<not set>',
+                'upl' => '<not set>',
+                'ueid' => '<not set>',
+                'feid' => '<not set>',
+                'peid' => '<not set>',
+                'ujid' => '<not set>',
+                'uifq' => '<not set>',
+                'uipl' => '<not set>',
+                'uid' => '<not set>',
+                'fid' => '<not set>',
+                'pid' => '<not set>',
+                'umrp' => '<not set>',
+                'umrr' => '<not set>',
+                'fmrp' => '<not set>',
+                'fmrr' => '<not set>',
+                'pmrp' => '<not set>',
+                'pmrr' => '<not set>',
+                'utrp' => '<not set>',
+                'utrr' => '<not set>',
+                'ftrp' => '<not set>',
+                'ftrr' => '<not set>',
+                'ptrp' => '<not set>',
+                'ptrr' => '<not set>',
+                'uemrp' => '<not set>',
+                'uemrr' => '<not set>',
+                'fejp' => '<not set>',
+                'fejr' => '<not set>',
+                'pejp' => '<not set>',
+                'pejr' => '<not set>',
+                'fjp' => '<not set>',
+                'fjr' => '<not set>',
+                'pjp' => '<not set>',
+                'pjr' => '<not set>',
+                'us' => '<not set>',
+                'fuid' => '<not set>',
+                'puid' => '<not set>',
+                'fipl' => '<not set>',
+                'upa' => '<not set>',
+                'pda' => '<not set>',
+                'ued' => '<not set>',
+                'ulc' => '<not set>',
+                'lrid' => '<not set>',
+                'lsrc' => '<not set>',
+                'ltgt' => '<not set>',
+                'lufeid' => '<not set>',
+                'lufejp' => '<not set>',
+                'lufejr' => '<not set>',
+                'lufid' => '<not set>',
+                'lufipl' => '<not set>',
+                'lufjp' => '<not set>',
+                'lufjr' => '<not set>',
+                'lufmrp' => '<not set>',
+                'lufmrr' => '<not set>',
+                'luftrp' => '<not set>',
+                'luftrr' => '<not set>',
+                'lufuid' => '<not set>',
+                'lupda' => '<not set>',
+                'lupdar' => '<not set>',
+                'lupeid' => '<not set>',
+                'lupejp' => '<not set>',
+                'lupejr' => '<not set>',
+                'lupid' => '<not set>',
+                'lupjp' => '<not set>',
+                'lupjr' => '<not set>',
+                'lupmrp' => '<not set>',
+                'lupmrr' => '<not set>',
+                'luptrp' => '<not set>',
+                'luptrr' => '<not set>',
+                'lupuid' => '<not set>',
+                'luueid' => '<not set>',
+                'luuemrp' => '<not set>',
+                'luuemrr' => '<not set>',
+                'luufq' => '<not set>',
+                'luuid' => '<not set>',
+                'luuifq' => '<not set>',
+                'luuipl' => '<not set>',
+                'luujid' => '<not set>',
+                'luumrp' => '<not set>',
+                'luumrr' => '<not set>',
+                'luupa' => '<not set>',
+                'luupar' => '<not set>',
+                'luupl' => '<not set>',
+                'luurrid' => '<not set>',
+                'luus' => '<not set>',
+                'luut' => '<not set>',
+                'luutrp' => '<not set>',
+                'luutrr' => '<not set>',
+                'luuu' => '<not set>',
+                'pdar' => '<not set>',
+                'upar' => '<not set>',
+                'ur' => '<not set>',
+                'urid' => '<not set>',
+                'urrid' => '<not set>',
+                'usch' => '<not set>',
+            );
+        }
+
 	    public function addDataToRecord(&$arrRecordToUpdate)
 	    {
             if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
@@ -55,29 +165,35 @@
             if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['root_domain']))
             {
                 $recordStringToMatch =  $arrRecordToUpdate['root_domain'];
-
-                foreach($this->_arrMozBulkAPIResults_ as $mozresult)
+                $jsonMozRecord = $this->_arrMozBulkAPIResults_[$recordStringToMatch];
+                if($arrMozRecord != null)  // check the results for a value keyed with the domain
                 {
-                    $arrMozRecord = json_decode($mozresult, true);
-                    $tempDomain = $arrMozRecord['upl'];
-                    if($tempDomain == "" && strlen($arrMozRecord['uu'])>0)
+                    $arrMozRecord = json_decode($jsonMozRecord, true);
+                    $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrMozRecord);
+                    return;
+                }
+                else // otherwise, search the results for one with a matching domain value in it
+                {
+                    foreach($this->_arrMozBulkAPIResults_ as $mozresult)
                     {
-                        $tempDomain = $arrMozRecord['uu'];
-                    }
-                    $tempDomain = getPrimaryDomainFromUrl($tempDomain);
-//                    if($tempDomain[strlen($tempDomain)-1] = "/") { $tlempDomain = substr($tempDomain, 1, strlen($tempDomain)); }
-                    if(strcasecmp($tempDomain, $recordStringToMatch) == 0 )
-                    {
-                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrMozRecord);
-                        return;
+                        $arrMozRecord = json_decode($mozresult, true);
+                        $tempDomain = $arrMozRecord['upl'];
+                        if($tempDomain == "" && strlen($arrMozRecord['uu'])>0)
+                        {
+                            $tempDomain = $arrMozRecord['uu'];
+                        }
+                        $tempDomain = getPrimaryDomainFromUrl($tempDomain);
+    //                    if($tempDomain[strlen($tempDomain)-1] = "/") { $tlempDomain = substr($tempDomain, 1, strlen($tempDomain)); }
+                        if(strcasecmp($tempDomain, $recordStringToMatch) == 0 )
+                        {
+                            $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrMozRecord);
+                            return;
+                        }
                     }
 
                 }
-                if(!$fMatchFound)
-                {
-                    addToAccuracyField($arrRecordToUpdate, 'No Moz match found for root_domain value.');
-                    __debug__printLine("Moz: Match not found for ".$recordStringToMatch, C__DISPLAY_ERROR__);
-                }
+                addToAccuracyField($arrRecordToUpdate, 'No Moz match found for root_domain value.');
+                __debug__printLine("Moz: Match not found for ".$recordStringToMatch, C__DISPLAY_ERROR__);
             }
             else
             {
@@ -175,7 +291,6 @@
                     throw new ErrorException($strErr,curl_errno($ch),E_RECOVERABLE_ERROR );
                 }
 
-                            var_dump($content);
 				$contents = json_decode($content);
 				foreach ($arrDomainsToQuery as $domain)
 				{

@@ -1,12 +1,20 @@
 {
-    "name": "selner/scooper",
+    "name": "scooper/scooper",
     "description": "Gather and quickly export Moz.com, Crunchbase and Quantcast data for any company name or website address.  Very handy for doing research about competitors or potential partners.",
+    "homepage": "http://github.com/selner/scooper",
+    "license": "GPL-2.0",
     "minimum-stability": "dev",
-    "license": "GNUV2",
     "authors": [
         {
             "name": "Bryan Selner",
-            "email": "dev@recoilvelocity.com"
+            "email": "dev@recoilvelocity.com",
+            "role": "Developer"
         }
-    ]
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "katzgrau/klogger": "1.0.0",
+        "austinhyde/iniparser": "dev-master"
+
+    }
 }

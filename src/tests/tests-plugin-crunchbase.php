@@ -31,9 +31,9 @@ function runTests_CrunchbasePlugin()
 
    $ret = testCrunchbase_APIExport_MultiPage();
 
-    $ret = testCrunchbase_getCompanyByPermalink('redfin');
+    testCrunchbase_getCompanyByPermalink('redfin');
 
-    $ret = testCrunchbase_getCompanyByPermalink('facebook');
+    testCrunchbase_getCompanyByPermalink('facebook');
 
 
 }
@@ -44,7 +44,7 @@ function testCrunchbase_APIExport_MultiPage()
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-    return $pluginCrunchbase->writeCrunchbaseAPICallResultstoFile("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", $detailsOutFile, 3 );
+    return $pluginCrunchbase->writeAPIResultsToFile("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", $detailsOutFile, 3 );
 }
 
 
@@ -56,8 +56,8 @@ function testCrunchbase_getCompanyByPermalink($str)
     $pluginCrunchbase = new CrunchbasePluginClass(false);
 //    $arrRecords = array('company_name' => $str);
 //    $pluginCrunchbase->addDataToRecord($arrRecords, true);
-    $arrRecords = $pluginCrunchbase->writeCrunchbaseOrganizationToFile($str, $detailsOutFile);
+    $pluginCrunchbase->writeCrunchbaseOrganizationToFile($str, $detailsOutFile);
 
-    return $arrRecords;
+
 }
 

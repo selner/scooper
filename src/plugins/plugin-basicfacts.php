@@ -28,7 +28,7 @@ require_once(__ROOT__.'/include/plugin-base.php');
 class BasicFactsPluginClass extends ScooterPluginBaseClass
 {
     private $_data_type = null;
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
 
 
 
@@ -39,6 +39,26 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         // if($fVarExclude == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
     }
 
+    function getAllColumns()
+    {
+        return array(
+            'company_name'=>'<not set>',
+            'result_accuracy_warnings'=>'<not set>',
+            'actual_site_url'=>'<not set>',
+            'crunchbase_match_accuracy'=>'<not set>',
+            'input_source_url'=>'<not set>',
+            'root_domain'=>'<not set>',
+        );
+    }
+
+
+    function getCompanyData($id)
+    {
+        throw new Exception("getCompanyData not implemented for " . get_class($this));
+
+    }
+
+
     function setDataType($data_type)
     {
         $this->_data_type = $data_type;
@@ -46,10 +66,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
     function addDataToMultipleRecords($arrDataLoaded, $strOutputFile = null)
     {
-        if(!$this->_data_type)
-        {
-            throw new Exception("Source data type was not set when BasicFactsPluginClass was initialized.");
-        }
+
 
         $arrRecordsToProcess =  array();
 
@@ -81,6 +98,11 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
                     break;
             }
 
+            if(!$this->_data_type)
+            {
+                throw new Exception("Source data type was not set when BasicFactsPluginClass was initialized.");
+            }
+
             if(!strlen($arrRecordsToProcess[$nRow]['company_name']) > 0 && !strlen(($arrRecordsToProcess[$nRow]['input_source_url'])>0))
             {
                 exit ("Error processing company lookup.  Invalid source file data entered. Header row did not start with either 'company name' or 'url'. " . PHP_EOL . "Exited." . PHP_EOL);
@@ -96,7 +118,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
             if($strOutputFile != null && $nRow % C__RECORD_CHUNK_SIZE__ == 0)
             {
-                $classFileOut = new SimpleScooterCSVFileClass($strOutputFile, "w");
+                $classFileOut = new ClassScooperSimpleCSVFile($strOutputFile, "w");
                 $classFileOut->writeArrayToCSVFile($arrRecordsToProcess );
 
             }
@@ -158,7 +180,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
     private function _getData_($var)
     {
-        $classAPIWrap = new APICallWrapperClass();
+        $classAPIWrap = new ClassScooperAPIWrapper();
 
         $curRecord = array_copy($var);
 
@@ -189,7 +211,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         }
         catch ( ErrorException $e )
         {
-            __log__("Error: ". $e->getMessage()."\r\n", C__LOGLEVEL_ERROR__);
+            __log__("Error: ". $e->getMessage()."\r\n", LOG_ERR);
             addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
         }
         return $curRecord;

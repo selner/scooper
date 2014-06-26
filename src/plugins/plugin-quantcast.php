@@ -25,13 +25,18 @@ require_once(__ROOT__.'/include/plugin-base.php');
 /****************************************************************************************************************/
 class QuantcastPluginClass extends ScooterPluginBaseClass
 {
-    private $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
-    private $strDataProviderName  = 'Quantcast';
+    protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
+    protected  $strDataProviderName  = 'Quantcast';
 
     function __construct($fExcludeThisData)
     {
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
         __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
+    }
+
+    function getAllColumns()
+    {
+        return array('monthly_uniques' => '<not set>');
     }
 
     // Redefine the parent method
@@ -45,19 +50,26 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         }
     }
 
-   private function _getData_($var) 
+    function getCompanyData($id)
+    {
+        throw new Exception("getCompanyData not implemented for " . get_class($this));
+
+    }
+
+
+    private function _getData_($var)
 	{
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return null;
 
-        $classAPIWrap = new APICallWrapperClass();
+        $classAPIWrap = new ClassScooperAPIWrapper();
         $domain = $var;
         $url = 'https://www.quantcast.com/'.$domain;
         __debug__printLine("Querying Quantcast data for ".$domain, C__DISPLAY_ITEM_START__);
     	$curl_obj = $classAPIWrap->cURL($url);
 		  $uniqs = $this->_getUniqsFromHTML_($curl_obj);
-			
-		$arrNew = array("monthly_uniques" => $uniqs);
-		$arrReturn = addPrefixToArrayKeys($arrNew, "quantcast", ".");
+
+        $arrReturn = array("monthly_uniques" => $uniqs);
+		// $arrReturn = addPrefixToArrayKeys($arrNew, "quantcast", ".");
 		return $arrReturn;
     }
 

@@ -1,8 +1,8 @@
 #Scooper
 Bulk export Crunchbase, Moz Quantcast data to comma-separated value (CSV) files using either the command-line or a list of records from an input file.  Very handy for doing research about competitors or potential partners.  
 
-###With Scooper You Can Easily Export Compant Data to CSV by:
-*  a single company's information using their name
+###With Scooper You Can Easily Export Company Data to CSV by:
+* a single company's information using their name
 * a single company's information using their website URL
 * many companies by name in bulk
 * many companies by website address in bulk
@@ -39,23 +39,28 @@ You can specify those values via an INI file with the -ini flag or directly on t
 With the -i switch, you can specify a list of names or URLs to look up in batch.
 
 *Input CSV File Format:*
-* Line 1:  "Company Name" or "Company URL" 
-* Line 2+:  1st record (e.g. "Microsoft" or "http:www.microsoft.com")
+* Line 1:  "Name" or "URL" 
+* Line 2+:  1st record (e.g. "Microsoft" or "http://www.microsoft.com")
 
-*Input CSV FIle Example:*
+*Input CSV FIle Example: Names*
 ```
-"Company Name", "Company URL"
+     "Company Name", "Company URL"
      "Apple", "http://www.apple.com"
      "Microsoft", "www.microsoft.com"
      "Google", "google.com"
 ```
 
+*Input CSV FIle Example: URLs*
+```
+     "URL"
+     "http://www.apple.com"
+     "www.microsoft.com"
+     "google.com"
+```
+
 Example files are available in the /example directory.
 
 If your Input CSV file has additional columns, those values will be copied into the resulting rows for each company as well.
-
-###Enabling Logging
-If you would like the script to output to log files, download the "Klogger v0.1" version from (http://codefury.net/projects/klogger/). Copy the "KLogger.php" to your scooter/src/lib directory.  The script should pick it up automatically the next time you run.
 
 #Other Stuff
 * Version:  v2.0.1

@@ -92,6 +92,7 @@ function __startApp__()
     //
     // Gather and check that the command line arguments are valid
     //
+
     __initLogger__();
     __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
 
@@ -257,7 +258,7 @@ function __check_args__()
         else
         {
             $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
-            if(!$GLOBALS['OPTS']['crunchbase_api_id_given']  || (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
+            if(!$GLOBALS['OPTS']['crunchbase_api_id_given'] && (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
             {
                 $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
                 __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);

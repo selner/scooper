@@ -46,7 +46,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         if($arrRecordToUpdate['root_domain'] && strlen($arrRecordToUpdate['root_domain']) > 0 && strcasecmp($arrRecordToUpdate['root_domain'], "<not set>") != 0)
         {
             $arrQuant = $this->_getData_($arrRecordToUpdate['root_domain']);
-            $arrRecordToUpdate = my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
+            $arrRecordToUpdate = \Scooper\my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
         }
     }
 
@@ -61,7 +61,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 	{
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return null;
 
-        $classAPIWrap = new ClassScooperAPIWrapper();
+        $classAPIWrap = new \Scooper\ScooperDataAPIWrapper();
         $domain = $var;
         $url = 'https://www.quantcast.com/'.$domain;
         $GLOBALS['logger']->logLine("Querying Quantcast data for ".$domain, \Scooper\C__DISPLAY_ITEM_START__);

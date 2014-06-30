@@ -34,9 +34,6 @@
     "require": {
         "php": ">=5.3.0",
         "selner/scooperlib": "master",
-        "katzgrau/klogger": "1.0.0",
-        "corneltek/getoptionkit": "1.2.6",
-        "austinhyde/iniparser": "dev-master",
         "composer/composer": "1.0.x-dev",
         "misd/linkify": "1.1.*",
         "phpunit/phpunit": "3.7.*"

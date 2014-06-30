@@ -14,6 +14,9 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+use \Scooper\ScooperDataAPIWrapper;
+use \Scooper\ScooperSimpleCSV;
+
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/options.php');
 
@@ -54,8 +57,8 @@ function __doRun__()
         /****************************************************************************************************************/
 
 
-    __log__('Input File Details = '.var_export($GLOBALS['input_file_details'], true), LOG_INFO);
-    __log__('Output File Details = '.var_export($GLOBALS['output_file_details'], true), LOG_INFO);
+    $GLOBALS['logger']->logLine('Input File Details = '.var_export($GLOBALS['input_file_details'], true), \Scooper\C__DISPLAY_NORMAL__);
+    $GLOBALS['logger']->logLine('Output File Details = '.var_export($GLOBALS['output_file_details'], true), \Scooper\C__DISPLAY_NORMAL__);
 
 
 
@@ -80,7 +83,7 @@ function __doRun__()
             __runCompanyLookups__();
         }
 
-    $GLOBALS['logger']->logSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
+    $GLOBALS['logger']->logSectionHeader(C__APPNAME__, \Scooper\C__NAPPTOPLEVEL__, \Scooper\C__SECTION_END__ );
 }
 
 function __runCrunchbaseAPICall__($strURL)
@@ -122,19 +125,19 @@ function __runCompanyLookups__()
             /****************************************************************************************************************/
 
             $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE;
-            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-            $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
+            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
+            $classFileIn = new \Scooper\ScooperSimpleCSV($GLOBALS['input_file_details']['full_file_path'], 'r');
 
             $arrInputCSVData = $classFileIn->readAllRecords(true);
 
             $GLOBALS['logger']->logLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", \Scooper\C__DISPLAY_NORMAL__);
-            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 
 
         }
         else
         {
-            __log__("Unable to determine single or input file mode.  Cannot continue.", LOG_CRIT);
+            $GLOBALS['logger']->logLine("Unable to determine single or input file mode.  Cannot continue.", \Scooper\C__DISPLAY_ERROR__);
 
         }
 
@@ -158,26 +161,26 @@ function __runCompanyLookups__()
         /****   Initialize the data plugin classes                                                                   ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        $classFileOut = new ClassScooperSimpleCSVFile($detailsOut['full_file_path'], 'w+');
+        $classFileOut = new ScooperSimpleCSV($detailsOut['full_file_path'], 'w+');
 
         $pluginQuantcast = new QuantcastPluginClass($GLOBALS['OPTS']['exclude_quantcast']);
-        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginQuantcast->getAllColumns());
+        $arrAllPluginColumnsForRecords = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginQuantcast->getAllColumns());
 
         $pluginAngel = new PluginAngelList($GLOBALS['OPTS']['exclude_angellist']);
-        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginAngel->getAllColumns());
+        $arrAllPluginColumnsForRecords = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginAngel->getAllColumns());
 
         $pluginCrunchbase = new CrunchbasePluginClass($GLOBALS['OPTS']['exclude_crunchbase']);
-        $arrAllPluginColumnsForRecords  = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
+        $arrAllPluginColumnsForRecords  = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginCrunchbase->getAllColumns());
 
         $pluginMoz = new MozPluginClass($GLOBALS['OPTS']['exclude_moz'], $arrAllRecordsProcessed);
-        $arrAllPluginColumnsForRecords = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginMoz->getAllColumns());
+        $arrAllPluginColumnsForRecords = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $pluginMoz->getAllColumns());
 
         /****************************************************************************************************************/
         /****                                                                                                        ****/
         /****   Process the list of company / URL records to get the additional data for each one.                   ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
 
 
         $arrRecordCopyForKeys = null;
@@ -187,9 +190,9 @@ function __runCompanyLookups__()
         $ncurRecordIndex = 0;
         while($ncurRecordIndex < count($arrAllRecordsProcessed))
         {
-            $arrRecordToUpdate = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
+            $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
 
-            $arrAllRecordsProcessed[$ncurRecordIndex] = my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
+            $arrAllRecordsProcessed[$ncurRecordIndex] = \Scooper\my_merge_add_new_keys($arrAllPluginColumnsForRecords, $arrAllRecordsProcessed[$ncurRecordIndex]);
 
             $company = $arrAllRecordsProcessed[$ncurRecordIndex]['company_name'];
             $pluginQuantcast->addDataToRecord($arrAllRecordsProcessed[$ncurRecordIndex]);
@@ -208,7 +211,7 @@ function __runCompanyLookups__()
             $GLOBALS['logger']->logLine("Added ".$company . " to final results list.".PHP_EOL, \Scooper\C__DISPLAY_ITEM_RESULT__);
         }
 
-        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
         $GLOBALS['logger']->logLine("Total records processed: ".count($arrAllRecordsProcessed).".", \Scooper\C__DISPLAY_NORMAL__);
 
 

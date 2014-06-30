@@ -21,20 +21,13 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-//require_once(dirname(dirname(dirname(dirname(__FILE__)))). '/scooper_common/src/scooper_common/scooper_common.php');
-
 use \Scooper\ScooperLogger;
-use \Scooper\FileInfo;
+use \Scooper\ScooperDataAPIWrapper;
+
 
 const C__FEXCLUDE_DATA_YES = 1;
 const C__FEXCLUDE_DATA_NO = 0;
 
-//$GLOBALS['LOGGER'] = new ScooperLogger();
-
-//function $GLOBALS['logger']->logLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = false)
-//{
-//    $GLOBALS['LOGGER']->logLine($strToPrint, $varDisplayStyle, $fDebuggingOnly);
-//}
 
 abstract class ScooterPluginBaseClass
 {
@@ -111,7 +104,7 @@ abstract class ScooterPluginBaseClass
             $strURL = $this->addKeyToURL($strURL);
             if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
             $dataAPI= $classAPICall->getObjectsFromAPICall($strURL, $arrAPICallSettings['result_keys_for_data']['json_object'], C__API_RETURN_TYPE_ARRAY__ , null);
             $retItems = array();
@@ -124,7 +117,7 @@ abstract class ScooterPluginBaseClass
 
             if(is_object($dataAPI))
             {
-                $dataAPI = object_to_array($dataAPI);
+                $dataAPI = \Scooper\object_to_array($dataAPI);
             }
 
             //
@@ -221,12 +214,12 @@ abstract class ScooterPluginBaseClass
         foreach(array_keys($arrData) as $dataSectionKey)
         {
             $dataSection = $arrData[$dataSectionKey];
-            $dataSection = object_to_array($dataSection);
+            $dataSection = \Scooper\object_to_array($dataSection);
             if(is_array($dataSection))
             {
-                if(is_array_multidimensional($dataSection))
+                if(\Scooper\is_array_multidimensional($dataSection))
                 {
-                    $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    $itemValue = \Scooper\array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
                 }
                 else
                 {
@@ -247,10 +240,10 @@ abstract class ScooterPluginBaseClass
 
     function readIDsFromCSVFile($strInputFile, $columnKeyName)
     {
-        $fileInfo = new \Scooper\FileInfo($strInputFile);
+        $fileInfo = new \Scooper\ScooperFileInfo();
 
-        $fileDetails = $fileInfo->parseFilePath();
-        $classFileIn = new ClassScooperSimpleCSVFile($fileDetails['full_file_path'], "r");
+        $fileDetails = $fileInfo->parseFilePath($strInputFile);
+        $classFileIn = new \Scooper\ScooperSimpleCSV($fileDetails['full_file_path'], "r");
         $arrCSVLinkRecords = $classFileIn->readAllRecords(true, null);
 
         $arrIDs = array_column($arrCSVLinkRecords, $columnKeyName);
@@ -276,7 +269,7 @@ abstract class ScooterPluginBaseClass
             //
             // Call the  Search API
             //
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
             $nMatchResult = -1;
             $nCurResult = 0;
 
@@ -319,14 +312,14 @@ abstract class ScooterPluginBaseClass
                         {
                             if($curResult[$domainMatchKey] && strlen($curResult[$domainMatchKey]) > 0)
                             {
-                                $curResult['computed_domain'] = getPrimaryDomainFromUrl($curResult[$domainMatchKey]);
+                                $curResult['computed_domain'] = \Scooper\getPrimaryDomainFromUrl($curResult[$domainMatchKey]);
                                 if((strcasecmp($curResult['computed_domain'], $arrRecordToUpdate['root_domain']) == 0) ||
                                     (strcasecmp($curResult[$nameColumnKey], $arrRecordToUpdate['company_name']) == 0))
                                 {
                                     // Match found
                                     $nMatchResult = $nCurResult;
                                     $strMatchType =  $this->strDataProviderName . " matched on name or domain exactly.";
-                                    $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $curResult);
+                                    $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $curResult);
                                     break;
                                 }
                                 else
@@ -359,7 +352,7 @@ abstract class ScooterPluginBaseClass
                 // Otherwise, go get the full entity facts for that record
                 //
                 $arrCompanyData = $this->getCompanyData($arrRecordToUpdate[$idColumnKey]);
-                $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
+                $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
 
             }
 
@@ -385,12 +378,12 @@ abstract class ScooterPluginBaseClass
         {
             if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
             $dataAPI= $classAPICall->getObjectsFromAPICall($strAPIURL, $jsonReturnDataKey, C__API_RETURN_TYPE_ARRAY__ , null);
             if(is_object($dataAPI))
             {
-                $dataAPI = object_to_array($dataAPI);
+                $dataAPI = \Scooper\object_to_array($dataAPI);
             }
             $retItems = array();
 
@@ -423,7 +416,7 @@ abstract class ScooterPluginBaseClass
                     $dataAPINextPage = $dataAPI[1];
                     if(is_object($dataAPINextPage))
                     {
-                        $dataAPINextPage = object_to_array($dataAPINextPage);
+                        $dataAPINextPage = \Scooper\object_to_array($dataAPINextPage);
                     }
 
                     if($nextPageURLColumnKey != null && $dataAPINextPage[$nextPageURLColumnKey] !=null)
@@ -585,7 +578,7 @@ abstract class ScooterPluginBaseClass
                 {
                     if(is_array($subItem))
                     {
-                        $arrNewValue[] = implode(" ", array_flatten_sep(".", $subItem));
+                        $arrNewValue[] = implode(" ", \Scooper\array_flatten_sep(".", $subItem));
                     }
                     else
                     {

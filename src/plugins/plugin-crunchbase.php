@@ -128,7 +128,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         //
         $data = $this->getDataFromCrunchbaseAPI($strAPIURL, true, C__RETURNS_SINGLE_RECORD, null);
         $data['crunchbase_match_accuracy'] = "Exact match on permalink.";
-        if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = getPrimaryDomainFromUrl($data['homepage_url']); }
+        if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = \Scooper\getPrimaryDomainFromUrl($data['homepage_url']); }
         if(isRecordFieldNullOrNotSet($data['actual_site_url'])) { $data['actual_site_url'] = $data['homepage_url']; }
         return $data;
     }
@@ -151,12 +151,12 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         try
         {
-            $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => '<not set>'));
+            $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, array('crunchbase_match_accuracy' => '<not set>'));
 
             //
             // Call the Crunchbase Search API
             //
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
             $nMatchCrunchResult = -1;
             $nCurResult = 0;
 
@@ -189,7 +189,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
 
                         if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
-                       $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, null);
+                       $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', \Scooper\C__API_RETURN_TYPE_ARRAY__, null);
 
                         if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
 
@@ -199,13 +199,13 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                             {
                                 if($curCrunchResult['homepage_url'] && strlen($curCrunchResult['homepage_url']) > 0)
                                 {
-                                    $curCrunchResult['computed_domain'] = getPrimaryDomainFromUrl($curCrunchResult['homepage_url']);
+                                    $curCrunchResult['computed_domain'] = \Scooper\getPrimaryDomainFromUrl($curCrunchResult['homepage_url']);
                                     if(strcasecmp($curCrunchResult['computed_domain'], $arrRecordToUpdate['root_domain']) == 0)
                                     {
                                         // Match found
                                         $nMatchCrunchResult = $nCurResult;
                                         $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase matched on domain.";
-                                        $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $curCrunchResult);
+                                        $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $curCrunchResult);
                                         break;
 
                                     }
@@ -267,7 +267,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             $arrCrunchEntityData = $this->getCompanyData($arrRecordToUpdate['permalink']);
             if(is_array($arrCrunchEntityData))
             {
-                $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
+                $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrCrunchEntityData);
             }
         }
         else
@@ -285,17 +285,17 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     private function _addRelationshipsToResult_(&$arrData, $relationships)
     {
-        $arrData = object_to_array($arrData);
-        $arrRelationships = object_to_array($relationships);
+        $arrData = \Scooper\object_to_array($arrData);
+        $arrRelationships = \Scooper\object_to_array($relationships);
         if(is_array($arrRelationships) && count($arrRelationships) > 0)
         {
             $retArrAdditions = array();
             foreach(array_keys($arrRelationships) as $relation)
             {
-                $relationItems = object_to_array($arrRelationships[$relation]);
+                $relationItems = \Scooper\object_to_array($arrRelationships[$relation]);
                 $retArrAdditions[$relation] = $relationItems['items'];
             }
-            $arrData = my_merge_add_new_keys($arrData, $this->_flattenCrunchbaseData_($retArrAdditions));
+            $arrData = \Scooper\my_merge_add_new_keys($arrData, $this->_flattenCrunchbaseData_($retArrAdditions));
         }
 
 
@@ -341,7 +341,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         $strKeyedAPIURL = $this->addKeyToURL($strAPIURL);
         if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase API Call = ".$strKeyedAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
-        $classAPICall = new ClassScooperAPIWrapper();
+        $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
         $dataAPI= $classAPICall->getObjectsFromAPICall($strKeyedAPIURL, 'data', C__API_RETURN_TYPE_OBJECT__, null);
         $retItems = array();
@@ -371,7 +371,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             else
             {
                 $retItems = $dataAPI[0];
-                $dataAPINextPage = object_to_array($dataAPI[1]);
+                $dataAPINextPage = \Scooper\object_to_array($dataAPI[1]);
                 if($dataAPINextPage['next_page_url'] !=null)
                 {
                     if($dataAPINextPage != null && $nPageNumber < $nMaxPages &&
@@ -454,20 +454,20 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         foreach(array_keys($arrData) as $dataSectionKey)
         {
             $dataSection = $arrData[$dataSectionKey];
-            $dataSection = object_to_array($dataSection);
+            $dataSection = \Scooper\object_to_array($dataSection);
             if(is_array($dataSection))
             {
                 if(in_array(strtolower($dataSectionKey), $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS']) == true)
                 {
                     $subItems = $this->__getCrunchbaseAPIDataForSubItems__($arrData[$dataSectionKey]);
-                    $itemValue = array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    $itemValue = \Scooper\array_flatten($subItems, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
                     $arrRet[$dataSectionKey] = $itemValue;
                 }
                 else
                 {
-                    if(is_array_multidimensional($dataSection))
+                    if(\Scooper\is_array_multidimensional($dataSection))
                     {
-                        $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                        $itemValue = \Scooper\array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
                     }
                     else
                     {

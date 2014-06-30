@@ -109,7 +109,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
             }
 
-            $arrRecordsToProcess[$nRow] = my_merge_add_new_keys($arrRecordsToProcess[$nRow],$strCurInputDataRecord );
+            $arrRecordsToProcess[$nRow] = \Scooper\my_merge_add_new_keys($arrRecordsToProcess[$nRow],$strCurInputDataRecord );
             $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = ""; // clear out any previous issues
 
             $GLOBALS['logger']->logLine("Getting basic facts for ".$valFirstField, \Scooper\C__DISPLAY_ITEM_START__);
@@ -118,7 +118,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
             if($strOutputFile != null && $nRow % C__RECORD_CHUNK_SIZE__ == 0)
             {
-                $classFileOut = new ClassScooperSimpleCSVFile($strOutputFile, "w");
+                $classFileOut = new \Scooper\ScooperSimpleCSV($strOutputFile, "w");
                 $classFileOut->writeArrayToCSVFile($arrRecordsToProcess );
 
             }
@@ -127,8 +127,6 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         }
 
         return $arrRecordsToProcess;
-
-
     }
 
     function addDataToRecord(&$arrRecordToUpdate)
@@ -152,7 +150,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']) || !isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
         {
             $arrNewBasicSiteFactsRecord = $this->_getData_($arrRecordToUpdate);
-            $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrNewBasicSiteFactsRecord  );
+            $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrNewBasicSiteFactsRecord  );
         }
         else if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) &&  strcasecmp($this->_data_type, C__LOOKUP_DATATYPE_URL__) == 0 )
         {
@@ -168,7 +166,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         //
         if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && !isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']))
         {
-            $arrRecordToUpdate['company_name'] = getPrimaryDomainFromUrl($arrRecordToUpdate['actual_site_url'], false);
+            $arrRecordToUpdate['company_name'] = \Scooper\getPrimaryDomainFromUrl($arrRecordToUpdate['actual_site_url'], false);
             // capitalize the every word in the name we got back
             if(strlen($arrRecordToUpdate['company_name']) > 0) { $arrRecordToUpdate['company_name'] = ucfirst($arrRecordToUpdate['company_name']); }
         }
@@ -180,9 +178,9 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
 
     private function _getData_($var)
     {
-        $classAPIWrap = new ClassScooperAPIWrapper();
+        $classAPIWrap = new \Scooper\ScooperDataAPIWrapper();
 
-        $curRecord = array_copy($var);
+        $curRecord = \Scooper\array_copy($var);
 
         //
         // Check domain still exists; get the actual full URL that is returned
@@ -205,13 +203,13 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             else
             {
                 $curRecord['actual_site_url'] = $curl_obj['actual_site_url'];
-                $curRecord['root_domain']  = getPrimaryDomainFromUrl($curRecord['actual_site_url']);
+                $curRecord['root_domain']  = \Scooper\getPrimaryDomainFromUrl($curRecord['actual_site_url']);
             }
 
         }
         catch ( ErrorException $e )
         {
-            __log__("Error: ". $e->getMessage()."\r\n", LOG_ERR);
+            $GLOBALS['logger']->logLine("Error: ". $e->getMessage()."\r\n", \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
         }
         return $curRecord;

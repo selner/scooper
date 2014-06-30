@@ -25,7 +25,7 @@ define('__ROOT__', dirname(dirname(__FILE__)));
 print (__ROOT__);
 require_once(dirname(__ROOT__)."/vendor/autoload.php");
 
-require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/scooper_common/src/scooper_common/scooper_common.php');
+//require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/scooper_common/src/scooper_common/scooper_common.php');
 require_once(__ROOT__.'/include/array_column.php');
 require_once(__ROOT__.'/include/fields_functions.php');
 require_once(__ROOT__.'/include/plugin-base.php');
@@ -66,8 +66,6 @@ const C__LOOKUP_DATATYPE_BASICFACTS__ = 3;
 /****************************************************************************************************************/
 
 
-const C__API_RETURN_TYPE_OBJECT__ = 33;
-const C__API_RETURN_TYPE_ARRAY__ = 44;
 
 
 
@@ -106,7 +104,7 @@ function __check_args__()
     $fHadFatalError = false;
 
     if(!$GLOBALS['OPTS']) {  __reset_args__(); }
-
+    $fileInfo = new Scooper\ScooperFileInfo();
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
@@ -116,10 +114,10 @@ function __check_args__()
 
     if($GLOBALS['OPTS']['verbose_given']) {  $GLOBALS['OPTS']['VERBOSE'] = true; } else { $GLOBALS['OPTS']['VERBOSE'] = false; }
     if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
-    if($GLOBALS['OPTS']['VERBOSE'] == true) { __log__ ('Options set: '.var_export($GLOBALS['OPTS'], true), LOG_INFO); }
+    if($GLOBALS['OPTS']['VERBOSE'] == true) { $GLOBALS['logger']->logLine ('Options set: '.var_export($GLOBALS['OPTS'], true), \Scooper\C__DISPLAY_NORMAL__); }
 
 
-    set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
+    \Scooper\set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
@@ -127,7 +125,7 @@ function __check_args__()
     /****                                                                                                        ****/
     /****************************************************************************************************************/
     $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
-    $GLOBALS['CONFIG'] = new ClassScooperConfigFile($GLOBALS['OPTS']['config_file_details']['full_file_path']);
+    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['OPTS']['config_file_details']['full_file_path']);
 
 
 
@@ -145,17 +143,17 @@ function __check_args__()
 
     if($GLOBALS['OPTS']['inputfile_given'])
     {
-        $GLOBALS['input_file_details'] = parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
+        $GLOBALS['input_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
     }
     $GLOBALS['output_file_details'] = $GLOBALS['CONFIG']->getOutputFileDetails();
     if($GLOBALS['OPTS']['outputfile_given'])
     {
-        $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['OPTS']['outputfile'], false);
+        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['outputfile'], false);
     }
     if(strlen($GLOBALS['output_file_details']['full_file_path']) <= 0)
     {
-        $strDefaultOutFileName = getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-        $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
+        $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
+        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
     }
 
 

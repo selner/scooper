@@ -253,7 +253,7 @@ class MozPluginClass extends ScooterPluginBaseClass
         }
 
         // Put it all together and you get your request URL.
-        $requestUrl = "http://lsapi.seomoz.com/linkscape/url-metrics/?Cols=".$cols."&AccessID=".$accessID."&Expires=".$expires."&Signature=".$urlSafeSignature;
+        $requestUrl = "http://lsapi.seomoz.com/linkscape/url-metrics?Cols=".$cols."&AccessID=".$accessID."&Expires=".$expires."&Signature=".$urlSafeSignature;
 
         if($GLOBALS['OPTS']['VERBOSE'])
         {

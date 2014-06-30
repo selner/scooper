@@ -25,7 +25,6 @@ define('__ROOT__', dirname(dirname(__FILE__)));
 print (__ROOT__);
 require_once(dirname(__ROOT__)."/vendor/autoload.php");
 
-//require_once(dirname(dirname(dirname(dirname(__FILE__)))) . '/scooper_common/src/scooper_common/scooper_common.php');
 require_once(__ROOT__.'/include/array_column.php');
 require_once(__ROOT__.'/include/fields_functions.php');
 require_once(__ROOT__.'/include/plugin-base.php');

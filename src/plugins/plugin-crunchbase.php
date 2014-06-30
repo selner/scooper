@@ -96,6 +96,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             'websites' => '<not set>',
             'url' => '<not set>',
             'news' => '<not set>',
+
         );
 
     }

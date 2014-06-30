@@ -17,9 +17,12 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
-const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 40;
+const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 5;
 const C__RETURNS_SINGLE_RECORD = -1;
 $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_rounds");
+
+// $class = new CrunchbasePluginClass(true);
+// $class->exportCompanyDataForCSVInputIDs("/Users/bryan/Code/scooper/src/tests/test_data/CrunchbaseOrganizations_testdata.csv", "/Users/bryan/Code/data/exportOrgs.csv");
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/
@@ -43,7 +46,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
         }
 
-        __debug__printLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_NORMAL__);
 	}
 
 
@@ -97,18 +100,25 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     }
 
+    public function exportCompanyDataForCSVInputIDs($strFileIn, $strFileOut)
+    {
+        $arrIDs = parent::readIDsFromCSVFile($strFileIn, "path");
+        $this->exportMultipleOrganizationsToCSV($arrIDs, $strFileOut);
+    }
+
+
     public function getCompanyData($strPermalink)
     {
 
         if(!$strPermalink || strlen($strPermalink) == 0)
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
 
         if(!$strPermalink || strlen($strPermalink) == 0)
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
         $strAPIURL = "http://api.crunchbase.com/v/2/organization/".$strPermalink;
@@ -154,14 +164,14 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
             if(isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']) == false)
             {
-                __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['permalink'], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying Crunchbase for ". $arrRecordToUpdate['permalink'], \Scooper\C__DISPLAY_ITEM_START__);
                 // We've got the direct link to the right record in Crunchbase, so we
                 // can skip over this next section
                 $nMatchCrunchResult = 1;
             }
             else
             {
-                __debug__printLine("Querying Crunchbase for ". $arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying Crunchbase for ". $arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ITEM_START__);
                 if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
                 {
                     $arrRecordToUpdate['crunchbase_match_accuracy'] = "Could not search Crunchbase: no company name.";
@@ -178,10 +188,10 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                     $url = "http://api.crunchbase.com/v/1/search.js?api_key=".$GLOBALS['OPTS']['crunchbase_v1_api_id']."&entity=company&query=" . $company_name_urlenc;
 
 
-                        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
+                        if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
                        $arrCrunchBaseSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, 'results', C__API_RETURN_TYPE_ARRAY__, null);
 
-                        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                        if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase returned ".count($arrCrunchBaseSearchResultsRecords)." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
 
                         if($arrCrunchBaseSearchResultsRecords && count($arrCrunchBaseSearchResultsRecords) > 0)
                         {
@@ -203,7 +213,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                             }
                             if($nMatchCrunchResult == -1 && count($arrCrunchBaseSearchResultsRecords) > 0)
                             {
-                                __debug__printLine("Exact match not found in Crunchbase results, so am using first result.", C__DISPLAY_ERROR__);
+                                $GLOBALS['logger']->logLine("Exact match not found in Crunchbase results, so am using first result.", \Scooper\C__DISPLAY_ERROR__);
                                 $nMatchCrunchResult = 0;
                                 $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase first search result used; could not find an exact match on domain.";
                             }
@@ -217,7 +227,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             if($nMatchCrunchResult == -1)
             {
                 $arrRecordToUpdate['crunchbase_match_accuracy'] = "Crunchbase search returned no results.";
-                __debug__printLine("Company not found in Crunchbase.", C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("Company not found in Crunchbase.", \Scooper\C__DISPLAY_ERROR__);
             }
             else
             {
@@ -237,7 +247,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
          $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-         __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+         $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
          addToAccuracyField($arrRecordToUpdate, $strErr );
         }
     }
@@ -249,7 +259,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
-        __debug__printLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , C__DISPLAY_ITEM_DETAIL__);
+        $GLOBALS['logger']->logLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
         if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']))
         {
@@ -263,7 +273,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         else
         {
             $strErr = "Could not lookup entity-specific facts for ".$arrRecordToUpdate['name']. ".  Invalid permalink or namespace value was given.";
-            __debug__printLine($strErr , C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine($strErr , \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr);
         }
 
@@ -329,7 +339,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         // Add the user key to the API call
         //
         $strKeyedAPIURL = $this->addKeyToURL($strAPIURL);
-        if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("Crunchbase API Call = ".$strKeyedAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+        if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("Crunchbase API Call = ".$strKeyedAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
         $classAPICall = new ClassScooperAPIWrapper();
 
@@ -349,7 +359,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
             }
             else
             {
-                __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine('$dataAPI is null, but shouldn\'t have been.', \Scooper\C__DISPLAY_ERROR__);
             }
         }
         else // mulitple item API call
@@ -385,12 +395,12 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         if($fRootCall )
         {
             if($nMaxPages != C__RETURNS_SINGLE_RECORD)
-                __debug__printLine("Total results: " . count($retItems), C__DISPLAY_ITEM_DETAIL__);
+                $GLOBALS['logger']->logLine("Total results: " . count($retItems), \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
 
             if($fFlatten)
             {
-                __debug__printLine("Flattening results...", C__DISPLAY_ITEM_DETAIL__);
+                $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
                 $retItems = $this->_flattenCrunchbaseData_($retItems);
             }
         }

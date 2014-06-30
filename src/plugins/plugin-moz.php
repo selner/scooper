@@ -35,7 +35,7 @@
 		{
             if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-            __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
+            $GLOBALS['logger']->logLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
                 $this->_batchQueryMozAPI_($arrAllRecords);
         }
@@ -158,7 +158,7 @@
                 throw new Exception("MozPlugin was not initialized correctly.");
             }
 
-            __debug__printLine("Looking for a match in Moz data for ".$arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+            $GLOBALS['logger']->logLine("Looking for a match in Moz data for ".$arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ITEM_START__);
 
 				
 			$fMatchFound = false;
@@ -193,12 +193,12 @@
 
                 }
                 addToAccuracyField($arrRecordToUpdate, 'No Moz match found for root_domain value.');
-                __debug__printLine("Moz: Match not found for ".$recordStringToMatch, C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("Moz: Match not found for ".$recordStringToMatch, \Scooper\C__DISPLAY_ERROR__);
             }
             else
             {
                 addToAccuracyField($arrRecordToUpdate, 'Unable to search Moz data; no root_domain found for company.');
-                if(!$fMatchFound) { __debug__printLine("'Unable to search Moz data; no root_domain found for company = ".$arrRecordToUpdate['company_name'], C__DISPLAY_ERROR__);  }
+                if(!$fMatchFound) { $GLOBALS['logger']->logLine("'Unable to search Moz data; no root_domain found for company = ".$arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ERROR__);  }
             }
 
 			return;
@@ -258,8 +258,8 @@
 			if($GLOBALS['OPTS']['VERBOSE'])
 			{
 				$strDomainList = implode(';  ', $arrDomainsToQuery);
-                __debug__printLine("'Moz API call: ".$requestUrl, C__DISPLAY_ITEM_DETAIL__);
-                __debug__printLine("Domains:".$strDomainList, C__DISPLAY_ITEM_DETAIL__);
+                $GLOBALS['logger']->logLine("'Moz API call: ".$requestUrl, \Scooper\C__DISPLAY_ITEM_DETAIL__);
+                $GLOBALS['logger']->logLine("Domains:".$strDomainList, \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
 			}
 

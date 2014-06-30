@@ -33,7 +33,7 @@ class PluginAngelList extends ScooterPluginBaseClass
     {
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-        __debug__printLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_NORMAL__);
     }
 
 
@@ -74,7 +74,7 @@ class PluginAngelList extends ScooterPluginBaseClass
 
         if(!$id|| strlen($id) == 0)
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine("No " . $this->strDataProviderName . " key value passed.  Cannot lookup other facts.", C__DISPLAY_ITEM_RESULT__);  }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No " . $this->strDataProviderName . " key value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
 
@@ -93,7 +93,7 @@ class PluginAngelList extends ScooterPluginBaseClass
     // method declaration
     function addDataToRecord(&$arrRecordToUpdate)
     {
-         $this->addDataToRecordViaSearch($arrRecordToUpdate, 'id', 'name', 'https://api.angel.co/1/search?type=Startup&query=', null, true);
+         $this->addDataToRecordViaSearch($arrRecordToUpdate, 'company_name', 'name', 'https://api.angel.co/1/search?type=Startup&query=', null, true);
     }
 
 

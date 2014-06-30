@@ -20,21 +20,31 @@
 /****         Base Class:  Scooter Site Data Plugin                                                          ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-define('__ROOT__', dirname(dirname(__FILE__)));
-require_once(__ROOT__ . '/scooper_common/scooper_common.php');
 
+//require_once(dirname(dirname(dirname(dirname(__FILE__)))). '/scooper_common/src/scooper_common/scooper_common.php');
 
-
+use \Scooper\ScooperLogger;
+use \Scooper\FileInfo;
 
 const C__FEXCLUDE_DATA_YES = 1;
 const C__FEXCLUDE_DATA_NO = 0;
 
+//$GLOBALS['LOGGER'] = new ScooperLogger();
+
+//function $GLOBALS['logger']->logLine($strToPrint, $varDisplayStyle, $fDebuggingOnly = false)
+//{
+//    $GLOBALS['LOGGER']->logLine($strToPrint, $varDisplayStyle, $fDebuggingOnly);
+//}
 
 abstract class ScooterPluginBaseClass
 {
     protected $strDataProviderName = null;
     protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
     abstract function getCompanyData($id);
+
+
+
+
 
     //
     //  END NEW UNTESTED CODE
@@ -99,7 +109,7 @@ abstract class ScooterPluginBaseClass
             array_shift($arrAPICallSettings['urls_to_fetch']); // remove the URL we are processing from the list
 
             $strURL = $this->addKeyToURL($strURL);
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . " API Call = ".$strURL, C__DISPLAY_ITEM_DETAIL__); }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
             $classAPICall = new ClassScooperAPIWrapper();
 
@@ -108,7 +118,7 @@ abstract class ScooterPluginBaseClass
 
             if($dataAPI == null)
             {
-                __debug__printLine("API call returned no data.", C__DISPLAY_WARNING__);
+                $GLOBALS['logger']->logLine("API call returned no data.", \Scooper\C__DISPLAY_WARNING__);
                 return;
             }
 
@@ -131,7 +141,7 @@ abstract class ScooterPluginBaseClass
             }
             else
             {
-                __debug__printLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", C__DISPLAY_WARNING__);
+                $GLOBALS['logger']->logLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", \Scooper\C__DISPLAY_WARNING__);
                 $retItems = $dataAPI;
             }
 
@@ -172,7 +182,7 @@ abstract class ScooterPluginBaseClass
             {
                 if($arrAPICallSettings['flatten'] == true)
                 {
-                    __debug__printLine("Flattening results...", C__DISPLAY_ITEM_DETAIL__);
+                    $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
                     $arrAPICallSettings['fetched_data'] = $this->_flattenData_($arrAPICallSettings['fetched_data']);
                 }
             }
@@ -181,7 +191,7 @@ abstract class ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
         }
     }
 
@@ -235,16 +245,18 @@ abstract class ScooterPluginBaseClass
 
 
 
-    function readIDsFromCSVFile($strInputFile, $columnKeyName, $strOutputFile)
+    function readIDsFromCSVFile($strInputFile, $columnKeyName)
     {
+        $fileInfo = new \Scooper\FileInfo($strInputFile);
 
-        $fileDetails = parseFilePath($strInputFile);
+        $fileDetails = $fileInfo->parseFilePath();
         $classFileIn = new ClassScooperSimpleCSVFile($fileDetails['full_file_path'], "r");
-        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, array($columnKeyName));
+        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, null);
 
         $arrIDs = array_column($arrCSVLinkRecords, $columnKeyName);
 
-        $this->exportMultipleOrganizationsToCSV($arrIDs, $strOutputFile);
+        // $this->exportMultipleOrganizationsToCSV($arrIDs, $strOutputFile);
+        return $arrIDs;
     }
 
     public function addDataToRecordViaSearch(&$arrRecordToUpdate, $idColumnKey, $domainMatchKey, $strSearchURLBase,  $jsonResultsKeyName = null, $fExpandArrays = true)
@@ -272,14 +284,14 @@ abstract class ScooterPluginBaseClass
 
             if(isRecordFieldNullOrNotSet($arrRecordToUpdate[$idColumnKey]) == false)
             {
-                __debug__printLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate[$idColumnKey], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate[$idColumnKey], \Scooper\C__DISPLAY_ITEM_START__);
                 // We've got the direct link to the right record, so we can skip over this next section
                 $nMatchResult = 1;
                 $strMatchType =  "Could not search " . $this->strDataProviderName . ": no company name.";
             }
             else
             {
-                __debug__printLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ITEM_START__);
                 if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
                 {
                     $strMatchType =  "Could not search " . $this->strDataProviderName . ": no company name.";
@@ -296,10 +308,10 @@ abstract class ScooterPluginBaseClass
                     $url = $strSearchURLBase . $company_name_urlenc;
 
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . "API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
+                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
                     $arrSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, $jsonResultsKeyName, C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
 
                     if($arrSearchResultsRecords != null && count($arrSearchResultsRecords ) > 0)
                     {
@@ -327,7 +339,7 @@ abstract class ScooterPluginBaseClass
                         if($nMatchResult == -1 && count($arrSearchResultsRecords) > 0)
                         {
                             $strMatchType =   $this->strDataProviderName . " first search result used; could not find an exact match on domain.";
-                            __debug__printLine($strMatchType, C__DISPLAY_WARNING__);
+                            $GLOBALS['logger']->logLine($strMatchType, \Scooper\C__DISPLAY_WARNING__);
                             $nMatchResult = 0;
                         }
                     }
@@ -339,7 +351,7 @@ abstract class ScooterPluginBaseClass
             //
             if($nMatchResult == -1)
             {
-                __debug__printLine("Company not found in " . $this->strDataProviderName . ".", C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("Company not found in " . $this->strDataProviderName . ".", \Scooper\C__DISPLAY_ERROR__);
             }
             else
             {
@@ -361,7 +373,7 @@ abstract class ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr );
         }
     }
@@ -371,7 +383,7 @@ abstract class ScooterPluginBaseClass
     {
         try
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . " API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
             $classAPICall = new ClassScooperAPIWrapper();
 
@@ -396,7 +408,7 @@ abstract class ScooterPluginBaseClass
                 }
                 else
                 {
-                    __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
+                    $GLOBALS['logger']->logLine('$dataAPI is null, but shouldn\'t have been.', \Scooper\C__DISPLAY_ERROR__);
                 }
             }
             else // multiple item API call
@@ -437,12 +449,12 @@ abstract class ScooterPluginBaseClass
             if($fRootCall )
             {
                 if($nMaxPages != C__RETURNS_SINGLE_RECORD)
-                    __debug__printLine("Total results: " . count($retItems), C__DISPLAY_ITEM_DETAIL__);
+                    $GLOBALS['logger']->logLine("Total results: " . count($retItems), \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
 
                 if($fFlatten)
                 {
-                    __debug__printLine("Flattening results...", C__DISPLAY_ITEM_DETAIL__);
+                    $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
                     $retItems = $this->_flattenData_($retItems);
                 }
             }
@@ -452,7 +464,7 @@ abstract class ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr );
         }
 
@@ -468,16 +480,16 @@ abstract class ScooterPluginBaseClass
             throw new ErrorException($this->strDataProviderName . " data has been excluded. Cannot execute this function.");
         }
 
-        __debug__printLine("Starting " . $this->strDataProviderName . " Data export for API call:" .$strAPICallURL, C__DISPLAY_SECTION_START__);
+        $GLOBALS['logger']->logLine("Starting " . $this->strDataProviderName . " Data export for API call:" .$strAPICallURL, \Scooper\C__DISPLAY_SECTION_START__);
 
         //
         // Query the API for our data
         //
-        __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Getting data...", \Scooper\C__DISPLAY_NORMAL__);
         $strKeyedURL = $this->addKeyToURL($strAPICallURL);
         $arrDataAPI = $this->getDataFromAPI($strKeyedURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
 
-        __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Starting file write ...", \Scooper\C__DISPLAY_NORMAL__);
 
         $this->writeDataToFile($arrDataAPI, $detailsFile);
 
@@ -498,7 +510,7 @@ abstract class ScooterPluginBaseClass
         //
         // Make sure our data is an array so we can write it as expected
         //
-        __debug__printLine("Bundling data for writing to file...", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Bundling data for writing to file...", \Scooper\C__DISPLAY_NORMAL__);
         if(!is_array_multidimensional($arrData))
         {
             $outRecord[] = $arrData;
@@ -511,10 +523,10 @@ abstract class ScooterPluginBaseClass
         //
         // Write the CSV out to file
         //
-        __debug__printLine("Writing to file: " .$detailsFile['full_file_path'] , C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Writing to file: " .$detailsFile['full_file_path'] , \Scooper\C__DISPLAY_NORMAL__);
         $classOutputFile->writeArrayToCSVFile($outRecord);
 
-        __debug__printLine("Export complete." , C__DISPLAY_SUMMARY__);
+        $GLOBALS['logger']->logLine("Export complete." , \Scooper\C__DISPLAY_SUMMARY__);
 
     }
 

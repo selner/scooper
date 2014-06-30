@@ -18,7 +18,7 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__ . '/main/scooper.php');
 
-$classcb = new CrunchbasePluginClass(false);
+// $classcb = new CrunchbasePluginClass(false);
 
 //$classcb->dumpCompanyInfoFromListOfPermalinks("/Users/bryan/Desktop/ApptentiveCompeteURLs.csv", "/Users/bryan/OneDrive/OneDrive-JobSearch/portfolio_companies_needing_data_output.csv" );
 

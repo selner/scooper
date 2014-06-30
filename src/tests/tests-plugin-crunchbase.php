@@ -21,13 +21,15 @@ require_once(__ROOT__.'/tests/tests-base.php');
 
 
 
-testCrunchbase_APIExport_MultiPage();
+runTests_CrunchbasePlugin();
 
 
 
 function runTests_CrunchbasePlugin()
 {
     $ret = null;
+
+    $ret = testCrunchbase_getOrgDataFromCSVFile(__ROOT__.'/tests/test_data/CrunchbaseOrganizations_testdata.csv');
 
    $ret = testCrunchbase_APIExport_MultiPage();
 
@@ -62,3 +64,15 @@ function testCrunchbase_getCompanyByPermalink($str)
 
 }
 
+
+function testCrunchbase_getOrgDataFromCSVFile($strFilePath)
+{
+    initTests();
+    $detailsOutFile = getTestOutputFileDetails();
+    $detailsFileIn = parseFilePath($strFilePath);
+    $pluginCrunchbase = new CrunchbasePluginClass(false);
+
+    $arrResults = $pluginCrunchbase->readIDsFromCSVFile($detailsFileIn['full_file_path'], 'path');
+
+
+}

@@ -80,7 +80,7 @@ function __doRun__()
             __runCompanyLookups__();
         }
 
-    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
+    $GLOBALS['logger']->logSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_END__ );
 }
 
 function __runCrunchbaseAPICall__($strURL)
@@ -122,13 +122,13 @@ function __runCompanyLookups__()
             /****************************************************************************************************************/
 
             $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_FILE;
-            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
             $classFileIn = new ClassScooperSimpleCSVFile($GLOBALS['input_file_details']['full_file_path'], 'r');
 
             $arrInputCSVData = $classFileIn->readAllRecords(true);
 
-            __debug__printLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", C__DISPLAY_NORMAL__);
-            __debug__printSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+            $GLOBALS['logger']->logLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", \Scooper\C__DISPLAY_NORMAL__);
+            $GLOBALS['logger']->logSectionHeader("Read Input CSV File", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
         }
@@ -145,12 +145,12 @@ function __runCompanyLookups__()
         /****    Get the basic facts for the loaded input data                                                       ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+        $GLOBALS['logger']->logSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
         $pluginBasicFacts = new BasicFactsPluginClass($arrInputCSVData['data_rows'] , $detailsOut['full_file_path']);
         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $detailsOut['full_file_path']);
-        __debug__printSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+        $GLOBALS['logger']->logSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
 
 
         /****************************************************************************************************************/
@@ -177,7 +177,7 @@ function __runCompanyLookups__()
         /****   Process the list of company / URL records to get the additional data for each one.                   ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        __debug__printSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
 
 
         $arrRecordCopyForKeys = null;
@@ -205,11 +205,11 @@ function __runCompanyLookups__()
             if($ncurRecordIndex % C__RECORD_CHUNK_SIZE__ == 0)  {         $classFileOut->writeArrayToCSVFile($arrAllRecordsProcessed );           }
             $ncurRecordIndex++;
 
-            __debug__printLine("Added ".$company . " to final results list.".PHP_EOL, C__DISPLAY_ITEM_RESULT__);
+            $GLOBALS['logger']->logLine("Added ".$company . " to final results list.".PHP_EOL, \Scooper\C__DISPLAY_ITEM_RESULT__);
         }
 
-        __debug__printSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
-        __debug__printLine("Total records processed: ".count($arrAllRecordsProcessed).".", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logSectionHeader("Collecting Data from Plugins", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+        $GLOBALS['logger']->logLine("Total records processed: ".count($arrAllRecordsProcessed).".", \Scooper\C__DISPLAY_NORMAL__);
 
 
 
@@ -220,7 +220,7 @@ function __runCompanyLookups__()
         /****                                                                                                        ****/
         /****************************************************************************************************************/
 
-        __debug__printLine("Writing results to ".$detailsOut['full_file_path'], C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Writing results to ".$detailsOut['full_file_path'], \Scooper\C__DISPLAY_NORMAL__);
          $classFileOut->writeArrayToCSVFile( $arrAllRecordsProcessed );
 
 

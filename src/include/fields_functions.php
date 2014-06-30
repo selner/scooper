@@ -35,8 +35,6 @@ function isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid = false, $fZeroIsV
         return true;
     }
 
-//    __debug__var_dump_exit__(array('acc_val' => $val, 'is_string' => is_string($val), '<not set> match' => strcasecmp($val, "<not set>"), 'empty_is_invalid' => $fEmptyStringEqualsInvalid, 'ret' => $retValid));
-
     return false;
 }
 

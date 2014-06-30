@@ -112,7 +112,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
             $arrRecordsToProcess[$nRow] = my_merge_add_new_keys($arrRecordsToProcess[$nRow],$strCurInputDataRecord );
             $arrRecordsToProcess[$nRow]['result_accuracy_warnings'] = ""; // clear out any previous issues
 
-            __debug__printLine("Getting basic facts for ".$valFirstField, C__DISPLAY_ITEM_START__);
+            $GLOBALS['logger']->logLine("Getting basic facts for ".$valFirstField, \Scooper\C__DISPLAY_ITEM_START__);
 
             $this->addDataToRecord($arrRecordsToProcess[$nRow]);
 

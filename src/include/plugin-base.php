@@ -20,9 +20,6 @@
 /****         Base Class:  Scooter Site Data Plugin                                                          ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-define('__ROOT__', dirname(dirname(__FILE__)));
-require_once(__ROOT__ . '/scooper_common/scooper_common.php');
-
 
 
 
@@ -35,6 +32,169 @@ abstract class ScooterPluginBaseClass
     protected $strDataProviderName = null;
     protected $_fDataIsExcluded_ = C__FEXCLUDE_DATA_NO;
     abstract function getCompanyData($id);
+
+
+
+
+
+    //
+    //  END NEW UNTESTED CODE
+    //
+
+
+    public function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    {
+        $arrAPIData = $this->getEmptyDataAPISettings();
+        if($nMaxPages != C__RETURNS_SINGLE_RECORD)
+        {
+            $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
+        }
+        $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => 0, 'subkey' => null);
+        if($nMaxPages == C__RETURNS_SINGLE_RECORD)
+        {
+            $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => null, 'subkey' => null);
+        }
+        $arrAPIData['urls_to_fetch'][] = $strAPIURL;
+        $arrAPIData['count_max_pages_to_fetch'] = $nMaxPages;
+        $arrAPIData['fetched_data'] = array();
+        $arrAPIData['flatten_final_results'] = $fFlatten;
+
+        $this->fetchAPIDataNonRecursive($arrAPIData);
+        return $arrAPIData['fetched_data'];
+
+    }
+
+    public  function fetchAPIDataNonRecursive(&$arrAPICallSettings)
+    {
+        if($this->_fDataIsExcluded_ ==  C__FEXCLUDE_DATA_YES)
+        {
+            throw new ErrorException($this->strDataProviderName . " data has been excluded. Cannot execute this function.");
+        }
+
+        while((count($arrAPICallSettings['urls_to_fetch']) > 0) && ($arrAPICallSettings['fetched_total_page_count']< $arrAPICallSettings['count_max_pages_to_fetch']))
+        {
+            $this->_fetchAPIDataSingleIteration_($arrAPICallSettings);
+        }
+    }
+
+    protected function getEmptyDataAPISettings() {
+        $ret = array(
+            'flatten_final_results' => false,
+            'result_keys_for_next_page' => null,
+            'multiple_object_result' => true,
+            'count_max_pages_to_fetch' => C__MAX_RESULT_PAGES_FETCHED,
+            'result_keys_for_data' => null,
+            'urls_to_fetch' => null,
+            'fetched_total_page_count' => 0,
+            'fetched_data' => null,
+        );
+        $ret['result_keys_for_next_page'] = array('key' => null, 'subkey' => null);
+        $ret['result_keys_for_data'] = array('json_object' => null, 'key' => null, 'subkey' => null);
+        $ret['fetched_data'] = array();
+        $ret['urls_to_fetch'] = array();
+        return $ret;
+    }
+
+
+
+    protected function _fetchAPIDataSingleIteration_(&$arrAPICallSettings)
+    {
+        if($arrAPICallSettings == null || $arrAPICallSettings['urls_to_fetch'] == null) return null;
+
+        try
+        {
+            $strURL = $arrAPICallSettings['urls_to_fetch'][0];
+            array_shift($arrAPICallSettings['urls_to_fetch']); // remove the URL we are processing from the list
+
+            $strURL = $this->addKeyToURL($strURL);
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
+
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
+
+            $dataAPI= $classAPICall->getObjectsFromAPICall($strURL, $arrAPICallSettings['result_keys_for_data']['json_object'], \Scooper\C__API_RETURN_TYPE_ARRAY__ , null);
+            $retItems = array();
+
+            if($dataAPI == null)
+            {
+                $GLOBALS['logger']->logLine("API call returned no data.", \Scooper\C__DISPLAY_WARNING__);
+                return;
+            }
+
+            if(is_object($dataAPI))
+            {
+                $dataAPI = \Scooper\object_to_array($dataAPI);
+            }
+
+            //
+            // Let's first get the data set returned with this API call,
+            // regardless of whether it's a single or multiple results set
+            //
+            if($arrAPICallSettings['result_keys_for_data'] != null && strlen($arrAPICallSettings['result_keys_for_data']['key']) > 0)
+            {
+                $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']];
+                if(strlen($arrAPICallSettings['result_keys_for_data']['subkey']) > 0)
+                {
+                    $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
+                }
+            }
+            else
+            {
+                $GLOBALS['logger']->logLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", \Scooper\C__DISPLAY_WARNING__);
+                $retItems = $dataAPI;
+            }
+
+            //
+            // Did the API caller expect multiple results to be returned?
+            // If so, let's go process the data to get the other results
+            //
+            if($arrAPICallSettings['multiple_object_result'] == true && is_array($dataAPI)) // CB  || strcasecmp($dataAPI[1], "Organization") == 0
+            {
+                if((strlen($arrAPICallSettings['result_keys_for_next_page']['key']) > 0) && $dataAPI[ $arrAPICallSettings['result_keys_for_next_page']['key']] !=null)
+                {
+                    $keyNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']];
+                    if(strlen($arrAPICallSettings['result_keys_for_next_page']['subkey']) > 0 && $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']] != null)
+                    {
+                        $keyNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
+                    }
+
+                    if($keyNextPage != null)
+                    {
+                        $arrAPICallSettings['urls_to_fetch'][] = $keyNextPage;
+                    }
+                }
+            }
+
+            $arrAPICallSettings['fetched_total_page_count']++;
+            $arrAPICallSettings['fetched_data'] = array_merge($arrAPICallSettings['fetched_data'], $retItems);
+
+            //
+            // If we have no more URLs to fetch OR we've hit the max number of pages to fetch,
+            // this is the last call we'll make.  Do any data cleanup, such as flattening, before returning
+            // this last time.
+            //
+            if(count($arrAPICallSettings['urls_to_fetch']) == 0 || $arrAPICallSettings['fetched_total_page_count'] >= $arrAPICallSettings['count_max_pages_to_fetch'])
+            {
+                if($arrAPICallSettings['flatten'] == true)
+                {
+                    $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
+                    $arrAPICallSettings['fetched_data'] = $this->_flattenData_($arrAPICallSettings['fetched_data']);
+                }
+            }
+
+        }
+        catch ( ErrorException $e )
+        {
+            $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
+        }
+    }
+
+    //
+    //  END NEW UNTESTED CODE
+    //
+
+
+
 
 
     // method declaration
@@ -55,12 +215,12 @@ abstract class ScooterPluginBaseClass
         foreach(array_keys($arrData) as $dataSectionKey)
         {
             $dataSection = $arrData[$dataSectionKey];
-            $dataSection = object_to_array($dataSection);
+            $dataSection = \Scooper\object_to_array($dataSection);
             if(is_array($dataSection))
             {
-                if(is_array_multidimensional($dataSection))
+                if(\Scooper\is_array_multidimensional($dataSection))
                 {
-                    $itemValue = array_flatten($dataSection, "|", C_ARRFLAT_SUBITEM_SEPARATOR__ | C_ARRFLAT_SUBITEM_LINEBREAK__  );
+                    $itemValue = \Scooper\array_flatten($dataSection, "|", \Scooper\C_ARRFLAT_SUBITEM_LINEBREAK__ | \Scooper\C_ARRFLAT_SUBITEM_LINEBREAK__  );
                 }
                 else
                 {
@@ -79,16 +239,18 @@ abstract class ScooterPluginBaseClass
 
 
 
-    function readIDsFromCSVFile($strInputFile, $columnKeyName, $strOutputFile)
+    function readIDsFromCSVFile($strInputFile, $columnKeyName)
     {
+        $fileInfo = new \Scooper\ScooperFileInfo();
 
-        $fileDetails = parseFilePath($strInputFile);
-        $classFileIn = new ClassScooperSimpleCSVFile($fileDetails['full_file_path'], "r");
-        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, array($columnKeyName));
+        $fileDetails = $fileInfo->parseFilePath($strInputFile);
+        $classFileIn = new \Scooper\ScooperSimpleCSV($fileDetails['full_file_path'], "r");
+        $arrCSVLinkRecords = $classFileIn->readAllRecords(true, null);
 
         $arrIDs = array_column($arrCSVLinkRecords, $columnKeyName);
 
-        $this->exportMultipleOrganizationsToCSV($arrIDs, $strOutputFile);
+        // $this->exportMultipleOrganizationsToCSV($arrIDs, $strOutputFile);
+        return $arrIDs;
     }
 
     public function addDataToRecordViaSearch(&$arrRecordToUpdate, $idColumnKey, $domainMatchKey, $strSearchURLBase,  $jsonResultsKeyName = null, $fExpandArrays = true)
@@ -104,11 +266,12 @@ abstract class ScooterPluginBaseClass
 
         try
         {
+            $strMatchType = "";
 
             //
             // Call the  Search API
             //
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
             $nMatchResult = -1;
             $nCurResult = 0;
 
@@ -116,14 +279,14 @@ abstract class ScooterPluginBaseClass
 
             if(isRecordFieldNullOrNotSet($arrRecordToUpdate[$idColumnKey]) == false)
             {
-                __debug__printLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate[$idColumnKey], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate[$idColumnKey], \Scooper\C__DISPLAY_ITEM_START__);
                 // We've got the direct link to the right record, so we can skip over this next section
                 $nMatchResult = 1;
                 $strMatchType =  "Could not search " . $this->strDataProviderName . ": no company name.";
             }
             else
             {
-                __debug__printLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate['company_name'], C__DISPLAY_ITEM_START__);
+                $GLOBALS['logger']->logLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ITEM_START__);
                 if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) == true)
                 {
                     $strMatchType =  "Could not search " . $this->strDataProviderName . ": no company name.";
@@ -140,10 +303,10 @@ abstract class ScooterPluginBaseClass
                     $url = $strSearchURLBase . $company_name_urlenc;
 
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . "API call=".$url, C__DISPLAY_ITEM_DETAIL__);  }
-                    $arrSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, $jsonResultsKeyName, C__API_RETURN_TYPE_ARRAY__, null);
+                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
+                    $arrSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, $jsonResultsKeyName, \Scooper\C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", C__DISPLAY_ITEM_DETAIL__);  }
+                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
 
                     if($arrSearchResultsRecords != null && count($arrSearchResultsRecords ) > 0)
                     {
@@ -151,14 +314,14 @@ abstract class ScooterPluginBaseClass
                         {
                             if($curResult[$domainMatchKey] && strlen($curResult[$domainMatchKey]) > 0)
                             {
-                                $curResult['computed_domain'] = getPrimaryDomainFromUrl($curResult[$domainMatchKey]);
+                                $curResult['computed_domain'] = \Scooper\getPrimaryDomainFromUrl($curResult[$domainMatchKey]);
                                 if((strcasecmp($curResult['computed_domain'], $arrRecordToUpdate['root_domain']) == 0) ||
                                     (strcasecmp($curResult[$nameColumnKey], $arrRecordToUpdate['company_name']) == 0))
                                 {
                                     // Match found
                                     $nMatchResult = $nCurResult;
                                     $strMatchType =  $this->strDataProviderName . " matched on name or domain exactly.";
-                                    $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $curResult);
+                                    $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $curResult);
                                     break;
                                 }
                                 else
@@ -171,7 +334,7 @@ abstract class ScooterPluginBaseClass
                         if($nMatchResult == -1 && count($arrSearchResultsRecords) > 0)
                         {
                             $strMatchType =   $this->strDataProviderName . " first search result used; could not find an exact match on domain.";
-                            __debug__printLine($strMatchType, C__DISPLAY_WARNING__);
+                            $GLOBALS['logger']->logLine($strMatchType, \Scooper\C__DISPLAY_WARNING__);
                             $nMatchResult = 0;
                         }
                     }
@@ -183,7 +346,7 @@ abstract class ScooterPluginBaseClass
             //
             if($nMatchResult == -1)
             {
-                __debug__printLine("Company not found in " . $this->strDataProviderName . ".", C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("Company not found in " . $this->strDataProviderName . ".", \Scooper\C__DISPLAY_ERROR__);
             }
             else
             {
@@ -191,7 +354,7 @@ abstract class ScooterPluginBaseClass
                 // Otherwise, go get the full entity facts for that record
                 //
                 $arrCompanyData = $this->getCompanyData($arrRecordToUpdate[$idColumnKey]);
-                $arrRecordToUpdate = my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
+                $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
 
             }
 
@@ -205,7 +368,7 @@ abstract class ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr );
         }
     }
@@ -215,14 +378,14 @@ abstract class ScooterPluginBaseClass
     {
         try
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { __debug__printLine($this->strDataProviderName . " API Call = ".$strAPIURL, C__DISPLAY_ITEM_DETAIL__); }
+            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
-            $classAPICall = new ClassScooperAPIWrapper();
+            $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
-            $dataAPI= $classAPICall->getObjectsFromAPICall($strAPIURL, $jsonReturnDataKey, C__API_RETURN_TYPE_ARRAY__ , null);
+            $dataAPI= $classAPICall->getObjectsFromAPICall($strAPIURL, $jsonReturnDataKey, \Scooper\C__API_RETURN_TYPE_ARRAY__ , null);
             if(is_object($dataAPI))
             {
-                $dataAPI = object_to_array($dataAPI);
+                $dataAPI = \Scooper\object_to_array($dataAPI);
             }
             $retItems = array();
 
@@ -240,7 +403,7 @@ abstract class ScooterPluginBaseClass
                 }
                 else
                 {
-                    __debug__printLine('$dataAPI is null, but shouldn\'t have been.', C__DISPLAY_ERROR__);
+                    $GLOBALS['logger']->logLine('$dataAPI is null, but shouldn\'t have been.', \Scooper\C__DISPLAY_ERROR__);
                 }
             }
             else // multiple item API call
@@ -255,7 +418,7 @@ abstract class ScooterPluginBaseClass
                     $dataAPINextPage = $dataAPI[1];
                     if(is_object($dataAPINextPage))
                     {
-                        $dataAPINextPage = object_to_array($dataAPINextPage);
+                        $dataAPINextPage = \Scooper\object_to_array($dataAPINextPage);
                     }
 
                     if($nextPageURLColumnKey != null && $dataAPINextPage[$nextPageURLColumnKey] !=null)
@@ -281,12 +444,12 @@ abstract class ScooterPluginBaseClass
             if($fRootCall )
             {
                 if($nMaxPages != C__RETURNS_SINGLE_RECORD)
-                    __debug__printLine("Total results: " . count($retItems), C__DISPLAY_ITEM_DETAIL__);
+                    $GLOBALS['logger']->logLine("Total results: " . count($retItems), \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
 
                 if($fFlatten)
                 {
-                    __debug__printLine("Flattening results...", C__DISPLAY_ITEM_DETAIL__);
+                    $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
                     $retItems = $this->_flattenData_($retItems);
                 }
             }
@@ -296,7 +459,7 @@ abstract class ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $strErr  = 'Error accessing ' . $this->strDataProviderName . ': ' . $e->getMessage();
-            __debug__printLine ($strErr, C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine ($strErr, \Scooper\C__DISPLAY_ERROR__);
             addToAccuracyField($arrRecordToUpdate, $strErr );
         }
 
@@ -312,15 +475,16 @@ abstract class ScooterPluginBaseClass
             throw new ErrorException($this->strDataProviderName . " data has been excluded. Cannot execute this function.");
         }
 
-        __debug__printLine("Starting " . $this->strDataProviderName . " Data export for API call:" .$strAPICallURL, C__DISPLAY_SECTION_START__);
+        $GLOBALS['logger']->logLine("Starting " . $this->strDataProviderName . " Data export for API call:" .$strAPICallURL, \Scooper\C__DISPLAY_SECTION_START__);
 
         //
         // Query the API for our data
         //
-        __debug__printLine("Getting data...", C__DISPLAY_NORMAL__);
-        $arrDataAPI = $this->getDataFromAPI($strAPICallURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
+        $GLOBALS['logger']->logLine("Getting data...", \Scooper\C__DISPLAY_NORMAL__);
+        $strKeyedURL = $this->addKeyToURL($strAPICallURL);
+        $arrDataAPI = $this->getDataFromAPI($strKeyedURL , true, $strNextPageURLKey, $nMaxPages, 0, $jsonKeyToReturn);
 
-        __debug__printLine("Starting file write ...", C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Starting file write ...", \Scooper\C__DISPLAY_NORMAL__);
 
         $this->writeDataToFile($arrDataAPI, $detailsFile);
 
@@ -336,13 +500,13 @@ abstract class ScooterPluginBaseClass
             throw new ErrorException($this->strDataProviderName . " data has been excluded. Cannot execute this function.");
         }
 
-        $classOutputFile = new ClassScooperSimpleCSVFile($detailsFile['full_file_path'], "w");
+        $classOutputFile = new \Scooper\ScooperSimpleCSV($detailsFile['full_file_path'], "w");
 
         //
         // Make sure our data is an array so we can write it as expected
         //
-        __debug__printLine("Bundling data for writing to file...", C__DISPLAY_NORMAL__);
-        if(!is_array_multidimensional($arrData))
+        $GLOBALS['logger']->logLine("Bundling data for writing to file...", \Scooper\C__DISPLAY_NORMAL__);
+        if(!\Scooper\is_array_multidimensional($arrData))
         {
             $outRecord[] = $arrData;
         }
@@ -354,10 +518,10 @@ abstract class ScooterPluginBaseClass
         //
         // Write the CSV out to file
         //
-        __debug__printLine("Writing to file: " .$detailsFile['full_file_path'] , C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Writing to file: " .$detailsFile['full_file_path'] , \Scooper\C__DISPLAY_NORMAL__);
         $classOutputFile->writeArrayToCSVFile($outRecord);
 
-        __debug__printLine("Export complete." , C__DISPLAY_SUMMARY__);
+        $GLOBALS['logger']->logLine("Export complete." , \Scooper\C__DISPLAY_SUMMARY__);
 
     }
 
@@ -372,11 +536,28 @@ abstract class ScooterPluginBaseClass
             $arrOrgData[] = $this->getCompanyData($strID);
         }
 
-        $classOutputVCData = new ClassScooperSimpleCSVFile($strOutputFile, "w");
+        $classOutputVCData = new \Scooper\ScooperSimpleCSV($strOutputFile, "w");
         $classOutputVCData->writeArrayToCSVFile($arrOrgData);
 
     }
 
+    protected function getKeyURLString()
+    {
+        return "";  // used by child classes
+    }
+
+    protected function addKeyToURL($strURL)
+    {
+        $retURL = $strURL;
+        $keyString =  $this->getKeyURLString();
+        if(strlen($keyString) > 0)
+        {
+            $fFoundQuestion = (substr_count($strURL, "?") > 0);
+            $retURL = $strURL . ($fFoundQuestion ? "&" : "?") . $keyString;
+        }
+
+        return $retURL;
+    }
 
     function _expandArrays_(&$arrToExpand)
     {
@@ -399,7 +580,7 @@ abstract class ScooterPluginBaseClass
                 {
                     if(is_array($subItem))
                     {
-                        $arrNewValue[] = implode(" ", array_flatten_sep(".", $subItem));
+                        $arrNewValue[] = implode(" ", \Scooper\array_flatten_sep(".", $subItem));
                     }
                     else
                     {

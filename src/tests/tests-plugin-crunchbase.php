@@ -21,13 +21,15 @@ require_once(__ROOT__.'/tests/tests-base.php');
 
 
 
-
+runTests_CrunchbasePlugin();
 
 
 
 function runTests_CrunchbasePlugin()
 {
     $ret = null;
+
+    $ret = testCrunchbase_getOrgDataFromCSVFile(__ROOT__.'/tests/test_data/CrunchbaseOrganizations_testdata.csv');
 
    $ret = testCrunchbase_APIExport_MultiPage();
 
@@ -41,23 +43,37 @@ function runTests_CrunchbasePlugin()
 
 function testCrunchbase_APIExport_MultiPage()
 {
+    initTests();
+
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-    return $pluginCrunchbase->writeAPIResultsToFile("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", $detailsOutFile, 3 );
+    $arrData = $pluginCrunchbase->fetchCrunchbaseDataFromAPI("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", true);
+    $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 }
 
 
 function testCrunchbase_getCompanyByPermalink($str)
 {
+    initTests();
     $detailsOutFile = getTestOutputFileDetails();
 
-
     $pluginCrunchbase = new CrunchbasePluginClass(false);
-//    $arrRecords = array('company_name' => $str);
-//    $pluginCrunchbase->addDataToRecord($arrRecords, true);
-    $pluginCrunchbase->writeCrunchbaseOrganizationToFile($str, $detailsOutFile);
-
+    $arrData = $pluginCrunchbase->getCompanyData($str);
+    $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 
 }
 
+
+function testCrunchbase_getOrgDataFromCSVFile($strFilePath)
+{
+    initTests();
+    $detailsOutFile = getTestOutputFileDetails();
+    $class = new Scooper\ScooperFileInfo();
+    $detailsFileIn = $class->parseFilePath($strFilePath);
+    $pluginCrunchbase = new CrunchbasePluginClass(false);
+
+    $arrResults = $pluginCrunchbase->readIDsFromCSVFile($detailsFileIn['full_file_path'], 'path');
+
+
+}

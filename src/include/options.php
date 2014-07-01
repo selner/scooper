@@ -23,13 +23,9 @@
 define('__ROOT__', dirname(dirname(__FILE__)));
 
 print (__ROOT__);
+require_once(dirname(__ROOT__)."/vendor/autoload.php");
 
-if (file_exists(__ROOT__ . '/../vendor/autoload.php')) {
-    require_once(__ROOT__. '/../vendor/autoload.php');
-} else {
-    trigger_error("Composer required to run this app.");
-}
-require_once(__ROOT__ . '/scooper_common/scooper_common.php');
+require_once(__ROOT__.'/include/array_column.php');
 require_once(__ROOT__.'/include/fields_functions.php');
 require_once(__ROOT__.'/include/plugin-base.php');
 require_once(__ROOT__.'/plugins/plugin-basicfacts.php');
@@ -54,6 +50,7 @@ const C__FSHOWVERBOSE_APICALL__ = 0;
 const C_LOOKUP_MODE_UNKNOWN = -1;
 const C_LOOKUP_MODE_SINGLE = 1;
 const C_LOOKUP_MODE_FILE = 2;
+const C_LOOKUP_MODE_CB_FILE = 3;
 $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_UNKNOWN;
 
 const C__LOOKUP_DATATYPE_NAME__ = 1;
@@ -68,8 +65,6 @@ const C__LOOKUP_DATATYPE_BASICFACTS__ = 3;
 /****************************************************************************************************************/
 
 
-const C__API_RETURN_TYPE_OBJECT__ = 33;
-const C__API_RETURN_TYPE_ARRAY__ = 44;
 
 
 
@@ -88,18 +83,17 @@ const C__API_RETURN_TYPE_ARRAY__ = 44;
 
 function __startApp__()
 {
-    __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
-    //
-    // Gather and check that the command line arguments are valid
-    //
+    $GLOBALS['logger'] = new \Scooper\ScooperLogger();
 
-    __initLogger__();
-    __debug__printSectionHeader(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
+    $GLOBALS['logger']->logSectionHeader("Getting settings.", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
+
+
+    $GLOBALS['logger']->logLine(C__APPNAME__, \Scooper\C__NAPPTOPLEVEL__, \Scooper\C__SECTION_BEGIN__);
 
     $strArgErrs = __check_args__();
-    __debug__printLine("Options set:" . $GLOBALS['CONFIG']->printAllSettings(), C__DISPLAY_NORMAL__);
-    __debug__printSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+    $GLOBALS['logger']->logLine("Options set:" . $GLOBALS['CONFIG']->printAllSettings(), \Scooper\C__DISPLAY_NORMAL__);
 
+    $GLOBALS['logger']->logSectionHeader("Getting settings.", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 }
 
 
@@ -109,7 +103,7 @@ function __check_args__()
     $fHadFatalError = false;
 
     if(!$GLOBALS['OPTS']) {  __reset_args__(); }
-
+    $fileInfo = new Scooper\ScooperFileInfo();
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
@@ -119,18 +113,18 @@ function __check_args__()
 
     if($GLOBALS['OPTS']['verbose_given']) {  $GLOBALS['OPTS']['VERBOSE'] = true; } else { $GLOBALS['OPTS']['VERBOSE'] = false; }
     if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
-    if($GLOBALS['OPTS']['VERBOSE'] == true) { __log__ ('Options set: '.var_export($GLOBALS['OPTS'], true), LOG_INFO); }
+    if($GLOBALS['OPTS']['VERBOSE'] == true) { $GLOBALS['logger']->logLine ('Options set: '.var_export($GLOBALS['OPTS'], true), \Scooper\C__DISPLAY_NORMAL__); }
 
 
-    set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
+    \Scooper\set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
     /****    Get the INI file settings                                                                           ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-    __debug__printLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", C__DISPLAY_ITEM_START__);
-    $GLOBALS['CONFIG'] = new ClassScooperConfigFile($GLOBALS['OPTS']['config_file_details']['full_file_path']);
+    $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
+    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['OPTS']['config_file_details']['full_file_path']);
 
 
 
@@ -148,17 +142,17 @@ function __check_args__()
 
     if($GLOBALS['OPTS']['inputfile_given'])
     {
-        $GLOBALS['input_file_details'] = parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
+        $GLOBALS['input_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
     }
     $GLOBALS['output_file_details'] = $GLOBALS['CONFIG']->getOutputFileDetails();
     if($GLOBALS['OPTS']['outputfile_given'])
     {
-        $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['OPTS']['outputfile'], false);
+        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['outputfile'], false);
     }
     if(strlen($GLOBALS['output_file_details']['full_file_path']) <= 0)
     {
-        $strDefaultOutFileName = getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-        $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
+        $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
+        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
     }
 
 
@@ -175,25 +169,25 @@ function __check_args__()
 
         if($GLOBALS['OPTS']['lookup_url_given'] && strlen($GLOBALS['OPTS']['lookup_url']) == 0 )
         {
-            addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
+            $GLOBALS['logger']->addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
             $fHadFatalError = true;
         }
         else if($GLOBALS['OPTS']['lookup_name_given'] && strlen($GLOBALS['OPTS']['lookup_name']) == 0 )
         {
-            addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
+            $GLOBALS['logger']-> addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
             $fHadFatalError = true;
         }
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
         {
             if(strlen($GLOBALS['output_file_details']['directory']) > 0 && strcasecmp("./", $GLOBALS['output_file_details']['directory']) != 0)
             {
-                $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . $strDefaultOutFileName , false);
+                $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . \Scooper\getDefaultFileName()  , false);
             }
         }
 
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0) // if it's still zero after all that, error
         {
-            addToErrs($strErrOptions, 'Output file path required (--outputfile / -o) when using single lookup mode.');
+            $GLOBALS['logger']->addToErrs($strErrOptions, 'Output file path required (--outputfile / -o) when using single lookup mode.');
             $fHadFatalError = true;
         }
 
@@ -205,8 +199,8 @@ function __check_args__()
 
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
         {
-            $strDefaultOutFileName = getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-            $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName  );
+            $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
+            $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . \Scooper\getDefaultFileName()  );
         }
 
     }
@@ -214,7 +208,7 @@ function __check_args__()
 
     if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE  && strlen($GLOBALS['input_file_details']['full_file_path']) == 0)
     {
-        addToErrs($strErrOptions, 'You must specify a valid input CSV file.');
+        $GLOBALS['logger']->addToErrs($strErrOptions, 'You must specify a valid input CSV file.');
 
     }
 
@@ -238,7 +232,7 @@ function __check_args__()
 
         if(!$GLOBALS['OPTS']['exclude_moz_given'] && (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
         {
-            if(!$GLOBALS['OPTS']['exclude_moz_given']) { __debug__printLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", C__DISPLAY_ITEM_DETAIL__); }
+            if(!$GLOBALS['OPTS']['exclude_moz_given']) { $GLOBALS['logger']->logLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", \Scooper\C__DISPLAY_ITEM_DETAIL__); }
             $GLOBALS['OPTS']['exclude_moz'] = 1;
         }
         else
@@ -261,7 +255,7 @@ function __check_args__()
             if(!$GLOBALS['OPTS']['crunchbase_api_id_given'] && (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
             {
                 $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-                __debug__printLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , \Scooper\C__DISPLAY_ERROR__);
             }
 
         }
@@ -270,7 +264,7 @@ function __check_args__()
 
     if($fHadFatalError == true)
     {
-        __log__($strErrOptions, LOG_CRIT);
+        $GLOBALS['logger']->logLine($strErrOptions, LOG_CRIT);
 
         exit(PHP_EOL."Unable to run with the settings specified: ".PHP_EOL.var_export($GLOBALS['OPTS'], true).PHP_EOL."Run --help option to view the required settings.".PHP_EOL);
     }
@@ -404,70 +398,3 @@ function __reset_args__()
 
     return $GLOBALS['OPTS'];
 }
-/*
-function checkMozKey()
-{
-
-    $ret = false;
-
-    if($GLOBALS['OPTS']['exclude_moz_given'] )
-    {
-        $GLOBALS['OPTS']['exclude_moz'] = 1;
-        $ret = false;
-
-    }
-
-    if($GLOBALS['CONFIG'] == null && strlen($GLOBALS['CONFIG']["moz_access_id"] > 1) && strlen($GLOBALS['CONFIG']["moz_secret_key"] > 1))
-    {
-        $GLOBALS['OPTS']['moz_secret_key'] = $GLOBALS['CONFIG']['moz_secret_key'];
-        $GLOBALS['OPTS']['moz_access_id'] = $GLOBALS['CONFIG']['moz_access_id'];
-        $ret = true;
-    }
-    elseif($GLOBALS['OPTS']['moz_access_id_given'] && $GLOBALS['OPTS']['moz_secret_key_given'] )
-    {
-        $ret = true;
-
-    }
-
-    if(($GLOBALS['OPTS']['exclude_moz_given'] || $GLOBALS['OPTS']['exclude_moz'] == 1) || $ret == false)
-    {
-        __debug__printLine("Excluding Moz.com data: either by user request or due to missing key values. ", C__DISPLAY_ITEM_DETAIL__);
-        $GLOBALS['OPTS']['exclude_moz'] = 1;
-    }
-
-    return $ret;
-
-}
-
-function checkCrunchbaseKey()
-{
-    $ret = false;
-    if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
-    {
-        $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-    }
-
-    if($GLOBALS['CONFIG'] == null && strlen($GLOBALS['CONFIG']["crunchbase_v2_api_id"] > 1))
-    {
-        $GLOBALS['OPTS']['crunchbase_api_id'] = $GLOBALS['CONFIG']["crunchbase_v2_api_id"];
-        $ret = true;
-    }
-    elseif($GLOBALS['OPTS']['crunchbase_api_id_given'] && (strlen($GLOBALS['OPTS']['crunchbase_api_id']) >= 0))
-    {
-        $ret = true;
-//            define( 'API_KEY', $GLOBALS['CONFIG']["CRUNCHBASE_V2_API_KEY"] );
-//            define( 'USER_KEY', "?user_key=" . API_KEY );
-    }
-
-
-
-    if(($GLOBALS['OPTS']['exclude_crunchbase_given'] || $GLOBALS['OPTS']['exclude_crunchbase'] == 1) || $ret == false)
-    {
-        __debug__printLine("Excluding Crunchbase data: either by user request or due to missing key values. ", C__DISPLAY_ITEM_DETAIL__);        $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-    }
-
-    return $ret;
-}
-
-
-*/

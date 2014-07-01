@@ -31,7 +31,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
     function __construct($fExcludeThisData)
     {
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
-        __debug__printLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", C__DISPLAY_ITEM_DETAIL__);
+        $GLOBALS['logger']->logLine("Instantiating a ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_ITEM_DETAIL__);
     }
 
     function getAllColumns()
@@ -46,7 +46,7 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
         if($arrRecordToUpdate['root_domain'] && strlen($arrRecordToUpdate['root_domain']) > 0 && strcasecmp($arrRecordToUpdate['root_domain'], "<not set>") != 0)
         {
             $arrQuant = $this->_getData_($arrRecordToUpdate['root_domain']);
-            $arrRecordToUpdate = my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
+            $arrRecordToUpdate = \Scooper\my_merge_add_new_keys( $arrRecordToUpdate, $arrQuant );
         }
     }
 
@@ -61,10 +61,10 @@ class QuantcastPluginClass extends ScooterPluginBaseClass
 	{
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return null;
 
-        $classAPIWrap = new ClassScooperAPIWrapper();
+        $classAPIWrap = new \Scooper\ScooperDataAPIWrapper();
         $domain = $var;
         $url = 'https://www.quantcast.com/'.$domain;
-        __debug__printLine("Querying Quantcast data for ".$domain, C__DISPLAY_ITEM_START__);
+        $GLOBALS['logger']->logLine("Querying Quantcast data for ".$domain, \Scooper\C__DISPLAY_ITEM_START__);
     	$curl_obj = $classAPIWrap->cURL($url);
 		  $uniqs = $this->_getUniqsFromHTML_($curl_obj);
 

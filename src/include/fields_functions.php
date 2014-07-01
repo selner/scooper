@@ -6,7 +6,6 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/options.php');
 
 $GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'] =  array(

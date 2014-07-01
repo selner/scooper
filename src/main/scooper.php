@@ -16,8 +16,7 @@
  */
 use \Scooper\ScooperSimpleCSV;
 
-define('__ROOT__', dirname(dirname(__FILE__)));
-require_once(__ROOT__.'/include/options.php');
+require_once(dirname(dirname(__FILE__)).'/include/options.php');
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/

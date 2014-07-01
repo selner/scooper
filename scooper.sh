@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-php /Users/bryan/Code/scooper/run_scooper.php "$@"
+php ./src/main/run_scooper.php "$@"

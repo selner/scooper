@@ -14,14 +14,13 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
 const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 5;
 const C__RETURNS_SINGLE_RECORD = 1;
 $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_rounds");
 
-CONST C__CB_SINGLERECORD_TYPES_REGEX__ = "/\/person[\?\/]{1,1}|\/organization[\?\/]{1,1}|\/acquisition[\?\/]{1,1}/";
+CONST C__CB_SINGLERECORD_TYPES_REGEX__ = "/\/person[\?\/]{1,1}|\/organization[\?\/]{1,1}|\/funding-round[\?\/]{1,1}|\/acquisition[\?\/]{1,1}/";
 
 const C__MAX_RESULT_PAGES_FETCHED = 5;
 
@@ -326,6 +325,20 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         return $retItems;
     }
 
+    protected function setRecordCountForURL(&$arrAPICallSettings)
+    {
+        $fSingleMatch = preg_match_all(C__CB_SINGLERECORD_TYPES_REGEX__, $arrAPICallSettings['urls_to_fetch'][0], $arrObjectMatches);
+
+        if($fSingleMatch == true && count($arrObjectMatches) > 0)
+        {
+            $arrAPICallSettings['multiple_object_result'] = false;
+        }
+        else
+        {
+            $arrAPICallSettings['multiple_object_result'] = true;
+
+        }
+    }
 
 //    public function writeAPIResultsToFile($strAPICallURL, $detailsFile, $nMaxPages = C__RETURNS_SINGLE_RECORD)
 //    {

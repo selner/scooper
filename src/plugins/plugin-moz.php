@@ -21,7 +21,6 @@
 /****         Moz Plugin Class                                                                               ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-define('__ROOT__', dirname(dirname(__FILE__)));
 require_once(__ROOT__.'/include/plugin-base.php');
 
 
@@ -160,6 +159,11 @@ class MozPluginClass extends ScooterPluginBaseClass
 
         $GLOBALS['logger']->logLine("Looking for a match in Moz data for ".$arrRecordToUpdate['company_name'], \Scooper\C__DISPLAY_ITEM_START__);
 
+        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) && isRecordFieldNullOrNotSet($arrRecordToUpdate['root_domain']))
+        {
+            $arrRecordToUpdate['root_domain'] = \Scooper\getPrimaryDomainFromUrl($arrRecordToUpdate['input_source_url']);
+
+        }
 
         $fMatchFound = false;
         if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['root_domain']))

@@ -10,7 +10,7 @@ Bulk export Crunchbase, Moz Quantcast data to comma-separated value (CSV) files 
 You can even bulk export the data returned from [any Crunchbase API call](https://developer.crunchbase.com/docs).
 
 
-##Requirements
+##Run-Time Requirements
 * If you want to export Crunchbase data, Scooper requires you to set the user_key from a  [Crunchbase API account](http://developer.crunchbase.com). 
 * If you want to export Moz.com data, Scooper requires a Moz API Access ID and secret key from a  [Moz.com API account](http://moz.com/products/api).
 
@@ -66,6 +66,8 @@ If your Input CSV file has additional columns, those values will be copied into 
 * Version:  v2.0.1
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
 * Platforms:  I've only really tested it on Mac OS/X 10.9.2 with PHP 5.4.24.  Your mileage could definitely vary on any other platform or version.  
+	* [curl extension for PHP required](http://www.php.net/manual/en/curl.setup.php)
+	* [composer required](https://getcomposer.org/doc/00-intro.md#installation-nix)
 * Issues/Bugs:  See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
  
 ##License

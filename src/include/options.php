@@ -103,7 +103,6 @@ function __check_args__()
     $fHadFatalError = false;
 
     if(!$GLOBALS['OPTS']) {  __reset_args__(); }
-    $fileInfo = new Scooper\ScooperFileInfo();
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
@@ -142,17 +141,17 @@ function __check_args__()
 
     if($GLOBALS['OPTS']['inputfile_given'])
     {
-        $GLOBALS['input_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
+        $GLOBALS['input_file_details'] = \Scooper\parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
     }
     $GLOBALS['output_file_details'] = $GLOBALS['CONFIG']->getOutputFileDetails();
     if($GLOBALS['OPTS']['outputfile_given'])
     {
-        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['OPTS']['outputfile'], false);
+        $GLOBALS['output_file_details'] = \Scooper\parseFilePath($GLOBALS['OPTS']['outputfile'], false);
     }
     if(strlen($GLOBALS['output_file_details']['full_file_path']) <= 0)
     {
         $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-        $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
+        $GLOBALS['output_file_details'] = \Scooper\parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName);
     }
 
 
@@ -181,7 +180,7 @@ function __check_args__()
         {
             if(strlen($GLOBALS['output_file_details']['directory']) > 0 && strcasecmp("./", $GLOBALS['output_file_details']['directory']) != 0)
             {
-                $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . \Scooper\getDefaultFileName()  , false);
+                $GLOBALS['output_file_details'] = \Scooper\parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . \Scooper\getDefaultFileName()  , false);
             }
         }
 
@@ -200,7 +199,7 @@ function __check_args__()
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
         {
             $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-            $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . \Scooper\getDefaultFileName()  );
+            $GLOBALS['output_file_details'] = \Scooper\parseFilePath($GLOBALS['output_file_details']['directory'] . \Scooper\getDefaultFileName()  );
         }
 
     }

@@ -45,15 +45,17 @@ abstract class ScooterPluginBaseClass
     public function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
     {
         $arrAPIData = $this->getEmptyDataAPISettings();
-        if($nMaxPages != C__RETURNS_SINGLE_RECORD)
-        {
-            $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
-        }
         $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => 0, 'subkey' => null);
+
         if($nMaxPages == C__RETURNS_SINGLE_RECORD)
         {
             $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => null, 'subkey' => null);
         }
+        else
+        {
+            $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
+        }
+
         $arrAPIData['urls_to_fetch'][] = $strAPIURL;
         $arrAPIData['count_max_pages_to_fetch'] = $nMaxPages;
         $arrAPIData['fetched_data'] = array();
@@ -64,7 +66,7 @@ abstract class ScooterPluginBaseClass
 
     }
 
-    public  function fetchAPIDataNonRecursive(&$arrAPICallSettings)
+    public function fetchAPIDataNonRecursive(&$arrAPICallSettings)
     {
         if($this->_fDataIsExcluded_ ==  C__FEXCLUDE_DATA_YES)
         {
@@ -73,6 +75,7 @@ abstract class ScooterPluginBaseClass
 
         while((count($arrAPICallSettings['urls_to_fetch']) > 0) && ($arrAPICallSettings['fetched_total_page_count']< $arrAPICallSettings['count_max_pages_to_fetch']))
         {
+            $this->setRecordCountForURL($arrAPICallSettings);
             $this->_fetchAPIDataSingleIteration_($arrAPICallSettings);
         }
     }
@@ -95,6 +98,10 @@ abstract class ScooterPluginBaseClass
         return $ret;
     }
 
+    protected function setRecordCountForURL(&$arrAPICallSettings)
+    {
+        // do nothing; this is for the child classes if they need it
+    }
 
 
     protected function _fetchAPIDataSingleIteration_(&$arrAPICallSettings)
@@ -241,9 +248,8 @@ abstract class ScooterPluginBaseClass
 
     function readIDsFromCSVFile($strInputFile, $columnKeyName)
     {
-        $fileInfo = new \Scooper\ScooperFileInfo();
 
-        $fileDetails = $fileInfo->parseFilePath($strInputFile);
+        $fileDetails = \Scooper\parseFilePath($strInputFile);
         $classFileIn = new \Scooper\ScooperSimpleCSV($fileDetails['full_file_path'], "r");
         $arrCSVLinkRecords = $classFileIn->readAllRecords(true, null);
 

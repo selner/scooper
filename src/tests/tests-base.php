@@ -18,10 +18,9 @@ function initTests()
 
 function getTestOutputFileDetails()
 {
-    $class = new Scooper\ScooperFileInfo();
 
     $strDir = sys_get_temp_dir();
-    return $class ->parseFilePath($strDir.\Scooper\getDefaultFileName('testCrunchbase_', '', '.csv'));
+    return \Scooper\parseFilePath($strDir.\Scooper\getDefaultFileName('testCrunchbase_', '', '.csv'));
 
 }
 

@@ -21,8 +21,6 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-use \Scooper\ScooperLogger;
-use \Scooper\ScooperDataAPIWrapper;
 
 
 const C__FEXCLUDE_DATA_YES = 1;

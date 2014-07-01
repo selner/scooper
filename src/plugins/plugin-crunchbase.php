@@ -23,6 +23,8 @@ $GLOBALS['CB_SUPPORTED_SECONDARY_API_CALLS'] = array("acquisitions", "funding_ro
 
 CONST C__CB_SINGLERECORD_TYPES_REGEX__ = "/\/person[\?\/]{1,1}|\/organization[\?\/]{1,1}|\/acquisition[\?\/]{1,1}/";
 
+const C__MAX_RESULT_PAGES_FETCHED = 5;
+
 
 /****************************************************************************************************************/
 /****                                                                                                        ****/

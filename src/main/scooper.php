@@ -14,7 +14,6 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-use \Scooper\ScooperDataAPIWrapper;
 use \Scooper\ScooperSimpleCSV;
 
 define('__ROOT__', dirname(dirname(__FILE__)));

@@ -148,12 +148,12 @@ function __runCompanyLookups__()
         /****    Get the basic facts for the loaded input data                                                       ****/
         /****                                                                                                        ****/
         /****************************************************************************************************************/
-        $GLOBALS['logger']->logSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+        $GLOBALS['logger']->logSectionHeader("Getting basic facts", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
 
         $pluginBasicFacts = new BasicFactsPluginClass($arrInputCSVData['data_rows'] , $detailsOut['full_file_path']);
         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $detailsOut['full_file_path']);
-        $GLOBALS['logger']->logSectionHeader("Getting basic facts", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+        $GLOBALS['logger']->logSectionHeader("Getting basic facts", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 
 
         /****************************************************************************************************************/

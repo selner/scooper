@@ -32,7 +32,6 @@ function runTests_CommandLine()
     $ret = testCommand_Lookup('lookup_name', 'microsoft.com');
     $ret = testCommand_Lookup('lookup_url', 'Micrsoft');
     $ret = testCommand_Lookup('lookup_name', 'microsoft.com');
-    $ret = testCommand_Lookup('inputfile', $fileDetails);
 
     $ret = testCommand_Lookup('crunchbase_api_url', 'http://api.crunchbase.com/v/2/organization/techcrunch');
 

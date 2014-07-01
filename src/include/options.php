@@ -85,15 +85,15 @@ function __startApp__()
 {
     $GLOBALS['logger'] = new \Scooper\ScooperLogger();
 
-    $GLOBALS['logger']->logSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_BEGIN__ );
+    $GLOBALS['logger']->logSectionHeader("Getting settings.", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
 
 
-    $GLOBALS['logger']->logLine(C__APPNAME__, C__NAPPTOPLEVEL__, C__SECTION_BEGIN__);
+    $GLOBALS['logger']->logLine(C__APPNAME__, \Scooper\C__NAPPTOPLEVEL__, \Scooper\C__SECTION_BEGIN__);
 
     $strArgErrs = __check_args__();
     $GLOBALS['logger']->logLine("Options set:" . $GLOBALS['CONFIG']->printAllSettings(), \Scooper\C__DISPLAY_NORMAL__);
 
-    $GLOBALS['logger']->logSectionHeader("Getting settings.", C__NAPPFIRSTLEVEL__, C__SECTION_END__ );
+    $GLOBALS['logger']->logSectionHeader("Getting settings.", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 }
 
 
@@ -169,25 +169,25 @@ function __check_args__()
 
         if($GLOBALS['OPTS']['lookup_url_given'] && strlen($GLOBALS['OPTS']['lookup_url']) == 0 )
         {
-            addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
+            $GLOBALS['logger']->addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
             $fHadFatalError = true;
         }
         else if($GLOBALS['OPTS']['lookup_name_given'] && strlen($GLOBALS['OPTS']['lookup_name']) == 0 )
         {
-            addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
+            $GLOBALS['logger']-> addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
             $fHadFatalError = true;
         }
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
         {
             if(strlen($GLOBALS['output_file_details']['directory']) > 0 && strcasecmp("./", $GLOBALS['output_file_details']['directory']) != 0)
             {
-                $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . $strDefaultOutFileName , false);
+                $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . "/" . \Scooper\getDefaultFileName()  , false);
             }
         }
 
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0) // if it's still zero after all that, error
         {
-            addToErrs($strErrOptions, 'Output file path required (--outputfile / -o) when using single lookup mode.');
+            $GLOBALS['logger']->addToErrs($strErrOptions, 'Output file path required (--outputfile / -o) when using single lookup mode.');
             $fHadFatalError = true;
         }
 
@@ -199,8 +199,8 @@ function __check_args__()
 
         if(strlen($GLOBALS['output_file_details']['full_file_path']) == 0)
         {
-            $strDefaultOutFileName = getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
-            $GLOBALS['output_file_details'] = parseFilePath($GLOBALS['output_file_details']['directory'] . $strDefaultOutFileName  );
+            $strDefaultOutFileName = \Scooper\getDefaultFileName("_output_",$GLOBALS['input_file_details']['file_name_base'],"csv");
+            $GLOBALS['output_file_details'] = $fileInfo->parseFilePath($GLOBALS['output_file_details']['directory'] . \Scooper\getDefaultFileName()  );
         }
 
     }
@@ -208,7 +208,7 @@ function __check_args__()
 
     if($GLOBALS['lookup_mode'] == C_LOOKUP_MODE_FILE  && strlen($GLOBALS['input_file_details']['full_file_path']) == 0)
     {
-        addToErrs($strErrOptions, 'You must specify a valid input CSV file.');
+        $GLOBALS['logger']->addToErrs($strErrOptions, 'You must specify a valid input CSV file.');
 
     }
 

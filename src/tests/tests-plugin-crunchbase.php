@@ -69,7 +69,8 @@ function testCrunchbase_getOrgDataFromCSVFile($strFilePath)
 {
     initTests();
     $detailsOutFile = getTestOutputFileDetails();
-    $detailsFileIn = parseFilePath($strFilePath);
+    $class = new Scooper\ScooperFileInfo();
+    $detailsFileIn = $class->parseFilePath($strFilePath);
     $pluginCrunchbase = new CrunchbasePluginClass(false);
 
     $arrResults = $pluginCrunchbase->readIDsFromCSVFile($detailsFileIn['full_file_path'], 'path');

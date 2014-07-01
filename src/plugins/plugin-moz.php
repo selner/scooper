@@ -166,7 +166,7 @@ class MozPluginClass extends ScooterPluginBaseClass
         {
             $recordStringToMatch =  $arrRecordToUpdate['root_domain'];
             $jsonMozRecord = $this->_arrMozBulkAPIResults_[$recordStringToMatch];
-            if($arrMozRecord != null)  // check the results for a value keyed with the domain
+            if($jsonMozRecord != null)  // check the results for a value keyed with the domain
             {
                 $arrMozRecord = json_decode($jsonMozRecord, true);
                 $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrMozRecord);

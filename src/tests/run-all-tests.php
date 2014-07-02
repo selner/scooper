@@ -25,11 +25,17 @@ runAllTests();
 
 function runAllTests()
 {
-    runTests_CommandLine();
+
+    initTests();
+
+    testCrunchbase_getCompanyByPermalink('redfin');
+
+    $GLOBALS['logger']->logLine("Starting runTests_CrunchbasePlugin...", \Scooper\C__DISPLAY_SECTION_START__);
 
     runTests_CrunchbasePlugin();
 
-
+    $GLOBALS['logger']->logLine("Starting runTests_CommandLine...", \Scooper\C__DISPLAY_SECTION_START__);
+    runTests_CommandLine();
 
 }
 

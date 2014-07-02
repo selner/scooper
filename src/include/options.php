@@ -90,9 +90,6 @@ function __startApp__()
 
     $GLOBALS['logger']->logLine(C__APPNAME__, \Scooper\C__NAPPTOPLEVEL__, \Scooper\C__SECTION_BEGIN__);
 
-    $strArgErrs = __check_args__();
-    $GLOBALS['logger']->logLine("Options set:" . $GLOBALS['CONFIG']->printAllSettings(), \Scooper\C__DISPLAY_NORMAL__);
-
     $GLOBALS['logger']->logSectionHeader("Getting settings.", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 }
 
@@ -102,7 +99,8 @@ function __check_args__()
     $strErrOptions = "";
     $fHadFatalError = false;
 
-    if(!$GLOBALS['OPTS']) {  __reset_args__(); }
+    if(!isset($GLOBALS['OPTS'])) {  __reset_args__(); }
+
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
@@ -115,15 +113,15 @@ function __check_args__()
     if($GLOBALS['OPTS']['VERBOSE'] == true) { $GLOBALS['logger']->logLine ('Options set: '.var_export($GLOBALS['OPTS'], true), \Scooper\C__DISPLAY_NORMAL__); }
 
 
-    \Scooper\set_FileDetails_fromPharseSetting("use_config_ini_for_ids", 'config_file_details', true);
+    \Scooper\set_FileDetails_fromPharseSetting("use_config_ini", 'config_file_details', true);
 
     /****************************************************************************************************************/
     /****                                                                                                        ****/
     /****    Get the INI file settings                                                                           ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-    $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
-    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['OPTS']['config_file_details']['full_file_path']);
+    $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
+    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['config_file_details']['full_file_path']);
 
 
 
@@ -261,15 +259,7 @@ function __check_args__()
 
     }
 
-    if($fHadFatalError == true)
-    {
-        $GLOBALS['logger']->logLine($strErrOptions, LOG_CRIT);
-
-        exit(PHP_EOL."Unable to run with the settings specified: ".PHP_EOL.var_export($GLOBALS['OPTS'], true).PHP_EOL."Run --help option to view the required settings.".PHP_EOL);
-    }
-
-
-    return $strErrOptions;
+    $GLOBALS['logger']->logLine("Options set:" . $GLOBALS['CONFIG']->printAllSettings(), \Scooper\C__DISPLAY_NORMAL__);
 
 }
 
@@ -355,7 +345,7 @@ function __reset_args__()
             'required'      => false,
             'short'      => 'mozkey',
         ),
-        'use_config_ini_for_ids' => array(
+        'use_config_ini' => array(
             'description'   => 'Use this INI config file for the service ID settings',
             'default'       => 1,
             'type'          => Pharse::PHARSE_STRING,
@@ -397,3 +387,4 @@ function __reset_args__()
 
     return $GLOBALS['OPTS'];
 }
+

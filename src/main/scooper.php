@@ -36,6 +36,8 @@ function __main__ ()
 {
     __startApp__();
 
+    __check_args__();
+
 
     __doRun__();
 

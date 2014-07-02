@@ -128,7 +128,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         //
         // Call the Crunchbase Search API
         //
-        $data = $this->fetchDataFromAPI($strAPIURL, true, C__RETURNS_SINGLE_RECORD, null);
+        $data = $this->fetchCrunchbaseDataFromAPI($strAPIURL, true, null, C__RETURNS_SINGLE_RECORD, null);
         $data['crunchbase_match_accuracy'] = "Exact match on permalink.";
         if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = \Scooper\getPrimaryDomainFromUrl($data['homepage_url']); }
         if(isRecordFieldNullOrNotSet($data['actual_site_url'])) { $data['actual_site_url'] = $data['homepage_url']; }

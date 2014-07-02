@@ -29,30 +29,22 @@ function runTests_CommandLine()
 
     $ret = null;
 
-    $ret = testCommand_Lookup('lookup_name', 'microsoft.com');
-    $ret = testCommand_Lookup('lookup_url', 'Micrsoft');
-    $ret = testCommand_Lookup('lookup_name', 'microsoft.com');
-
-    $ret = testCommand_Lookup('crunchbase_api_url', 'http://api.crunchbase.com/v/2/organization/techcrunch');
-
-    $ret = testCommand_Lookup('crunchbase_api_url', 'http://www.crunchbase.com/person/bryan-selner');
-
-    $ret = testCommand_Lookup('crunchbase_api_url', 'http://api.crunchbase.com/v/2/people?order=updated_at%20desc');
-
-
+    $ret = testCrunchbaseCommandLineOption('lookup_name', 'microsoft.com');
+    $ret = testCrunchbaseCommandLineOption('lookup_url', 'Microsoft');
+    $ret = testCrunchbaseCommandLineOption('lookup_name', 'redfin.com');
 }
 
 
-function testCommand_Lookup($strOption, $strValue)
+
+
+function set_PharseOptionValue($strOptName, $value)
 {
+    $strOptGiven = $strOptName."_given";
+    $GLOBALS['OPTS'][$strOptGiven] = true;
+    $GLOBALS['OPTS'][$strOptName] = $value;
+    if(isset($GLOBALS['logger'])) $GLOBALS['logger']->logLine("'".$strOptName ."'"." set to [".$GLOBALS['OPTS'][$strOptName] ."].", \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
-    $detailsOutFile = getTestOutputFileDetails();
-
-    testSetCommandLineOption($strOption, $strValue);
-    testSetCommandLineOption('outputfile', $detailsOutFile['full_file_path']);
-    initTests();
-
-    __doRun__();
+    return (isset($GLOBALS['OPTS'][$strOptName]));
 
 }
 

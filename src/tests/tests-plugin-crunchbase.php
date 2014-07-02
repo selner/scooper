@@ -20,18 +20,36 @@ require_once(__ROOT__.'/tests/tests-base.php');
 
 
 
+function testCrunchbaseCommandLineOption($option, $value)
+{
+    initTests();
 
-runTests_CrunchbasePlugin();
+    $ret = null;
+    setCommandLineValue($option, $value);
+    $strLog = $option . " = ". $value;
+
+    runTest($strLog);
+}
+
 
 
 
 function runTests_CrunchbasePlugin()
 {
     $ret = null;
+    testCrunchbaseCommandLineOption('crunchbase_api_url', 'http://api.crunchbase.com/v/2/organization/techcrunch');
 
-    $ret = testCrunchbase_getOrgDataFromCSVFile(__ROOT__.'/tests/test_data/CrunchbaseOrganizations_testdata.csv');
+    testCrunchbaseCommandLineOption('crunchbase_api_url', 'http://api.crunchbase.com/v/2/person/bryan-selner');
 
-   $ret = testCrunchbase_APIExport_MultiPage();
+    testCrunchbaseCommandLineOption('crunchbase_api_url', 'http://api.crunchbase.com/v/2/people?order=updated_at%20desc');
+
+    testCrunchbaseCommandLineOption('crunchbase_api_url', 'http://api.crunchbase.com/v/2/acquisition/72a5b1fe11ccb8c1c2ea590bb3ae0e18');
+
+    testCrunchbaseCommandLineOption('crunchbase_api_url', 'http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc');
+
+    testCrunchbase_getOrgDataFromCSVFile('./test_data/CrunchbaseOrganizations_testdata.csv');
+
+    testCrunchbase_APIExport_MultiPage();
 
     testCrunchbase_getCompanyByPermalink('redfin');
 
@@ -41,38 +59,54 @@ function runTests_CrunchbasePlugin()
 }
 
 
+
+
 function testCrunchbase_APIExport_MultiPage()
 {
-    initTests();
+    $strLog = "testCrunchbase_APIExport_MultiPage()";
+    logTest_Start($strLog);
 
+    initTests();
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
     $arrData = $pluginCrunchbase->fetchCrunchbaseDataFromAPI("http://api.crunchbase.com/v/2/organizations?order=updated_at%20desc", true);
     $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
+
+    logTest_End($strLog);
+
 }
 
 
 function testCrunchbase_getCompanyByPermalink($str)
 {
-    initTests();
+    $strLog = "testCrunchbase_getCompanyByPermalink(" . $str . ")";
+    logTest_Start($strLog);
+
     $detailsOutFile = getTestOutputFileDetails();
 
     $pluginCrunchbase = new CrunchbasePluginClass(false);
     $arrData = $pluginCrunchbase->getCompanyData($str);
     $pluginCrunchbase->writeDataToFile($arrData, $detailsOutFile);
 
+    logTest_End($strLog);
+
+
+
 }
 
 
 function testCrunchbase_getOrgDataFromCSVFile($strFilePath)
 {
+    $strLog = "testCrunchbase_getOrgDataFromCSVFile(" . $strFilePath . ")";
+    logTest_Start($strLog);
     initTests();
-    $detailsOutFile = getTestOutputFileDetails();
+
     $detailsFileIn = \Scooper\parseFilePath($strFilePath);
     $pluginCrunchbase = new CrunchbasePluginClass(false);
 
     $arrResults = $pluginCrunchbase->readIDsFromCSVFile($detailsFileIn['full_file_path'], 'path');
+    logTest_End($strLog);
 
 
 }

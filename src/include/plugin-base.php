@@ -42,7 +42,7 @@ abstract class ScooterPluginBaseClass
     //
 
 
-    public function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    protected  function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
     {
         $arrAPIData = $this->getEmptyDataAPISettings();
         $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => 0, 'subkey' => null);

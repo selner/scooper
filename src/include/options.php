@@ -120,8 +120,8 @@ function __check_args__()
     /****    Get the INI file settings                                                                           ****/
     /****                                                                                                        ****/
     /****************************************************************************************************************/
-    $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
-    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['config_file_details']['full_file_path']);
+    $GLOBALS['logger']->logLine("Parsing ini file ". $GLOBALS['OPTS']['config_file_details']['full_file_path']."...", \Scooper\C__DISPLAY_ITEM_START__);
+    $GLOBALS['CONFIG'] = new \Scooper\ScooperConfig($GLOBALS['OPTS']['config_file_details']['full_file_path']);
 
 
 

@@ -288,7 +288,7 @@ abstract class ScooterPluginBaseClass
                 $GLOBALS['logger']->logLine("Querying " . $this->strDataProviderName . " for ". $arrRecordToUpdate[$idColumnKey], \Scooper\C__DISPLAY_ITEM_START__);
                 // We've got the direct link to the right record, so we can skip over this next section
                 $nMatchResult = 1;
-                $strMatchType =  "Could not search " . $this->strDataProviderName . ": no company name.";
+                $strMatchType =  "Searching " . $this->strDataProviderName . " by " . $idColumnKey . " of " . $arrRecordToUpdate[$idColumnKey] . ".";
             }
             else
             {
@@ -360,7 +360,10 @@ abstract class ScooterPluginBaseClass
                 // Otherwise, go get the full entity facts for that record
                 //
                 $arrCompanyData = $this->getCompanyData($arrRecordToUpdate[$idColumnKey]);
-                $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
+                if($arrCompanyData != null)
+                {
+                    $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrCompanyData);
+                }
 
             }
 

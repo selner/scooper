@@ -68,14 +68,25 @@ class PluginAngelList extends ScooterPluginBaseClass
 
     }
 
-    function getCompanyData($id)
+    function getCompanyData($company)
     {
 
-        if(!$id|| strlen($id) == 0)
+        if(!$company|| strlen($company) == 0)
         {
             if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No " . $this->strDataProviderName . " key value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
+
+        // first we need to go get the ID
+        $strAPIURL = "https://api.angel.co/1/search/slugs?query=" . urlencode($company);
+        $data = $this->getDataFromAPI($strAPIURL, true, null);
+        if($data['id'] == null || $data['id'] <= 0)
+        {
+            return null;
+        }
+
+        $id = $data['id'];
+
 
         $strAPIURL = "https://api.angel.co/1/startups/".$id;
 
@@ -83,7 +94,14 @@ class PluginAngelList extends ScooterPluginBaseClass
         // Call the data API
         //
         $data = $this->getDataFromAPI($strAPIURL, true, null);
-        return $data;
+        if($data['success'] != null && $data['success'] == false)
+        {
+            return null;
+        }
+        else
+        {
+            return $data;
+        }
 
 
     }

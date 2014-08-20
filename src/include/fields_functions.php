@@ -22,6 +22,11 @@ function getEmptyFullRecordArray()
     return $GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'];
 }
 
+function isRecordFieldValidlySet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
+{
+    return !isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid, $fZeroIsValid);
+}
+
 function isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
 {
     // true = not valid (e.g. "<not set>", "n/a", "", 0, null, etc.)

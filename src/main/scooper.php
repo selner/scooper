@@ -133,6 +133,25 @@ function __runCompanyLookups__()
             $GLOBALS['logger']->logLine("Loaded ".count($arrInputCSVData)." records from input CSV file.", \Scooper\C__DISPLAY_NORMAL__);
             $GLOBALS['logger']->logSectionHeader("Read Input CSV File", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );
 
+            if(isset($arrInputCSVData['header_keys']) && count($arrInputCSVData['header_keys']) >= 1 )
+            {
+                $strHeaders = join("|", $arrInputCSVData['header_keys']);
+
+                $nCount = \Scooper\substr_count_array($strHeaders, array("name", "company"));
+
+                if($nCount > 0)
+                {
+                    $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_NAME__;
+                }
+                else
+                {
+                    $nCount = \Scooper\substr_count_array($strHeaders, array("input_source_url", "company_url", "website", "homepage", "root_domain"));
+                    if($nCount > 0)
+                    {
+                        $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_URL__;
+                    }
+                }
+            }
 
         }
         else
@@ -150,7 +169,7 @@ function __runCompanyLookups__()
         /****************************************************************************************************************/
         $GLOBALS['logger']->logSectionHeader("Getting basic facts", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_BEGIN__ );
 
-        $pluginBasicFacts = new BasicFactsPluginClass($arrInputCSVData['data_rows'] , $detailsOut['full_file_path']);
+        $pluginBasicFacts = new BasicFactsPluginClass($arrInputCSVData['data_type']);
         $arrAllPluginColumnsForRecords = $pluginBasicFacts->getAllColumns();
         $arrAllRecordsProcessed = $pluginBasicFacts->addDataToMultipleRecords($arrInputCSVData['data_rows'], $detailsOut['full_file_path']);
         $GLOBALS['logger']->logSectionHeader("Getting basic facts", \Scooper\C__NAPPFIRSTLEVEL__, \Scooper\C__SECTION_END__ );

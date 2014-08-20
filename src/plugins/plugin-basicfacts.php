@@ -209,7 +209,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         catch ( ErrorException $e )
         {
             $GLOBALS['logger']->logLine("Error: ". $e->getMessage()."\r\n", \Scooper\C__DISPLAY_ERROR__);
-            addToAccuracyField($arrRecordToUpdate, 'ERROR ACCESSING CRUNCHBASE -- PLEASE RETRY');
+            addToAccuracyField($arrRecordToUpdate, 'ERROR -- PLEASE RETRY');
         }
         return $curRecord;
     }

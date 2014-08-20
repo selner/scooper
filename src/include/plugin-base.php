@@ -36,22 +36,16 @@ abstract class ScooterPluginBaseClass
 
 
 
-
-    //
-    //  END NEW UNTESTED CODE
-    //
-
-
-    protected  function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKey = null)
+    protected  function fetchDataFromAPI($strAPIURL, $fFlatten = false, $nextPageURLColumnKey = null, $nMaxPages = C__RETURNS_SINGLE_RECORD, $nPageNumber = 0, $jsonReturnDataKeys = null)
     {
         $arrAPIData = $this->getEmptyDataAPISettings();
-        $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => 0, 'subkey' => null);
 
-        if($nMaxPages == C__RETURNS_SINGLE_RECORD)
-        {
-            $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKey, 'key' => null, 'subkey' => null);
-        }
+        if(isset($jsonReturnDataKeys) && is_array($jsonReturnDataKeys))
+            $arrAPIData['result_keys_for_data'] = \Scooper\array_copy($jsonReturnDataKeys);
         else
+            $arrAPIData['result_keys_for_data'] = array('json_object' => $jsonReturnDataKeys, 'key' => null, 'subkey' => null);;
+
+        if($nMaxPages != C__RETURNS_SINGLE_RECORD)
         {
             $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
         }
@@ -62,6 +56,7 @@ abstract class ScooterPluginBaseClass
         $arrAPIData['flatten_final_results'] = $fFlatten;
 
         $this->fetchAPIDataNonRecursive($arrAPIData);
+
         return $arrAPIData['fetched_data'];
 
     }
@@ -146,7 +141,7 @@ abstract class ScooterPluginBaseClass
             }
             else
             {
-                $GLOBALS['logger']->logLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", \Scooper\C__DISPLAY_WARNING__);
+                if(C__FSHOWVERBOSE_APICALL__) $GLOBALS['logger']->logLine("API caller did not provide the key name of the data to return. Defaulting to returning the full data result.", \Scooper\C__DISPLAY_WARNING__);
                 $retItems = $dataAPI;
             }
 

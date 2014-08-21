@@ -63,10 +63,10 @@ Example files are available in the /example directory.
 If your Input CSV file has additional columns, those values will be copied into the resulting rows for each company as well.
 
 #Other Stuff
-* Version:  v1.1
+* Version:  v2.0
 * Author:  Bryan Selner (dev at recoilvelocity dot com)
 * Platforms tested: 
-	* Mac OS/X 10.9.2 with PHP 5.4.24.  
+	* Mac OS/X 10.9.4 with PHP 5.4.24.
 	* Ubuntu Linux 14.04 with PHP 5.5.9-1ubuntu4.2 (with E_NOTICE error reporting disabled.)
 	* Your mileage could definitely vary on any other platform or version.  
 * System requirements

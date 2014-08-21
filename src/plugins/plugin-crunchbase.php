@@ -336,7 +336,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
-    public function fetchCrunchbaseDataFromAPI($strAPIURL, $fFlatten = false, $jsonResultsKey = 'data')
+    public function fetchCrunchbaseDataFromAPI($strAPIURL, $fFlatten = false, $jsonResultsKey = null)
     {
         $arrObjectMatches = array();
         $retItems = null;
@@ -344,13 +344,15 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         if($fSingleMatch == true && count($arrObjectMatches) > 0)
         {
-            $data = $this->fetchDataFromAPI($strAPIURL, $fFlatten, null,  C__RETURNS_SINGLE_RECORD, null, $jsonResultsKey);
+            $data = $this->fetchDataFromAPI($strAPIURL, $fFlatten, null,  C__RETURNS_SINGLE_RECORD, null, 'data');
             $retItems = $this->_getSingleItemFromCBData_($data, $fFlatten);
             $this->_addRelationshipsToResult_($retItems, $data[1]);
 
         }
         else
         {
+            if($jsonResultsKey == null) { $jsonResultsKey = array('json_object' => 'data', 'key' => 'items', 'subkey' => null); }
+
             $retItems = $this->fetchDataFromAPI($strAPIURL, $fFlatten, 'next_page_url',  C__MAX_CRUNCHBASE_PAGE_DOWNLOADS, null, $jsonResultsKey);
         }
         return $retItems;

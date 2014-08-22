@@ -136,8 +136,9 @@ function __runCompanyLookups__()
             if(isset($arrInputCSVData['header_keys']) && count($arrInputCSVData['header_keys']) >= 1 )
             {
                 $strHeaders = join("|", $arrInputCSVData['header_keys']);
+                $strHeaders = strtolower($strHeaders);
 
-                $nCount = \Scooper\substr_count_array($strHeaders, array("name", "company"));
+                $nCount = \Scooper\substr_count_array($strHeaders, array("name", "company", "company name"));
 
                 if($nCount > 0)
                 {
@@ -145,7 +146,7 @@ function __runCompanyLookups__()
                 }
                 else
                 {
-                    $nCount = \Scooper\substr_count_array($strHeaders, array("input_source_url", "company_url", "website", "homepage", "root_domain"));
+                    $nCount = \Scooper\substr_count_array($strHeaders, array("input_source_url", "company url", "company_url", "website", "homepage", "root_domain"));
                     if($nCount > 0)
                     {
                         $arrInputCSVData['data_type'] = C__LOOKUP_DATATYPE_URL__;

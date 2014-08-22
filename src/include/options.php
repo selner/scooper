@@ -241,7 +241,6 @@ function __check_args__()
     if($GLOBALS['OPTS']['exclude_crunchbase'] != 1)
     {
         $GLOBALS['OPTS']['crunchbase_api_id'] = $GLOBALS['CONFIG']->keys("crunchbase_v2_api_id");
-        $GLOBALS['OPTS']['crunchbase_v1_api_id'] = $GLOBALS['CONFIG']->keys("crunchbase_v1_api_id");
         if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
         {
             $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
@@ -249,7 +248,7 @@ function __check_args__()
         else
         {
             $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
-            if(!$GLOBALS['OPTS']['crunchbase_api_id_given'] && (strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)  )
+            if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)
             {
                 $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
                 $GLOBALS['logger']->logLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , \Scooper\C__DISPLAY_ERROR__);
@@ -263,7 +262,7 @@ function __check_args__()
 
 }
 
-function __reset_args__()
+function __get_default_args__()
 {
 
     # specify some options
@@ -377,7 +376,15 @@ function __reset_args__()
 
     );
 
+    return $options;
+
+}
+
+function __reset_args__()
+{
     # You may specify a program banner thusly:
+    $options = __get_default_args__();
+
     $banner = "Find and export basic website, Moz.com, Crunchbase and Quantcast data for any company name or URL.";
     Pharse::setBanner($banner);
 

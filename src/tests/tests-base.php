@@ -23,14 +23,14 @@ function initTests()
     }
     else
     {
-        resetPharseOptionsToDefaults();
+        // resetPharseOptionsToDefaults();
         __check_args__();
     }
 
 
     if(!isset($GLOBALS['config_file_details']))
     {
-        setCommandLineValue('use_config_ini', $testIniFile['full_file_path'], 'config_file_details', true);
+//        setCommandLineValue('use_config_ini', $testIniFile['full_file_path'], 'config_file_details', true);
     }
     if(!isset($GLOBALS['output_file_details']))
     {
@@ -70,15 +70,29 @@ function getTestOutputFileDetails()
 
 function getTestIniFile()
 {
-    return \Scooper\parseFilePath("./test_data/tests_config.ini");
+    if(!$GLOBALS['OPTS']['use_config_ini_given'])
+        return \Scooper\parseFilePath("./test_data/tests_config.ini");
+
 }
 
-function resetPharseOptionsToDefaults()
+function resetTestCommandLineOptions()
 {
-    foreach($GLOBALS['OPTS'] as $option)
+    $origopts = __get_default_args__();
+    $optKeys = array_keys($GLOBALS['OPTS']);
+    foreach($optKeys as $key)
     {
-        $option['value'] = $option['default'];
-        $GLOBALS['OPTS'][$option['name']] = $option;
+        $option = $GLOBALS['OPTS'][$key];
+        switch($key)
+        {
+            case 'crunchbase_api_url':
+            case 'lookup_url':
+            case 'crunchbase_api_url_given':
+            case 'lookup_url_given':
+            case 'lookup_name':
+            case 'lookup_name_given':
+                $defVal = $origopts[$key]['default'];
+                if(isset($defVal))  $GLOBALS['OPTS'][$key] = $origopts[$key]['default'];
+        }
     }
 }
 

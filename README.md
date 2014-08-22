@@ -64,7 +64,8 @@ If your Input CSV file has additional columns, those values will be copied into 
 
 #Other Stuff
 * Version:  v2.0
-* Author:  Bryan Selner (dev at recoilvelocity dot com)
+* Author:  Bryan Selner (bryan at bryanselner dot com)
+* Issues/Bugs:  See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
 * Platforms tested: 
 	* Mac OS/X 10.9.4 with PHP 5.4.24.  
 	* Ubuntu Linux 14.04 with PHP 5.5.9-1ubuntu4.2 (with E_NOTICE error reporting disabled.)
@@ -72,7 +73,6 @@ If your Input CSV file has additional columns, those values will be copied into 
 * System requirements
 	* [curl extension for PHP required](http://www.php.net/manual/en/curl.setup.php)
 	* [composer required](https://getcomposer.org/doc/00-intro.md#installation-nix)
-* Issues/Bugs:  See [https://github.com/selner/scooper/issues](https://github.com/selner/scooper/issues)
  
 ##License
 This product is licensed under the GPL (http://www.gnu.org/copyleft/gpl.html). It comes with no warranty, expressed or implied.

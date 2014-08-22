@@ -240,6 +240,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
                             $arrPathParts = explode("/", $arrMinLev['record']['path']);
                             $arrRecordToUpdate['type'] = $arrPathParts[0];
                             $arrRecordToUpdate['permalink'] = $arrPathParts[1];
+                            $arrRecordToUpdate['company_name'] = $arrMinLev['record']['name'];
                             $nMatchCrunchResult = 1;
                         }
 

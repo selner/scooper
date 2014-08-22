@@ -27,6 +27,7 @@ function runAllTests()
 {
 
     initTests();
+    $ret = testCrunchbaseCommandLineOption('lookup_name', 'redfin.com');
 
     testCrunchbase_getCompanyByPermalink('redfin');
 

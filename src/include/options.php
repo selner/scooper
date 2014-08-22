@@ -262,7 +262,7 @@ function __check_args__()
 
 }
 
-function __reset_args__()
+function __get_default_args__()
 {
 
     # specify some options
@@ -376,7 +376,15 @@ function __reset_args__()
 
     );
 
+    return $options;
+
+}
+
+function __reset_args__()
+{
     # You may specify a program banner thusly:
+    $options = __get_default_args__();
+
     $banner = "Find and export basic website, Moz.com, Crunchbase and Quantcast data for any company name or URL.";
     Pharse::setBanner($banner);
 

@@ -47,7 +47,7 @@ abstract class ScooterPluginBaseClass
 
         if($nMaxPages != C__RETURNS_SINGLE_RECORD)
         {
-            $arrAPIData['result_keys_for_next_page'] = array('key' => 1, 'subkey' => $nextPageURLColumnKey);
+            $arrAPIData['result_keys_for_next_page'] = array('key' => 'paging', 'subkey' => $nextPageURLColumnKey);
         }
 
         $arrAPIData['urls_to_fetch'][] = $strAPIURL;
@@ -101,7 +101,7 @@ abstract class ScooterPluginBaseClass
 
     protected function _fetchAPIDataSingleIteration_(&$arrAPICallSettings)
     {
-        if($arrAPICallSettings == null || $arrAPICallSettings['urls_to_fetch'] == null) return null;
+        if(!isset($arrAPICallSettings)|| !isset($arrAPICallSettings['urls_to_fetch']) || !is_array($arrAPICallSettings['urls_to_fetch'])) return null;
 
         try
         {
@@ -109,7 +109,7 @@ abstract class ScooterPluginBaseClass
             array_shift($arrAPICallSettings['urls_to_fetch']); // remove the URL we are processing from the list
 
             $strURL = $this->addKeyToURL($strURL);
-            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
+            if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
             $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
@@ -131,10 +131,15 @@ abstract class ScooterPluginBaseClass
             // Let's first get the data set returned with this API call,
             // regardless of whether it's a single or multiple results set
             //
-            if($arrAPICallSettings['result_keys_for_data'] != null && strlen($arrAPICallSettings['result_keys_for_data']['key']) > 0)
+            if(isset($arrAPICallSettings['result_keys_for_data']) && isset($arrAPICallSettings['result_keys_for_data']['key']) &&
+                ((is_string($arrAPICallSettings['result_keys_for_data']['key']) && strlen($arrAPICallSettings['result_keys_for_data']['key']) > 0) ||
+                is_numeric($arrAPICallSettings['result_keys_for_data']['key'])))
             {
+
                 $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']];
-                if(strlen($arrAPICallSettings['result_keys_for_data']['subkey']) > 0)
+                if(isset($arrAPICallSettings['result_keys_for_data']['subkey']) && (
+                        (is_string($arrAPICallSettings['result_keys_for_data']['subkey']) && strlen($arrAPICallSettings['result_keys_for_data']['subkey']) > 0) ||
+                        is_numeric($arrAPICallSettings['result_keys_for_data']['subkey'])))
                 {
                     $retItems = $dataAPI[$arrAPICallSettings['result_keys_for_data']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
                 }
@@ -151,15 +156,19 @@ abstract class ScooterPluginBaseClass
             //
             if($arrAPICallSettings['multiple_object_result'] == true && is_array($dataAPI)) // CB  || strcasecmp($dataAPI[1], "Organization") == 0
             {
-                if((strlen($arrAPICallSettings['result_keys_for_next_page']['key']) > 0) && $dataAPI[ $arrAPICallSettings['result_keys_for_next_page']['key']] !=null)
+                if(isset($arrAPICallSettings['result_keys_for_next_page']) && isset($arrAPICallSettings['result_keys_for_next_page']['key']) &&
+                    ((is_string($arrAPICallSettings['result_keys_for_next_page']['key']) && strlen($arrAPICallSettings['result_keys_for_next_page']['key']) > 0) ||
+                        is_numeric($arrAPICallSettings['result_keys_for_next_page']['key'])))
                 {
                     $keyNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']];
-                    if(strlen($arrAPICallSettings['result_keys_for_next_page']['subkey']) > 0 && $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']] != null)
+                    if(isset($arrAPICallSettings['result_keys_for_next_page']) && isset($arrAPICallSettings['result_keys_for_next_page']['subkey']) &&
+                        ((is_string($arrAPICallSettings['result_keys_for_next_page']['subkey']) && strlen($arrAPICallSettings['result_keys_for_next_page']['subkey']) > 0) ||
+                            is_numeric($arrAPICallSettings['result_keys_for_next_page']['subkey'])))
                     {
                         $keyNextPage = $dataAPI[$arrAPICallSettings['result_keys_for_next_page']['key']][$arrAPICallSettings['result_keys_for_next_page']['subkey']];
                     }
 
-                    if($keyNextPage != null)
+                    if(isset($keyNextPage))
                     {
                         $arrAPICallSettings['urls_to_fetch'][] = $keyNextPage;
                     }
@@ -167,7 +176,8 @@ abstract class ScooterPluginBaseClass
             }
 
             $arrAPICallSettings['fetched_total_page_count']++;
-            $arrAPICallSettings['fetched_data'] = array_merge($arrAPICallSettings['fetched_data'], $retItems);
+            if(isset($retItems) && is_array($retItems))
+                $arrAPICallSettings['fetched_data'] = array_merge($arrAPICallSettings['fetched_data'], $retItems);
 
             //
             // If we have no more URLs to fetch OR we've hit the max number of pages to fetch,
@@ -176,7 +186,7 @@ abstract class ScooterPluginBaseClass
             //
             if(count($arrAPICallSettings['urls_to_fetch']) == 0 || $arrAPICallSettings['fetched_total_page_count'] >= $arrAPICallSettings['count_max_pages_to_fetch'])
             {
-                if($arrAPICallSettings['flatten'] == true)
+                if(isset($arrAPICallSettings['flatten']) && $arrAPICallSettings['flatten'] == true)
                 {
                     $GLOBALS['logger']->logLine("Flattening results...", \Scooper\C__DISPLAY_ITEM_DETAIL__);
                     $arrAPICallSettings['fetched_data'] = $this->_flattenData_($arrAPICallSettings['fetched_data']);
@@ -304,10 +314,10 @@ abstract class ScooterPluginBaseClass
                     $url = $strSearchURLBase . $company_name_urlenc;
 
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
+                    if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine($this->strDataProviderName . "API call=".$url, \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
                     $arrSearchResultsRecords = $classAPICall->getObjectsFromAPICall($url, $jsonResultsKeyName, \Scooper\C__API_RETURN_TYPE_ARRAY__, null);
 
-                    if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
+                    if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine($this->strDataProviderName . "returned ".count($arrSearchResultsRecords )." results for ". $arrRecordToUpdate['company_name'].". ", \Scooper\C__DISPLAY_ITEM_DETAIL__);  }
 
                     if($arrSearchResultsRecords != null && count($arrSearchResultsRecords ) > 0)
                     {
@@ -382,7 +392,7 @@ abstract class ScooterPluginBaseClass
     {
         try
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
+            if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine($this->strDataProviderName . " API Call = ".$strAPIURL, \Scooper\C__DISPLAY_ITEM_DETAIL__); }
 
             $classAPICall = new \Scooper\ScooperDataAPIWrapper();
 
@@ -397,7 +407,7 @@ abstract class ScooterPluginBaseClass
 
             if($nMaxPages == C__RETURNS_SINGLE_RECORD)
             {
-                if($dataAPI != null && is_array($dataAPI[0]))
+                if(isset($dataAPI) && is_array($dataAPI) && isset($dataAPI[0]) && is_array($dataAPI[0]))
                 {
                     $retItems = $dataAPI[0];  // add the first bucket of data into the return set.
                 }

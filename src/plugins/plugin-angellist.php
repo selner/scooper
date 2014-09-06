@@ -32,7 +32,7 @@ class PluginAngelList extends ScooterPluginBaseClass
     {
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_ITEM_DETAIL__);
     }
 
 
@@ -73,7 +73,7 @@ class PluginAngelList extends ScooterPluginBaseClass
 
         if(!$company|| strlen($company) == 0)
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No " . $this->strDataProviderName . " key value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
+            if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine("No " . $this->strDataProviderName . " key value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
 
@@ -93,15 +93,7 @@ class PluginAngelList extends ScooterPluginBaseClass
         //
         // Call the data API
         //
-        $data = $this->getDataFromAPI($strAPIURL, true, null);
-        if($data['success'] != null && $data['success'] == false)
-        {
-            return null;
-        }
-        else
-        {
-            return $data;
-        }
+        return $this->getDataFromAPI($strAPIURL, true, null);
 
 
     }

@@ -70,6 +70,8 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         $arrRecordsToProcess =  array();
 
         $nRow = 0;
+        if(!isset($arrDataLoaded) && !is_array($arrDataLoaded)) return null;
+
         foreach ($arrDataLoaded as $strCurInputDataRecord)
         {
             $arrRecordsToProcess[] = getEmptyFullRecordArray();
@@ -90,7 +92,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
                     $arrRecordsToProcess[$nRow]['company_name'] = $valFirstField;
 
                     $keys = array_keys($strCurInputDataRecord);
-                    if(getDataTypeFromString($keys[0]) == C__LOOKUP_DATATYPE_URL__)
+                    if(isset($keys[0]) && getDataTypeFromString($keys[0]) == C__LOOKUP_DATATYPE_URL__)
                     {
                         $arrRecordsToProcess[$nRow]['input_source_url'] =  array_shift($strCurInputDataRecord);
                     }
@@ -136,7 +138,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         // let's guess at the URL and use that
         //
 
-        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
+        if(!isRecordFieldNotSet($arrRecordToUpdate, 'company_name') && isRecordFieldNotSet($arrRecordToUpdate, 'input_source_url'))
         {
             $strSimplifiedCompName = $this->_simplifyCompanyNameForDomainURL_($arrRecordToUpdate['company_name']);
             $arrRecordToUpdate['input_source_url'] = 'http://www.'.$strSimplifiedCompName.'.com';
@@ -146,12 +148,12 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         //
         // Go load the basic website facts for the URL value we have on this row
         //
-        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']) || !isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']))
+        if(!isRecordFieldNotSet($arrRecordToUpdate, 'actual_site_url') || !isRecordFieldNotSet($arrRecordToUpdate, 'input_source_url'))
         {
             $arrNewBasicSiteFactsRecord = $this->_getData_($arrRecordToUpdate);
             $arrRecordToUpdate = \Scooper\my_merge_add_new_keys($arrRecordToUpdate, $arrNewBasicSiteFactsRecord  );
         }
-        else if(isRecordFieldNullOrNotSet($arrRecordToUpdate['input_source_url']) &&  strcasecmp($this->_data_type, C__LOOKUP_DATATYPE_URL__) == 0 )
+        else if(isRecordFieldNotSet($arrRecordToUpdate, 'input_source_url') &&  strcasecmp($this->_data_type, C__LOOKUP_DATATYPE_URL__) == 0 )
         {
             throw new Exception("You should not get here for input source files that are URL lists.");
             exit("You should not get here for input source files that are URL lists.");
@@ -163,7 +165,7 @@ class BasicFactsPluginClass extends ScooterPluginBaseClass
         // If after loading the basic website data we still don't have a company name, construct one from the actual site domain if we got
         // one of those at least
         //
-        if(isRecordFieldNullOrNotSet($arrRecordToUpdate['company_name']) && !isRecordFieldNullOrNotSet($arrRecordToUpdate['actual_site_url']))
+        if(isRecordFieldNotSet($arrRecordToUpdate, 'company_name') && !isRecordFieldNotSet($arrRecordToUpdate, 'actual_site_url'))
         {
             $arrRecordToUpdate['company_name'] = \Scooper\getPrimaryDomainFromUrl($arrRecordToUpdate['actual_site_url'], false);
             // capitalize the every word in the name we got back

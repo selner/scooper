@@ -20,7 +20,8 @@
 /****         Common Includes                                                                                ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-define('__ROOT__', dirname(dirname(__FILE__)));
+if (!strlen(__ROOT__) > 0) { define('__ROOT__', dirname(dirname(__FILE__))); }
+
 
 print (__ROOT__);
 require_once(dirname(__ROOT__)."/vendor/autoload.php");
@@ -108,9 +109,9 @@ function __check_args__()
     /****                                                                                                        ****/
     /****************************************************************************************************************/
 
-    if($GLOBALS['OPTS']['verbose_given']) {  $GLOBALS['OPTS']['VERBOSE'] = true; } else { $GLOBALS['OPTS']['VERBOSE'] = false; }
-    if($GLOBALS['OPTS']['verbose_api_calls_given']) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
-    if($GLOBALS['OPTS']['VERBOSE'] == true) { $GLOBALS['logger']->logLine ('Options set: '.var_export($GLOBALS['OPTS'], true), \Scooper\C__DISPLAY_NORMAL__); }
+    if(isOptionEqualValue('verbose_given')) {  $GLOBALS['OPTS']['VERBOSE'] = true; } else { $GLOBALS['OPTS']['VERBOSE'] = false; }
+    if(isOptionEqualValue('verbose_api_calls_given')) {  define(C__FSHOWVERBOSE_APICALL__, true); } else { define(C__FSHOWVERBOSE_APICALL__, false); }
+    if(isOptionEqualValue('VERBOSE', true)) { $GLOBALS['logger']->logLine ('Options set: '.var_export($GLOBALS['OPTS'], true), \Scooper\C__DISPLAY_NORMAL__); }
 
 
     \Scooper\set_FileDetails_fromPharseSetting("use_config_ini", 'config_file_details', true);
@@ -137,12 +138,12 @@ function __check_args__()
     $GLOBALS['input_file_details'] = $GLOBALS['CONFIG']->getInputFilesDetails();
     if(is_array($GLOBALS['input_file_details'])) $GLOBALS['input_file_details'] = $GLOBALS['input_file_details'][0];
 
-    if($GLOBALS['OPTS']['inputfile_given'])
+    if(isOptionEqualValue('inputfile_given'))
     {
         $GLOBALS['input_file_details'] = \Scooper\parseFilePath($GLOBALS['OPTS']['inputfile'], $GLOBALS['OPTS']['inputfile_given']);
     }
     $GLOBALS['output_file_details'] = $GLOBALS['CONFIG']->getOutputFileDetails();
-    if($GLOBALS['OPTS']['outputfile_given'])
+    if(isOptionEqualValue('outputfile_given'))
     {
         $GLOBALS['output_file_details'] = \Scooper\parseFilePath($GLOBALS['OPTS']['outputfile'], false);
     }
@@ -160,16 +161,16 @@ function __check_args__()
     /****                                                                                                        ****/
     /****************************************************************************************************************/
 
-    if($GLOBALS['OPTS']['lookup_name_given'] || $GLOBALS['OPTS']['lookup_url_given'])
+    if(isOptionEqualValue('lookup_name_given') || isOptionEqualValue('lookup_url_given'))
     {
         $GLOBALS['lookup_mode'] = C_LOOKUP_MODE_SINGLE;
 
-        if($GLOBALS['OPTS']['lookup_url_given'] && strlen($GLOBALS['OPTS']['lookup_url']) == 0 )
+        if(isOptionEqualValue('lookup_url_given') && strlen($GLOBALS['OPTS']['lookup_url']) == 0 )
         {
             $GLOBALS['logger']->addToErrs($strErrOptions, "Company website URL required with --lookup_url/-lu .");
             $fHadFatalError = true;
         }
-        else if($GLOBALS['OPTS']['lookup_name_given'] && strlen($GLOBALS['OPTS']['lookup_name']) == 0 )
+        else if(isOptionEqualValue('lookup_name_given') && strlen($GLOBALS['OPTS']['lookup_name']) == 0 )
         {
             $GLOBALS['logger']-> addToErrs($strErrOptions, "Company name required with --lookup_name/-ln .");
             $fHadFatalError = true;
@@ -219,17 +220,17 @@ function __check_args__()
 
 
 
-    if($GLOBALS['OPTS']['exclude_quantcast_given'] ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
-    if($GLOBALS['OPTS']['exclude_angellist_given'] ) {  $GLOBALS['OPTS']['exclude_angellist'] = 1;  } else { $GLOBALS['OPTS']['exclude_angellist'] = 0; }
+    if(isOptionEqualValue('exclude_quantcast_given') ) {  $GLOBALS['OPTS']['exclude_quantcast'] = 1;  } else { $GLOBALS['OPTS']['exclude_quantcast'] = 0; }
+    if(isOptionEqualValue('exclude_angellist_given') ) {  $GLOBALS['OPTS']['exclude_angellist'] = 1;  } else { $GLOBALS['OPTS']['exclude_angellist'] = 0; }
 
-    if( $GLOBALS['OPTS']['exclude_moz'] != 1)
+    if( !isOptionEqualValue('exclude_moz', 1))
     {
         $GLOBALS['OPTS']['moz_access_id'] = $GLOBALS['CONFIG']->keys("moz_access_id");
         $GLOBALS['OPTS']['moz_secret_key'] = $GLOBALS['CONFIG']->keys("moz_secret_key");
 
-        if(!$GLOBALS['OPTS']['exclude_moz_given'] && (strlen($GLOBALS['OPTS']['moz_access_id']) == 0 && $GLOBALS['OPTS']['moz_secret_key'] == 0)  )
+        if(!isOptionEqualValue('exclude_moz_given', 0) && $GLOBALS['OPTS']['moz_secret_key'] == 0)
         {
-            if(!$GLOBALS['OPTS']['exclude_moz_given']) { $GLOBALS['logger']->logLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", \Scooper\C__DISPLAY_ITEM_DETAIL__); }
+            if(!isOptionEqualValue('exclude_moz_given')) { $GLOBALS['logger']->logLine("Moz API access ID and secret key were not both set.  Excluding Moz.com data. ", \Scooper\C__DISPLAY_ITEM_DETAIL__); }
             $GLOBALS['OPTS']['exclude_moz'] = 1;
         }
         else
@@ -238,21 +239,27 @@ function __check_args__()
         }
     }
 
-    if($GLOBALS['OPTS']['exclude_crunchbase'] != 1)
+    if(!isOptionEqualValue('exclude_crunchbase', 1))
     {
-        $GLOBALS['OPTS']['crunchbase_api_id'] = $GLOBALS['CONFIG']->keys("crunchbase_v2_api_id");
-        if($GLOBALS['OPTS']['exclude_crunchbase_given'] )
+        if(isOptionEqualValue('exclude_crunchbase_given'))
         {
             $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
         }
         else
         {
-            $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
-            if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)
+
+
+            if(!isOptionEqualValue('crunchbase_api_id_given'))
+            {
+                $GLOBALS['OPTS']['crunchbase_api_id'] = $GLOBALS['CONFIG']->keys("crunchbase_api_id");
+            }
+
+            if(!isset($GLOBALS['OPTS']['crunchbase_api_id']) || strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)
             {
                 $GLOBALS['OPTS']['exclude_crunchbase'] = 1;
-                $GLOBALS['logger']->logLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , \Scooper\C__DISPLAY_ERROR__);
+                $GLOBALS['logger']->logLine("No Crunchbase API Key given by the the user. Excluding Crunchbase." , \Scooper\C__DISPLAY_WARNING__);
             }
+            $GLOBALS['OPTS']['exclude_crunchbase'] = 0;
 
         }
 
@@ -395,3 +402,11 @@ function __reset_args__()
     return $GLOBALS['OPTS'];
 }
 
+function isOptionEqualValue($optKey, $val = true)
+{
+//    print('checking key = ' . $optKey . " against value = '" . $val. "'.  Actual value is '" . $GLOBALS['OPTS'][$optKey]. "'". PHP_EOL);
+
+    if(!isset($GLOBALS['OPTS']) || !isset($GLOBALS['OPTS'][$optKey])) return false;
+
+    return $GLOBALS['OPTS'][$optKey] == $val;
+}

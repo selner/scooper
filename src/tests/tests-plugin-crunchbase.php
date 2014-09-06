@@ -15,7 +15,8 @@
  * under the License.
  */
 
-define('__ROOT__', dirname(dirname(__FILE__)));
+if (!strlen(__ROOT__) > 0) { define('__ROOT__', dirname(dirname(__FILE__))); }
+
 require_once(__ROOT__.'/tests/tests-base.php');
 
 

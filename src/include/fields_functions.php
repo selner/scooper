@@ -22,9 +22,34 @@ function getEmptyFullRecordArray()
     return $GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'];
 }
 
+function isRecordFieldValid($record, $val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
+{
+    return !isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid, $fZeroIsValid);
+
+}
+
 function isRecordFieldValidlySet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)
 {
     return !isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid, $fZeroIsValid);
+}
+
+function isRecordFieldNotSet($record, $key, $fEmptyStringIsValid = false, $fZeroIsValid = false)
+{
+    if(!isset($record)) return true;
+
+    if(!isset($record[$key])) return true;
+
+    // true = not valid (e.g. "<not set>", "n/a", "", 0, null, etc.)
+    // false = valid data
+    if(!$record[$key]) return true;
+    if(($fZeroIsValid == true) && ($record[$key] == 0)) { return true; }
+
+    if(is_string($record[$key]) && (strcasecmp($record[$key], "<not set>") == 0 || (strlen($record[$key]) == 0 && $fEmptyStringIsValid != true)))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 function isRecordFieldNullOrNotSet($val, $fEmptyStringIsValid = false, $fZeroIsValid = false)

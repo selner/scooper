@@ -14,6 +14,7 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
+if (!defined('__ROOT__')) { define('__ROOT__', dirname(dirname(__FILE__))); }
 require_once(__ROOT__.'/include/plugin-base.php');
 
 const C__MAX_CRUNCHBASE_PAGE_DOWNLOADS = 5;

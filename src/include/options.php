@@ -20,7 +20,7 @@
 /****         Common Includes                                                                                ****/
 /****                                                                                                        ****/
 /****************************************************************************************************************/
-if (!strlen(__ROOT__) > 0) { define('__ROOT__', dirname(dirname(__FILE__))); }
+if (!defined('__ROOT__')) { define('__ROOT__', dirname(dirname(__FILE__))); }
 
 
 print (__ROOT__);

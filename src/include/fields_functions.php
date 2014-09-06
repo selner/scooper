@@ -6,7 +6,7 @@
 /****                                                                                                        ****/
 /****************************************************************************************************************/
 
-require_once(__ROOT__.'/include/options.php');
+if (!defined('__ROOT__')) { define('__ROOT__', dirname(dirname(__FILE__))); }
 
 $GLOBALS['ALL_KEYS_IN_RIGHT_RESULTS_ORDER'] =  array(
     'company_name' => '<not set>',

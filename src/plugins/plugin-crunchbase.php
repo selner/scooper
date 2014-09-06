@@ -41,13 +41,13 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 	{
         if($fExcludeThisData == 1) { $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES; }
 
-        if(strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0 || $GLOBALS['OPTS']['crunchbase_api_id'] == "")
+        if(!isset($GLOBALS['OPTS']['crunchbase_api_id']) || strlen($GLOBALS['OPTS']['crunchbase_api_id']) == 0)
         {
-            $GLOBALS['logger']->logLine("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", \Scooper\C__DISPLAY_ERROR__);
+            $GLOBALS['logger']->logLine("Crunchbase API Key was not set.  Excluding Crunchbase data from the results.", \Scooper\C__DISPLAY_ITEM_DETAIL__);
             $this->_fDataIsExcluded_ = C__FEXCLUDE_DATA_YES;
         }
 
-        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_NORMAL__);
+        $GLOBALS['logger']->logLine("Initializing the ". $this->strDataProviderName ." data plugin (ExcludeData=".$this->_fDataIsExcluded_.").", \Scooper\C__DISPLAY_ITEM_DETAIL__);
 	}
 
 
@@ -114,7 +114,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
         if(!$strPermalink || strlen($strPermalink) == 0)
         {
-            if($GLOBALS['OPTS']['VERBOSE'])  { $GLOBALS['logger']->logLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
+            if(isOptionEqualValue('VERBOSE'))  { $GLOBALS['logger']->logLine("No Crunchbase permanlink value passed.  Cannot lookup other facts.", \Scooper\C__DISPLAY_ITEM_RESULT__);  }
             return null;
         }
 
@@ -125,8 +125,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         //
         $data = $this->fetchCrunchbaseDataFromAPI($strAPIURL, true, 'data');
         $data['crunchbase_match_accuracy'] = "Exact match on permalink.";
-        if(isRecordFieldNullOrNotSet($data['root_domain'])) { $data['root_domain'] = \Scooper\getPrimaryDomainFromUrl($data['homepage_url']); }
-        if(isRecordFieldNullOrNotSet($data['actual_site_url'])) { $data['actual_site_url'] = $data['homepage_url']; }
+        if(isRecordFieldNotSet($data, 'root_domain')) { $data['root_domain'] = \Scooper\getPrimaryDomainFromUrl($data['homepage_url']); }
+        if(isRecordFieldNotSet($data, 'actual_site_url')) { $data['actual_site_url'] = $data['homepage_url']; }
         return $data;
     }
 
@@ -293,9 +293,9 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     {
         if($this->_fDataIsExcluded_ == C__FEXCLUDE_DATA_YES) return;
 
-        $GLOBALS['logger']->logLine("Getting Crunchbase ".$arrRecordToUpdate['namespace'] ." entity-specific facts for ".(isRecordFieldNullOrNotSet($arrRecordToUpdate['name'])? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , \Scooper\C__DISPLAY_ITEM_DETAIL__);
+        $GLOBALS['logger']->logLine("Getting Crunchbase entity-specific facts for ".(isRecordFieldNotSet($arrRecordToUpdate, 'name')? $arrRecordToUpdate['permalink'] : $arrRecordToUpdate['name']) , \Scooper\C__DISPLAY_ITEM_DETAIL__);
 
-        if(!isRecordFieldNullOrNotSet($arrRecordToUpdate['permalink']))
+        if(!isRecordFieldNotSet($arrRecordToUpdate, 'permalink'))
         {
 
             $arrCrunchEntityData = $this->getCompanyData($arrRecordToUpdate['permalink']);
@@ -337,7 +337,7 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
     }
 
 
-    public function fetchCrunchbaseDataFromAPI($strAPIURL, $fFlatten = false, $jsonResultsKey = null)
+    public function fetchCrunchbaseDataFromAPI($strAPIURL, $fFlatten = false, $jsonResultsKey = 'data')
     {
         $arrObjectMatches = array();
         $retItems = null;
@@ -347,7 +347,8 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
         {
             $data = $this->fetchDataFromAPI($strAPIURL, $fFlatten, null,  C__RETURNS_SINGLE_RECORD, null, 'data');
             $retItems = $this->_getSingleItemFromCBData_($data, $fFlatten);
-            $this->_addRelationshipsToResult_($retItems, $data[1]);
+            if(isset($data['relationships']))
+                $this->_addRelationshipsToResult_($retItems, $data['relationships']);
 
         }
         else
@@ -361,17 +362,22 @@ class CrunchbasePluginClass extends ScooterPluginBaseClass
 
     protected function setRecordCountForURL(&$arrAPICallSettings)
     {
-        $fSingleMatch = preg_match_all(C__CB_SINGLERECORD_TYPES_REGEX__, $arrAPICallSettings['urls_to_fetch'][0], $arrObjectMatches);
-
-        if($fSingleMatch == true && count($arrObjectMatches) > 0)
+        $fSingleMatch = true;
+        $arrObjectMatches = array();
+        if(isset($arrAPICallSettings['urls_to_fetch']) && isset($arrAPICallSettings['urls_to_fetch'][0]))
         {
-            $arrAPICallSettings['multiple_object_result'] = false;
+            $fSingleMatch = preg_match_all(C__CB_SINGLERECORD_TYPES_REGEX__, $arrAPICallSettings['urls_to_fetch'][0], $arrObjectMatches);
         }
-        else
-        {
-            $arrAPICallSettings['multiple_object_result'] = true;
 
-        }
+            if($fSingleMatch == true && count($arrObjectMatches) > 0)
+            {
+                $arrAPICallSettings['multiple_object_result'] = false;
+            }
+            else
+            {
+                $arrAPICallSettings['multiple_object_result'] = true;
+
+            }
     }
 
     protected function getKeyURLString()
